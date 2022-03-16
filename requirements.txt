@@ -4,6 +4,6 @@ openpyxl
 matplotlib
 mathjax
 plotly
-glpk
 pyomo
+glpk
 numpy
