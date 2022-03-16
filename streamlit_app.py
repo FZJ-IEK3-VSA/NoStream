@@ -78,7 +78,7 @@ start_opti = st.button("Start optimization")
 
 if start_opti:
     with st.spinner(text="Running optimization..."):
-        opti.run_scenario()
+        opti.run_scenario(demand_reduct=bool(reduced_demand))
 
 
 
