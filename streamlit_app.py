@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 # import plotly.figure_factory as ff
 from get_data import *
 
+from rusngstorage import storage_sim as opti
 # from PIL import Image
 
 #%%
@@ -62,9 +63,13 @@ st.markdown("# Energy imports from Russia and possible alternatives")
 
 st.markdown("## Scenario calculation: Reduction of Russian gas imports")
 
+st.markdown("Running scenario...")
+opti.run_scenario()
+
+
+
+
 cols = st.columns(4)
-
-
 pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
 
 reduced_demand = cols[1].selectbox("Nachfrageredutkion", ["False", "True"], 1)
@@ -239,7 +244,7 @@ fig.update_layout(
     title=f"Speicherfüllstand",
     font=font_dict,
     yaxis_title="Erdgas [TWh]",
-    # legend=legend_dict,
+    legend=legend_dict,
 )
 # fig.update_layout(showlegend=False)
 
