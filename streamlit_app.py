@@ -74,6 +74,7 @@ lng_capacity = cols[2].selectbox(
 )  # [2.4, 4.0, 5.6]
 
 # soc_slack = cols[3].selectbox("SOC Slack", ["False", "True"], 0)
+soc_slack = False
 
 start_opti = st.button("Start optimization")
 
@@ -82,7 +83,7 @@ if start_opti:
         opti.run_scenario(russ_share=int(pl_reduction), lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
 
 
-
+if start_opti:
     with st.spinner(text="Fetching results..."):
         df = get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
 
