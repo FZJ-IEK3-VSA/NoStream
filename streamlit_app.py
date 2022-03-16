@@ -63,8 +63,9 @@ st.markdown("# Energy imports from Russia and possible alternatives")
 
 st.markdown("## Scenario calculation: Reduction of Russian gas imports")
 
-cols = st.columns(4)
-pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
+cols = st.columns(3)
+# pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
+pl_reduction = cols[0].slider("Anteil Russisches Gas an Importen [%]", min_value=0, max_value=100, value=0, step=5)
 
 reduced_demand = cols[1].selectbox("Nachfrageredutkion", ["False", "True"], 1)
 
@@ -72,13 +73,13 @@ lng_capacity = cols[2].selectbox(
     "Zusätzliche LNG Import Kapazität [TWh/Tag]", [0, 2.6], 1
 )  # [2.4, 4.0, 5.6]
 
-soc_slack = cols[3].selectbox("SOC Slack", ["False", "True"], 0)
+# soc_slack = cols[3].selectbox("SOC Slack", ["False", "True"], 0)
 
 start_opti = st.button("Start optimization")
 
 if start_opti:
     with st.spinner(text="Running optimization..."):
-        opti.run_scenario(demand_reduct=bool(reduced_demand))
+        opti.run_scenario(russ_share=int(pl_reduction), lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
 
 
 
