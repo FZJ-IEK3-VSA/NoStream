@@ -11,7 +11,8 @@ import plotly.graph_objects as go
 # import plotly.figure_factory as ff
 from get_data import *
 
-from rusngstorage import storage_sim as opti
+# import rusngstorage.storage_sim as opti
+import storage_sim as opti
 # from PIL import Image
 
 #%%
