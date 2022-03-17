@@ -15,6 +15,7 @@ import get_data as gdta
 import storage_sim as opti
 # from PIL import Image
 
+import os
 from pyutilib.services import register_executable, registered_executable
 register_executable(name='glpsol')
 
@@ -80,6 +81,7 @@ soc_slack = False
 
 start_opti = st.button("Start optimization")
 
+print(os.environ['PATH'])
 if start_opti:
     with st.spinner(text="Running optimization..."):
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
