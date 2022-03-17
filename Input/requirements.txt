@@ -1,9 +1,0 @@
-streamlit==1.7.0
-pandas
-openpyxl
-mathjax
-plotly
-pyomo==6.3.0
-glpk==0.4.6
-numpy
-kaleido

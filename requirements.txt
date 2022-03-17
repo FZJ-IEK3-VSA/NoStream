@@ -1,0 +1,9 @@
+streamlit
+pandas
+openpyxl
+numpy
+pyomo
+glpk
+plotly
+mathjax
+kaleido
