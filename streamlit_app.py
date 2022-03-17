@@ -82,7 +82,10 @@ if start_opti:
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
         results_exist = gdta.results_exists(scenario_name)
         if not results_exist:
-            opti.run_scenario(russ_share=pl_reduction, lng_val=lng_capacity, demand_reduct=bool(reduced_demand), use_soc_slack=soc_slack)
+            try:
+                opti.run_scenario(russ_share=pl_reduction, lng_val=lng_capacity, demand_reduct=bool(reduced_demand), use_soc_slack=soc_slack)
+            except Exception as e:
+                st.write(e)
 
         df = gdta.get_optiRes(scenario_name)
 
