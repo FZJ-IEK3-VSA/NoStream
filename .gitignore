@@ -1,0 +1,22 @@
+# directories
+env/*
+*.egg-info/
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+__pycache__/
+analysis/regions/*
+
+# file types to ignore
+#*.ipynb
+*.aux.xml
+
+# Remove things in testing results dir
+Results_Optimization/*
+
+# Extras
+.vscode/settings.json
+.vscode/launch.json
+.coverage
+.pytest
+.cache/v/cache/lastfailed
+.pytest_cache/*

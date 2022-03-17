@@ -3,16 +3,17 @@ channels:
   - conda-forge
   - plotly
   - anaconda
+  - defaults
 dependencies:
   - python=3.6   # or 2.7
   - pip
   - numpy
   - pandas
   - openpyxl
+  - glpk
   - pip:
     - streamlit
     - pyomo # ==6.3.0
-  - glpk
   # - plotly
   # - mathjax
   # - python-kaleido
