@@ -81,7 +81,7 @@ soc_slack = False
 
 start_opti = st.button("Start optimization")
 
-print(os.environ['PATH'])
+# print(os.environ['PATH'])
 st.write(os.environ['PATH'])
 if start_opti:
     with st.spinner(text="Running optimization..."):

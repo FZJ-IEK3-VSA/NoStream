@@ -1,10 +1,10 @@
 streamlit
 pyutilib
+numpy
 pandas
 openpyxl
-numpy
 pyomo
-glpk
+scikit-glpk
 plotly
 mathjax
 kaleido
