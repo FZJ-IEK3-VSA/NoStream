@@ -240,7 +240,7 @@ if start_opti:
                 x=xvals,
                 y=np.ones(len(xvals)) * 1100,
                 name="Maximale Kapazität",
-                line=dict(color=FZJcolor.get("black"), width=3.5),
+                line=dict(color=FZJcolor.get("black"), width=2),
                 fillcolor="rgba(0, 0, 0, 0)",
             )
         )

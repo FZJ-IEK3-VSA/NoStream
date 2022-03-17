@@ -11,8 +11,8 @@ dependencies:
   - openpyxl
   - pip:
     - streamlit
-    - pyomo==6.3.0
+    - pyomo # ==6.3.0
   - glpk
-  - plotly
-  - mathjax
-  - python-kaleido
+  # - plotly
+  # - mathjax
+  # - python-kaleido
