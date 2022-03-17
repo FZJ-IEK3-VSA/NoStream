@@ -10,8 +10,8 @@ import storage_sim as opti
 # from PIL import Image
 
 import os
-from pyutilib.services import register_executable, registered_executable
-register_executable(name='glpsol')
+# from pyutilib.services import register_executable, registered_executable
+# register_executable(name='glpsol')
 
 #%%
 # Get Data

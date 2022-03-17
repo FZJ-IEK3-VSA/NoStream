@@ -12,8 +12,8 @@ import copy
 import streamlit as st
 import get_data as gdta
 
-from pyutilib.services import register_executable, registered_executable
-register_executable(name='glpsol')
+# from pyutilib.services import register_executable, registered_executable
+# register_executable(name='glpsol')
 
 # import matplotlib
 # plt.rc('font', size=16)
