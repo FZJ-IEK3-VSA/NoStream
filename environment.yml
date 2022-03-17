@@ -1,0 +1,32 @@
+name: minimal
+dependencies:
+  - python=3.7
+  - pip
+  - pip:
+    - numpy
+    - pandas
+    - openpyxl
+    - pyomo
+    - streamlit
+  - glpk
+
+
+# channels:
+#   - conda-forge
+#   - defaults
+#   - anaconda
+#   - plotly
+# dependencies:
+#   - streamlit
+#   - python=3.6
+#   - pip
+#   - numpy
+#   - pandas
+#   - openpyxl
+#   - pip:
+#     - streamlit
+#     - pyomo # ==6.3.0
+#   - glpk
+#   - plotly
+#   - mathjax
+#   - python-kaleido
