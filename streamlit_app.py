@@ -9,7 +9,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # import plotly.figure_factory as ff
-from get_data import *
+import get_data as gdta
 
 # import rusngstorage.storage_sim as opti
 import storage_sim as opti
@@ -17,15 +17,13 @@ import storage_sim as opti
 
 #%%
 # Get Data
-FZJcolor = get_fzjColor()
-# lng_df = get_lng_storage()
-# gng_df = get_ng_storage()
+FZJcolor = gdta.get_fzjColor()
 
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 # scale = 2
-font_dict = dict(size=28)
+font_dict = dict(size=24)
 
-write_image = True  # True False
+write_image = False  # True False
 scale = 2
 width = 3000 / scale
 height = 1000 / scale
@@ -80,10 +78,11 @@ start_opti = st.button("Start optimization")
 
 if start_opti:
     with st.spinner(text="Running optimization..."):
-        if not results_exists(pl_reduction, lng_capacity, reduced_demand, soc_slack):
+        scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
+        if not gdta.results_exists(scenario_name):
             opti.run_scenario(russ_share=pl_reduction, lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
 
-        df = get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
+        df = gdta.get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
 
         # cols = st.columns(2)
 
@@ -210,7 +209,7 @@ if start_opti:
 
         if write_image:
             fig.write_image(
-                f"Output/Optimierung_Erdgasbedarf_{pl_reduction}_{lng_capacity}_{reduced_demand}_{soc_slack}.png",
+                f"Output/Optimierung_Erdgasbedarf_{scenario_name}.png",
                 width=width,
                 height=height,
                 # scale=scale,
@@ -253,7 +252,7 @@ if start_opti:
 
         if write_image:
             fig.write_image(
-                f"Output/Optimierung_Speicher_{pl_reduction}_{lng_capacity}_{reduced_demand}_{soc_slack}.png",
+                f"Output/Optimierung_Speicher_{scenario_name}.png",
                 width=width,
                 height=height,
                 # scale=scale,

@@ -10,6 +10,7 @@ import time
 import warnings
 import copy
 import streamlit as st
+import get_data as gdta
 
 # import matplotlib
 # plt.rc('font', size=16)
@@ -426,7 +427,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
 
     # set solver details
     solver = "glpk"  # gurobi glpk cbc
-    optimizer = opt.SolverFactory(solver, solver_io="python")
+    optimizer = opt.SolverFactory(solver) # , solver_io="python"
     # optimizer = pyomo.SolverFactory(solver)
     solver_info = optimizer.solve(pyM) #, tee=True
 
@@ -491,8 +492,8 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
         (df.dom_served.sum()+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
     print(df['balance'])
     print("saving...")
-
-    df.to_excel(f'Results_Optimization/results_aGasFlowScen{int(russ_share*100)}_{int(lng_val*10)}_{demand_reduct}_{use_soc_slack}.xlsx')
+    scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
+    df.to_excel(f'Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx')
     print("Done!")
 
     # fig, ax = plt.subplots(figsize=(20, 4))

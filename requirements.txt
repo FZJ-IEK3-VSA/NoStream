@@ -3,6 +3,7 @@ pandas
 openpyxl
 mathjax
 plotly
-pyomo==5.7.2
-glpk
+pyomo==6.3.0
+glpk==5.0
 numpy
+kaleido
