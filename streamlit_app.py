@@ -52,10 +52,8 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.text("")
-st.markdown("# Auswirkungen der Reduktion Russischer Gas-Importe auf die Versorgungssicherheit in Europa")
-
-
-# st.markdown("## Scenario calculation: Reduction of Russian gas imports")
+st.markdown("# Reduktion Russischer Gas-Importe")
+st.markdown("## Auswirkungen auf die Versorgungssicherheit in Europa")
 
 cols = st.columns(3)
 # pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
