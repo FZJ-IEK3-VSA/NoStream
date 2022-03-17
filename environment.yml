@@ -12,7 +12,7 @@ dependencies:
   - mathjax
   - plotly
   - glpk
-  - kaleido
+  - python-kaleido
   - pip
   - pip:
     - streamlit
