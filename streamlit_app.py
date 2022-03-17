@@ -15,6 +15,9 @@ import get_data as gdta
 import storage_sim as opti
 # from PIL import Image
 
+from pyutilib.services import register_executable, registered_executable
+register_executable(name='glpsol')
+
 #%%
 # Get Data
 FZJcolor = gdta.get_fzjColor()
