@@ -82,6 +82,7 @@ soc_slack = False
 start_opti = st.button("Start optimization")
 
 print(os.environ['PATH'])
+st.write(os.environ['PATH'])
 if start_opti:
     with st.spinner(text="Running optimization..."):
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
