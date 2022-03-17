@@ -4,6 +4,6 @@ openpyxl
 mathjax
 plotly
 pyomo==6.3.0
-glpk==5.0
+glpk==0.4.6
 numpy
 kaleido
