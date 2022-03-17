@@ -8,6 +8,8 @@ dependencies:
     - openpyxl
     - pyomo
     - streamlit
+    - plotly
+    - pyutilib
   - glpk
 
 
