@@ -81,7 +81,7 @@ if start_opti:
     with st.spinner(text="Running optimization..."):
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
         if not gdta.results_exists(scenario_name):
-            opti.run_scenario(russ_share=pl_reduction, lng_val=lng_capacity, demand_reduct=bool(reduced_demand))
+            opti.run_scenario(russ_share=pl_reduction, lng_val=lng_capacity, demand_reduct=bool(reduced_demand), use_soc_slack=soc_slack)
 
         df = gdta.get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
 
