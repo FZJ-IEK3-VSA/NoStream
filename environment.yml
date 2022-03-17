@@ -1,18 +1,18 @@
-name: streamlit
 channels:
   - conda-forge
   - plotly
   - anaconda
   - defaults
 dependencies:
-  - python=3.6   # or 2.7
-  - pip
+  - streamlit
+  # - python=3.6   # or 2.7
+  # - pip
   # - numpy
   # - pandas
   # - openpyxl
   # - glpk
-  - pip:
-    - streamlit
+  # - pip:
+    # - streamlit
     # - pyomo # ==6.3.0
   # - plotly
   # - mathjax
