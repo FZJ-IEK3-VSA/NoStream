@@ -1,9 +1,9 @@
+pyomo
 streamlit
 pyutilib
 numpy
 pandas
 openpyxl
-pyomo
 scikit-glpk
 plotly
 mathjax

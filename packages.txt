@@ -1,3 +1,2 @@
 libglpk-dev
 libgmp3-dev
-glpk
