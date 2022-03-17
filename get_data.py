@@ -7,7 +7,7 @@ LHV_LNG = 0.006291  # kWh/m3 = MWh/10^3m3
 
 def get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack):
     fileName = f"results_aGasFlowScen{pl_reduction}_{int(lng_capacity*10)}_{reduced_demand}_{soc_slack}.xlsx"
-    fileDir = f"Input/Optimization/{fileName}"
+    fileDir = f"Results_Optimization/{fileName}"
     df = pd.read_excel(fileDir, index_col=0)
     df.fillna(0, inplace=True)
     df.time = pd.to_datetime(df.time)

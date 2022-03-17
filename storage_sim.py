@@ -427,7 +427,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
     # set solver details
     solver = "glpk"  # gurobi
     optimizer = opt.SolverFactory(solver)
-    solver_info = optimizer.solve(pyM, tee=True)
+    solver_info = optimizer.solve(pyM) #, tee=True
 
     print(solver_info['Problem'][0])
 
@@ -491,7 +491,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
     print(df['balance'])
     print("saving...")
 
-    df.to_excel(f'Input/Optimization/results_aGasFlowScen{int(russ_share*100)}_{int(lng_val*10)}_{demand_reduct}_{use_soc_slack}.xlsx')
+    df.to_excel(f'Results_Optimization/results_aGasFlowScen{int(russ_share*100)}_{int(lng_val*10)}_{demand_reduct}_{use_soc_slack}.xlsx')
     print("Done!")
 
     # fig, ax = plt.subplots(figsize=(20, 4))

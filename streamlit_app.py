@@ -65,10 +65,10 @@ st.markdown("## Scenario calculation: Reduction of Russian gas imports")
 
 cols = st.columns(3)
 # pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
-pl_reduction = cols[0].slider("Anteil Russisches Gas an Importen [%]", min_value=0, max_value=100, value=0, step=5)
+pl_reduction = cols[0].slider("Anteil russischer Erdgaslieferung [%]", min_value=0, max_value=100, value=0, step=5)
 
 reduced_demand = cols[1].selectbox("Nachfrageredutkion", ["False", "True"], 1)
-pl_reduction = int(float(pl_reduction)/100)
+pl_reduction = pl_reduction/100
 lng_capacity = cols[2].selectbox(
     "Zusätzliche LNG Import Kapazität [TWh/Tag]", [0, 2.6], 1
 )  # [2.4, 4.0, 5.6]
