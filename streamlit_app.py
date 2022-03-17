@@ -80,11 +80,9 @@ start_opti = st.button("Start optimization")
 
 if start_opti:
     with st.spinner(text="Running optimization..."):
-        opti.run_scenario(russ_share=pl_reduction, lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
+        if not results_exists(pl_reduction, lng_capacity, reduced_demand, soc_slack):
+            opti.run_scenario(russ_share=pl_reduction, lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
 
-
-if start_opti:
-    with st.spinner(text="Fetching results..."):
         df = get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
 
         # cols = st.columns(2)

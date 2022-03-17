@@ -426,7 +426,8 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
 
     # set solver details
     solver = "glpk"  # gurobi
-    optimizer = opt.SolverFactory(solver)
+    # optimizer = opt.SolverFactory(solver, solver_io="python")
+    optimizer = pyomo.SolverFactory(solver)
     solver_info = optimizer.solve(pyM) #, tee=True
 
     print(solver_info['Problem'][0])
