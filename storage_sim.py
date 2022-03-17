@@ -539,13 +539,12 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
     #     print(i.value)
     # plt.close()
 
-
 # # %%
-# # loop over all scenario variations
-# for russ_share in russian_gas_share:
-#     for lng_val in lng_values:
-#         for demand_reduct in demand_reduction:
-#             scenario(lng_val, russ_share, demand_reduct, total_domestic_demand, electricity_demand_const,
-#                      electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
-
-# # %%
+if __name__ == "__main__":
+    run_scenario(russ_share=0, lng_val=2.64, demand_reduct=True)
+    # # loop over all scenario variations
+    # for russ_share in russian_gas_share:
+    #     for lng_val in lng_values:
+    #         for demand_reduct in demand_reduction:
+    #             scenario(lng_val, russ_share, demand_reduct, total_domestic_demand, electricity_demand_const,
+    #                      electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
