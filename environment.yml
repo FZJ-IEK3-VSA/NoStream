@@ -2,15 +2,15 @@ name: minimal
 dependencies:
   - python=3.7
   - pip
+  - glpk
   - pip:
     - numpy
     - pandas
     - openpyxl
-    - pyomo
     - streamlit
-    - plotly
     - pyutilib
-  - glpk
+    - plotly
+    - pyomo
 
 
 # channels:
