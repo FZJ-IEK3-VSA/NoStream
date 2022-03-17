@@ -1,8 +1,8 @@
-streamlit==1.5.0
+streamlit==1.7.0
 pandas
 openpyxl
 mathjax
 plotly
-pyomo
+pyomo==5.7.2
 glpk
 numpy
