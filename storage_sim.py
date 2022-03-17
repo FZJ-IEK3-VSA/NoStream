@@ -120,7 +120,7 @@ for value in soc_max_day:
 
 
 
-def run_scenario(russ_share=0, lng_val=2.64, demand_reduct=True):
+def run_scenario(lng_val=2.64, russ_share=0, demand_reduct=True):
     scenario(lng_val, russ_share, demand_reduct, total_domestic_demand, electricity_demand_const,
             electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
 
@@ -492,7 +492,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, total_domes
         (df.dom_served.sum()+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
     print(df['balance'])
     print("saving...")
-    scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
+    scenario_name = gdta.get_scenario_name(russ_share, lng_capacity, reduced_demand, soc_slack)
     df.to_excel(f'Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx')
     print("Done!")
 

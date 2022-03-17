@@ -64,9 +64,10 @@ st.markdown("## Scenario calculation: Reduction of Russian gas imports")
 cols = st.columns(3)
 # pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
 pl_reduction = cols[0].slider("Anteil russischer Erdgaslieferung [%]", min_value=0, max_value=100, value=0, step=5)
+pl_reduction = pl_reduction/100
 
 reduced_demand = cols[1].selectbox("Nachfrageredutkion", ["False", "True"], 1)
-pl_reduction = pl_reduction/100
+
 lng_capacity = cols[2].selectbox(
     "Zusätzliche LNG Import Kapazität [TWh/Tag]", [0, 2.6], 1
 )  # [2.4, 4.0, 5.6]
@@ -80,7 +81,7 @@ if start_opti:
     with st.spinner(text="Running optimization..."):
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
         if not gdta.results_exists(scenario_name):
-            opti.run_scenario(russ_share=pl_reduction, lng_val=float(lng_capacity), demand_reduct=bool(reduced_demand))
+            opti.run_scenario(russ_share=pl_reduction, lng_val=lng_capacity, demand_reduct=bool(reduced_demand))
 
         df = gdta.get_optiRes(pl_reduction, lng_capacity, reduced_demand, soc_slack)
 
