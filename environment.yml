@@ -11,7 +11,7 @@ dependencies:
   - openpyxl
   - mathjax
   - plotly
-  - glpk=0.4.6
+  - glpk
   - kaleido
   - pip
   - pip:
