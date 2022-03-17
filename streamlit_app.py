@@ -73,10 +73,8 @@ soc_slack = False
 
 start_opti = st.button("Start optimization")
 
-# print(os.environ['PATH'])
-st.write(os.environ['PATH'])
 if start_opti:
-    with st.spinner(text="Running optimization..."):
+    with st.spinner(text="Running optimization, this might take several minutes..."):
         scenario_name = gdta.get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack)
         results_exist = gdta.results_exists(scenario_name)
         if not results_exist:
@@ -104,7 +102,7 @@ if start_opti:
                 x=xvals,
                 y=df.dom_served,
                 stackgroup="one",
-                # legendgroup="bedarf",
+                legendgroup="bedarf",
                 name="Haushalte",
                 mode="none",
                 fillcolor=FZJcolor.get("green")
@@ -117,7 +115,7 @@ if start_opti:
                 x=xvals,
                 y=df.ghd_served,
                 stackgroup="one",
-                # legendgroup="bedarf",
+                legendgroup="bedarf",
                 name="GHD",
                 mode="none",
                 fillcolor=FZJcolor.get("purple2")
@@ -129,7 +127,7 @@ if start_opti:
                 x=xvals,
                 y=df.elec_served,
                 stackgroup="one",
-                # legendgroup="bedarf",
+                legendgroup="bedarf",
                 name="Energie",
                 mode="none",
                 fillcolor=FZJcolor.get("blue")
@@ -141,8 +139,8 @@ if start_opti:
                 x=xvals,
                 y=df.ind_served,
                 stackgroup="one",
-                # legendgroup="bedarf",
-                # legendgrouptitle_text="Erdgasbedarfe",
+                legendgroup="bedarf",
+                legendgrouptitle_text="Erdgasbedarfe",
                 name="Industrie",
                 mode="none",
                 fillcolor=FZJcolor.get("grey2"),
@@ -154,7 +152,7 @@ if start_opti:
                 x=xvals,
                 y=df.exp_n_oth_served,
                 stackgroup="one",
-                # legendgroup="bedarf",
+                legendgroup="bedarf",
                 name="Export und sonstige",
                 mode="none",
                 fillcolor=FZJcolor.get("blue2")
@@ -170,7 +168,7 @@ if start_opti:
                     x=xvals,
                     y=total_demand - total_demand_served,
                     stackgroup="one",
-                    # legendgroup="bedarf",
+                    legendgroup="bedarf",
                     name="Ungedeckter Bedarf",
                     mode="none",
                     fillcolor=FZJcolor.get("red"),
@@ -183,8 +181,8 @@ if start_opti:
                 y=df.lngServed,  # lng_val / 24,
                 stackgroup="two",
                 line=dict(color=FZJcolor.get("yellow3"), width=3.5),
-                # legendgroup="import",
-                # legendgrouptitle_text="Erdgasimport",
+                legendgroup="import",
+                legendgrouptitle_text="Erdgasimport",
                 name="LNG Import",
                 fillcolor="rgba(0, 0, 0, 0)",
             )
@@ -196,7 +194,7 @@ if start_opti:
                 y=df.pipeServed,
                 stackgroup="two",
                 line=dict(color=FZJcolor.get("orange"), width=3.5),
-                # legendgroup="import",
+                legendgroup="import",
                 name="Pipeline Import",
                 fillcolor="rgba(0, 0, 0, 0)",
             )
@@ -205,11 +203,11 @@ if start_opti:
 
         fig.update_layout(
             title=f"Erdgasbedarfe und Import",
-            font=font_dict,
+            # font=font_dict,
             yaxis_title="Erdgas [TWh/h]",
-            legend=legend_dict,
+            # legend=legend_dict,
         )
-        fig.update_layout(showlegend=False)
+        # fig.update_layout(showlegend=False)
 
         if write_image:
             fig.write_image(
@@ -233,7 +231,7 @@ if start_opti:
                 stackgroup="one",
                 name="Füllstand",
                 mode="none",
-                fillcolor=FZJcolor.get("orange")
+                fillcolor=FZJcolor.get("grey")
             )
         )
 
@@ -249,7 +247,7 @@ if start_opti:
 
         fig.update_layout(
             title=f"Speicherfüllstand",
-            font=font_dict,
+            # font=font_dict,
             yaxis_title="Erdgas [TWh]",
             legend=legend_dict,
         )
@@ -277,7 +275,7 @@ if start_opti:
                 stackgroup="one",
                 name="Pipeline Import",
                 mode="none",
-                fillcolor=FZJcolor.get("blue3")
+                fillcolor=FZJcolor.get("orange")
             )
         )
 
@@ -288,13 +286,13 @@ if start_opti:
                 stackgroup="one",
                 name="LNG Import",
                 mode="none",
-                fillcolor=FZJcolor.get("yellow")
+                fillcolor=FZJcolor.get("yellow3")
             )
         )
 
         fig.update_layout(
             title=f"Erdgasimporte",
-            font=dict(size=16),
+            # font=dict(size=16),
             yaxis_title="Erdgas [TWh/h]",
             legend=legend_dict,
         )
@@ -335,7 +333,7 @@ if start_opti:
                 stackgroup="one",
                 name="Speicherung (Pipeline)",
                 mode="none",
-                fillcolor=FZJcolor.get("yellow")
+                fillcolor=FZJcolor.get("orange")
             )
         )
 
@@ -346,13 +344,13 @@ if start_opti:
                 stackgroup="one",
                 name="Speicherung (LNG)",
                 mode="none",
-                fillcolor=FZJcolor.get("blue3")
+                fillcolor=FZJcolor.get("yellow3")
             )
         )
 
         fig.update_layout(
             title=f"Ein- und Ausspeicherung Gasspeicher",
-            font=dict(size=16),
+            # font=dict(size=16),
             yaxis_title="Erdgas [TWh/h]",
             legend=legend_dict,
         )
