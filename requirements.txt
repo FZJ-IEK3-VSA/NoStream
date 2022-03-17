@@ -4,7 +4,7 @@ pyutilib
 numpy
 pandas
 openpyxl
-scikit-glpk
+glpk
 plotly
 mathjax
 kaleido
