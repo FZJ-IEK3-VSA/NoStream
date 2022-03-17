@@ -429,7 +429,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
     solver = "glpk"  # gurobi glpk cbc
     optimizer = opt.SolverFactory(solver) # , solver_io="python"
     # optimizer = pyomo.SolverFactory(solver)
-    solver_info = optimizer.solve(pyM) #, tee=True
+    solver_info = optimizer.solve(pyM, tee=True) #, tee=True
 
     print(solver_info['Problem'][0])
 

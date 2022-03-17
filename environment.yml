@@ -5,15 +5,14 @@ channels:
   - anaconda
 dependencies:
   - python=3.6   # or 2.7
-  - glpk
-  - numpy
-  - pandas=1.3.5
-  - openpyxl
-  - mathjax
-  - plotly
-  - glpk
-  - python-kaleido
   - pip
+  - numpy
+  - pandas
+  - openpyxl
   - pip:
     - streamlit
     - pyomo==6.3.0
+  - glpk
+  - plotly
+  - mathjax
+  - python-kaleido

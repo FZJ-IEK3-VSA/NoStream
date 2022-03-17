@@ -236,11 +236,12 @@ if start_opti:
         )
 
         fig.add_trace(
-            go.Line(
+            go.Scatter(
                 x=xvals,
                 y=np.ones(len(xvals)) * 1100,
                 name="Maximale Kapazität",
-                line_color=FZJcolor.get("black")
+                line=dict(color=FZJcolor.get("black"), width=3.5),
+                fillcolor="rgba(0, 0, 0, 0)",
             )
         )
 
