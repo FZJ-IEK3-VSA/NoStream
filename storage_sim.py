@@ -1,6 +1,7 @@
 # %%
 import pandas as pd
 import numpy as np
+
 # import matplotlib.pyplot as plt
 # import matplotlib.dates as mdates
 import math
@@ -32,44 +33,29 @@ import get_data as gdta
 periods_per_year = 8760
 
 
-
 # Sensitivity analysis
 # import share of russion gas [-]
 russian_gas_share = [0.0]
 # Average European LNG import [TWh/d]
 base_lng_import = 2.4
-lng_values = [0.0, 2.64] # 90% load # [0.0, 1.6, 3.2]
+lng_values = [0.0, 2.64]  # 90% load # [0.0, 1.6, 3.2]
 # Demand reduction
-demand_reduction = [True, False]
+# demand_reduction = [True, False]
 
 # Relative demand reduction of the different sectors [-]
-red_dom_dem = 0.13  # 13%
-red_elec_dem = 0.20  # 59% -
-red_ghd_dem = 0.08  # 8%
-red_ind_dem = 0.08  # 8%
+# red_dom_dem = 0.13  # 13%
+# red_elec_dem = 0.20  # 59% -
+# red_ghd_dem = 0.08  # 8%
+# red_ind_dem = 0.08  # 8%
 
 
 # Discounting factor [-/h]
-fac = (1/1.06)**(1/8760)
+fac = (1 / 1.06) ** (1 / 8760)
 
-
-# Energy balance
-# EUROSTAT 2019 (sankey)
-# https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN
-# Different total demands [TWh/a]
-total_domestic_demand = 926
-electricity_demand_volatile = 1515.83*0.3
-electricity_demand_const = 1515.83*0.7
-total_ghd_demand = 420.5
-industry_demand_volatile = 1110.88*0.3
-industry_demand_const = 1110.88*0.7
-exports_and_other = 988  # from which country?
-balance_delta = 163
-exports_and_other += balance_delta
 
 # Imports [TWh/a]
 russian_import = 1752
-non_russian_pipeline_import_and_domestic_production = 3046-2.4*365
+non_russian_pipeline_import_and_domestic_production = 3046 - 2.4 * 365
 
 
 ## Time and dates
@@ -78,24 +64,29 @@ periods_per_year = 8760
 
 # Start date of the observation period
 start_date = "2022-01-01"
-number_periods = periods_per_year*1.5
+number_periods = periods_per_year * 1.5
 
 # derive time index for the observation periods
 time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
 # last stop import
 time_index_import_normal = pd.date_range(
-            start='2022-01-01 00:00:00', end='2022-04-16 00:00:00', freq="H")
+    start="2022-01-01 00:00:00", end="2022-04-16 00:00:00", freq="H"
+)
 
-time_index_import_reduced = pd.date_range(start='2022-04-16 01:00:00', end='2023-07-02 11:00:00', freq="H")
+time_index_import_reduced = pd.date_range(
+    start="2022-04-16 01:00:00", end="2023-07-02 11:00:00", freq="H"
+)
 
 # derive time for the reduced demand
 time_index_demand_reduced = pd.date_range(
-    start='2022-03-16 01:00:00', end='2023-07-02 11:00:00', freq="H")
+    start="2022-03-16 01:00:00", end="2023-07-02 11:00:00", freq="H"
+)
 
 # time for increased lng
 time_index_lng_increased = pd.date_range(
-    start='2022-05-01 01:00:00', end='2023-07-02 11:00:00', freq="H")
+    start="2022-05-01 01:00:00", end="2023-07-02 11:00:00", freq="H"
+)
 
 
 # Storage
@@ -122,15 +113,76 @@ for value in soc_max_day:
     soc_max_hour = soc_max_hour + 24 * hour_val
 
 
+def run_scenario(
+    total_domestic_demand=926,
+    total_ghd_demand = 420.5,
+    total_electricity_demand=1515.83,
+    total_industry_demand=1110.88,
+    total_exports_and_other=988,
+    red_dom_dem = 0.13,  # 13%
+    red_elec_dem = 0.20,  # 59% -
+    red_ghd_dem = 0.08,  # 8%
+    red_ind_dem = 0.08,  # 8%
+    lng_val=2.64,
+    russ_share=0,
+    use_soc_slack=False,
+):
 
-def run_scenario(lng_val=2.64, russ_share=0, demand_reduct=True, use_soc_slack=False):
-    df = scenario(lng_val, russ_share, demand_reduct, use_soc_slack, total_domestic_demand, electricity_demand_const,
-            electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
+    # Energy balance
+    # EUROSTAT 2019 (sankey)
+    # https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN
+    # Different total demands [TWh/a]
+    # total_domestic_demand = 926
+    # total_electricity_demand = 1515.83
+    # total_ghd_demand = 420.5
+    # total_industry_demand = 1110.88
+    # total_exports_and_other = 988
+
+    electricity_demand_volatile = total_electricity_demand * 0.3
+    electricity_demand_const = total_electricity_demand * 0.7
+
+    industry_demand_volatile = total_industry_demand * 0.3
+    industry_demand_const = total_industry_demand * 0.7
+
+    # total_exports_and_other = 988  # from which country?
+    # balance_delta = 163
+    # total_exports_and_other += balance_delta
+
+    df = scenario(
+        lng_val,
+        russ_share,
+        use_soc_slack,
+        total_domestic_demand,
+        electricity_demand_const,
+        electricity_demand_volatile,
+        industry_demand_const,
+        industry_demand_volatile,
+        total_ghd_demand,
+        total_exports_and_other,
+        red_dom_dem,
+        red_elec_dem,
+        red_ghd_dem,
+        red_ind_dem,
+    )
     return df
 
-def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_slack:bool, total_domestic_demand: float,
-             electricity_demand_const: float, electricity_demand_volatile: float, industry_demand_const: float,
-             industry_demand_volatile: float, total_ghd_demand: float):
+
+def scenario(
+    lng_val: float,
+    russ_share: float,
+    use_soc_slack: bool,
+    total_domestic_demand: float,
+    electricity_demand_const: float,
+    electricity_demand_volatile: float,
+    industry_demand_const: float,
+    industry_demand_volatile: float,
+    total_ghd_demand: float,
+    total_exports_and_other:float,
+    red_dom_dem,
+    red_elec_dem,
+    red_ghd_dem,
+    red_ind_dem,
+):
     """Solves a MILP storage model given imports,exports, demands, and production.
 
     Parameters
@@ -139,8 +191,6 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         increased daily LNG flow [TWh/d]
     russ_share : float
         share of Russian natural gas [0 - 1]
-    demand_reduct : bool
-        indicator whether you want to consider demand reduction or not
     total_domestic_demand : float
         total natural gas demand for domestic purposes [TWh/a]
     electricity_demand_const : float
@@ -153,63 +203,88 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         volatile demand of natural gas for the industry sector [TWh/a]
     total_ghd_demand : float
         total demand for the cts sector
+    total_exports_and_other : float
+        total demand for the cts sectorexports and other demands
     """
 
     def red_func(demand, red):
         """returns the reduced demand"""
-        return demand * (1-red)
+        return demand * (1 - red)
 
     # read timeseries for volatility modeling
-    ts = (pd.read_csv("Input/Optimization/ts_normalized.csv")["Private Haushalte"]).values
+    ts = (
+        pd.read_csv("Input/Optimization/ts_normalized.csv")["Private Haushalte"]
+    ).values
 
     # split and recombine to extend to 1.5 years timeframe
     h1, h2 = np.split(ts, [4380])
     new_ts = np.concatenate((ts, h1))
 
     # setup initial demand timeseries
-    domDem = pd.Series(new_ts*total_domestic_demand, index=time_index)
+    domDem = pd.Series(new_ts * total_domestic_demand, index=time_index)
 
-    elecDem_vol = pd.Series(new_ts*electricity_demand_volatile, index=time_index)
+    elecDem_vol = pd.Series(new_ts * electricity_demand_volatile, index=time_index)
 
-    elecDem_const = pd.Series(electricity_demand_const/periods_per_year, index=time_index)
+    elecDem_const = pd.Series(
+        electricity_demand_const / periods_per_year, index=time_index
+    )
 
-    ghdDem = pd.Series(total_ghd_demand/periods_per_year, index=time_index)
+    ghdDem = pd.Series(total_ghd_demand / periods_per_year, index=time_index)
 
-    exp_n_oth = pd.Series(exports_and_other/8760, index=time_index)
+    exp_n_oth = pd.Series(total_exports_and_other / 8760, index=time_index)
 
-    indDem_vol = pd.Series(new_ts*industry_demand_volatile,
-                           index=time_index)
+    indDem_vol = pd.Series(new_ts * industry_demand_volatile, index=time_index)
 
-    indDem_const = pd.Series(industry_demand_const/periods_per_year, index=time_index)
+    indDem_const = pd.Series(industry_demand_const / periods_per_year, index=time_index)
 
     # if demand reduction is 'True' reduce individual sector timeseries from
     # the begining of 'time_index_demand_reduced'
-    if demand_reduct is True:
+    # if demand_reduct is True:
 
-        domDem_reduced = pd.Series(new_ts * red_func(total_domestic_demand, red_dom_dem), index=time_index)
+    domDem_reduced = pd.Series(
+        new_ts * red_func(total_domestic_demand, red_dom_dem), index=time_index
+    )
 
-        domDem[time_index_demand_reduced] = domDem_reduced[time_index_demand_reduced]
+    domDem[time_index_demand_reduced] = domDem_reduced[time_index_demand_reduced]
 
-        elecDem_vol_reduced = pd.Series(new_ts*red_func(electricity_demand_volatile, red_elec_dem), index=time_index)
+    elecDem_vol_reduced = pd.Series(
+        new_ts * red_func(electricity_demand_volatile, red_elec_dem), index=time_index
+    )
 
-        elecDem_vol[time_index_demand_reduced] = elecDem_vol_reduced[time_index_demand_reduced]
+    elecDem_vol[time_index_demand_reduced] = elecDem_vol_reduced[
+        time_index_demand_reduced
+    ]
 
-        elecDem_const_reduced = pd.Series(
-            red_func(electricity_demand_const, red_elec_dem)/periods_per_year, index=time_index)
+    elecDem_const_reduced = pd.Series(
+        red_func(electricity_demand_const, red_elec_dem) / periods_per_year,
+        index=time_index,
+    )
 
-        elecDem_const[time_index_demand_reduced] = elecDem_const_reduced[time_index_demand_reduced]
+    elecDem_const[time_index_demand_reduced] = elecDem_const_reduced[
+        time_index_demand_reduced
+    ]
 
-        ghdDem_reduced = pd.Series(red_func(total_ghd_demand, red_ghd_dem)/periods_per_year, index=time_index)
-        ghdDem[time_index_demand_reduced] = ghdDem_reduced[time_index_demand_reduced]
+    ghdDem_reduced = pd.Series(
+        red_func(total_ghd_demand, red_ghd_dem) / periods_per_year, index=time_index
+    )
+    ghdDem[time_index_demand_reduced] = ghdDem_reduced[time_index_demand_reduced]
 
-        indDem_vol_reduced = pd.Series(new_ts*red_func(industry_demand_volatile, red_ind_dem), index=time_index)
+    indDem_vol_reduced = pd.Series(
+        new_ts * red_func(industry_demand_volatile, red_ind_dem), index=time_index
+    )
 
-        indDem_vol[time_index_demand_reduced] = indDem_vol_reduced[time_index_demand_reduced]
+    indDem_vol[time_index_demand_reduced] = indDem_vol_reduced[
+        time_index_demand_reduced
+    ]
 
-        indDem_const_reduced = pd.Series(
-            red_func(industry_demand_const, red_ind_dem)/periods_per_year, index=time_index)
+    indDem_const_reduced = pd.Series(
+        red_func(industry_demand_const, red_ind_dem) / periods_per_year,
+        index=time_index,
+    )
 
-        indDem_const[time_index_demand_reduced] = indDem_const_reduced[time_index_demand_reduced].values
+    indDem_const[time_index_demand_reduced] = indDem_const_reduced[
+        time_index_demand_reduced
+    ].values
 
     # combine volatile and constant parts of the volatile sectors
     elecDem = elecDem_vol + elecDem_const
@@ -217,22 +292,31 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
     # setup initial pipeline supply (before embargo)
     pipe_normal = pd.Series(
-        (russian_import+non_russian_pipeline_import_and_domestic_production)/periods_per_year, index=time_index_import_normal)
+        (russian_import + non_russian_pipeline_import_and_domestic_production)
+        / periods_per_year,
+        index=time_index_import_normal,
+    )
     pipe_reduced = pd.Series(
-        (russ_share*russian_import + non_russian_pipeline_import_and_domestic_production) / periods_per_year,
-        index=time_index_import_reduced)
+        (
+            russ_share * russian_import
+            + non_russian_pipeline_import_and_domestic_production
+        )
+        / periods_per_year,
+        index=time_index_import_reduced,
+    )
     pipeImp = pd.concat([pipe_normal, pipe_reduced])
 
     # setup LNG timeseries
-    lngImp = pd.Series((lng_val)/24, index=time_index)
-    lngImp[time_index_lng_increased] = pd.Series((lng_val+base_lng_import) / 24,
-                              index=time_index_lng_increased)
+    lngImp = pd.Series((lng_val) / 24, index=time_index)
+    lngImp[time_index_lng_increased] = pd.Series(
+        (lng_val + base_lng_import) / 24, index=time_index_lng_increased
+    )
 
     # create a PYOMO optimzation model
     pyM = pyomo.ConcreteModel()
 
     # define timesteps
-    timeSteps = np.arange(len(domDem)+1)
+    timeSteps = np.arange(len(domDem) + 1)
 
     def initTimeSet(pyM):
         return (t for t in timeSteps)
@@ -261,9 +345,9 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
     pyM.indDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
     pyM.ghdDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
 
-    print(80*"=")
+    print(80 * "=")
     print("Variables created.")
-    print(80*"=")
+    print(80 * "=")
 
     # actual hourly LNG flow must be less than the maximum given
     def Constr_lng_ub_rule(pyM, t):
@@ -283,40 +367,87 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
     pyM.Constr_pipe_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_pipe_ub_rule)
 
-    print(80*"=")
+    print(80 * "=")
     print("pipe and lng constraint created.")
-    print(80*"=")
+    print(80 * "=")
 
     # define the objective function (to be minimized) penalizes unserved demands discounted
     # by factor to inscentivize a late occurance
     def Objective_rule(pyM):
-        return (- 0.5/len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet)/storCap
-                + 0*pyM.NegOffset
-                + 1*sum(fac**t * pyM.Soc_slack[t] for t in timeSteps[:-1])
-                + 1.0*(0*pyM.expAndOtherIsUnserved + sum(fac**t * (exp_n_oth.iloc[t]-pyM.expAndOtherServed[t]) for t in timeSteps[:-1]))
-                + 2.5*(0*pyM.domDemIsUnserved + sum(fac**t * (domDem.iloc[t]-pyM.domDemServed[t]) for t in timeSteps[:-1]))
-                + 2.5*(0*pyM.ghdDemIsUnserved + sum(fac**t * (ghdDem.iloc[t]-pyM.ghdDemServed[t]) for t in timeSteps[:-1]))
-                + 2*(0*pyM.elecDemIsUnserved + sum(fac**t * (elecDem.iloc[t]-pyM.elecDemServed[t]) for t in timeSteps[:-1]))
-                + 1.5*(0*pyM.indDemIsUnserved + sum(fac**t * (indDem.iloc[t]-pyM.indDemServed[t]) for t in timeSteps[:-1])))
+        return (
+            -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
+            + 0 * pyM.NegOffset
+            + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
+            + 1.0
+            * (
+                0 * pyM.expAndOtherIsUnserved
+                + sum(
+                    fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
+                    for t in timeSteps[:-1]
+                )
+            )
+            + 2.5
+            * (
+                0 * pyM.domDemIsUnserved
+                + sum(
+                    fac ** t * (domDem.iloc[t] - pyM.domDemServed[t])
+                    for t in timeSteps[:-1]
+                )
+            )
+            + 2.5
+            * (
+                0 * pyM.ghdDemIsUnserved
+                + sum(
+                    fac ** t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
+                    for t in timeSteps[:-1]
+                )
+            )
+            + 2
+            * (
+                0 * pyM.elecDemIsUnserved
+                + sum(
+                    fac ** t * (elecDem.iloc[t] - pyM.elecDemServed[t])
+                    for t in timeSteps[:-1]
+                )
+            )
+            + 1.5
+            * (
+                0 * pyM.indDemIsUnserved
+                + sum(
+                    fac ** t * (indDem.iloc[t] - pyM.indDemServed[t])
+                    for t in timeSteps[:-1]
+                )
+            )
+        )
 
     pyM.OBJ = pyomo.Objective(rule=Objective_rule, sense=1)
 
-    print(80*"=")
+    print(80 * "=")
     print("Objective created.")
-    print(80*"=")
+    print(80 * "=")
 
     # state of charge balance
     def Constr_Soc_rule(pyM, t):
         if t < timeSteps[-1]:
-            return pyM.Soc[t+1]-pyM.Soc_slack[t+1] == pyM.Soc[t]-pyM.domDemServed[t] - pyM.elecDemServed[t]-pyM.indDemServed[t] - pyM.ghdDemServed[t]+pyM.pipeServed[t]+pyM.lngServed[t] - pyM.expAndOtherServed[t]
+            return (
+                pyM.Soc[t + 1] - pyM.Soc_slack[t + 1]
+                == pyM.Soc[t]
+                - pyM.domDemServed[t]
+                - pyM.elecDemServed[t]
+                - pyM.indDemServed[t]
+                - pyM.ghdDemServed[t]
+                + pyM.pipeServed[t]
+                + pyM.lngServed[t]
+                - pyM.expAndOtherServed[t]
+            )
         else:
             return pyomo.Constraint.Skip
 
     pyM.Constr_Soc = pyomo.Constraint(pyM.TimeSet, rule=Constr_Soc_rule)
 
-    print(80*"=")
+    print(80 * "=")
     print("SoC constraint created.")
-    print(80*"=")
+    print(80 * "=")
 
     # maximum storage capacity
     def Constr_Cap_rule(pyM, t):
@@ -327,9 +458,9 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
     pyM.Constr_Cap = pyomo.Constraint(pyM.TimeSet, rule=Constr_Cap_rule)
 
-    print(80*"=")
+    print(80 * "=")
     print("max storage capacity constraint created.")
-    print(80*"=")
+    print(80 * "=")
 
     # served/unserved demands must not exceed their limits
     def Constr_ExpAndOtherServed_rule(pyM, t):
@@ -338,17 +469,26 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_ExpAndOtherServed = pyomo.Constraint(pyM.TimeSet, rule=Constr_ExpAndOtherServed_rule)
+    pyM.Constr_ExpAndOtherServed = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_ExpAndOtherServed_rule
+    )
 
     def Constr_ExpAndOtherIsUnserved_rule(pyM):
-        return sum(exp_n_oth.iloc[t] - pyM.expAndOtherServed[t] for t in timeSteps[: -1]) <= sum(exp_n_oth.iloc[t]
-                                                                                                 for t in timeSteps[: -1]) * pyM.expAndOtherIsUnserved
+        return (
+            sum(exp_n_oth.iloc[t] - pyM.expAndOtherServed[t] for t in timeSteps[:-1])
+            <= sum(exp_n_oth.iloc[t] for t in timeSteps[:-1])
+            * pyM.expAndOtherIsUnserved
+        )
 
-    pyM.Constr_ExpAndOtherIsUnserved = pyomo.Constraint(rule=Constr_ExpAndOtherIsUnserved_rule)
+    pyM.Constr_ExpAndOtherIsUnserved = pyomo.Constraint(
+        rule=Constr_ExpAndOtherIsUnserved_rule
+    )
 
     def Constr_DomDemIsUnserved_rule(pyM):
-        return sum(domDem.iloc[t] - pyM.domDemServed[t] for t in timeSteps[: -1]) <= sum(domDem.iloc[t]
-                                                                                         for t in timeSteps[: -1]) * pyM.domDemIsUnserved
+        return (
+            sum(domDem.iloc[t] - pyM.domDemServed[t] for t in timeSteps[:-1])
+            <= sum(domDem.iloc[t] for t in timeSteps[:-1]) * pyM.domDemIsUnserved
+        )
 
     pyM.Constr_DomDemIsUnserved = pyomo.Constraint(rule=Constr_DomDemIsUnserved_rule)
 
@@ -358,7 +498,9 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_DomDemServed = pyomo.Constraint(pyM.TimeSet, rule=Constr_DomDemServed_rule)
+    pyM.Constr_DomDemServed = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_DomDemServed_rule
+    )
 
     def Constr_GhdDemServed_rule(pyM, t):
         if t < timeSteps[-1]:
@@ -366,11 +508,15 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_GhdDemServed = pyomo.Constraint(pyM.TimeSet, rule=Constr_GhdDemServed_rule)
+    pyM.Constr_GhdDemServed = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_GhdDemServed_rule
+    )
 
     def Constr_GhdDemIsUnserved_rule(pyM):
-        return sum(ghdDem.iloc[t] - pyM.ghdDemServed[t] for t in timeSteps[: -1]) <= sum(ghdDem.iloc[t]
-                                                                                         for t in timeSteps[: -1]) * pyM.ghdDemIsUnserved
+        return (
+            sum(ghdDem.iloc[t] - pyM.ghdDemServed[t] for t in timeSteps[:-1])
+            <= sum(ghdDem.iloc[t] for t in timeSteps[:-1]) * pyM.ghdDemIsUnserved
+        )
 
     pyM.Constr_GhdDemIsUnserved = pyomo.Constraint(rule=Constr_GhdDemIsUnserved_rule)
 
@@ -380,11 +526,15 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_ElecDemServed = pyomo.Constraint(pyM.TimeSet, rule=Constr_ElecDemServed_rule)
+    pyM.Constr_ElecDemServed = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_ElecDemServed_rule
+    )
 
     def Constr_ElecDemIsUnserved_rule(pyM):
-        return sum(elecDem.iloc[t] - pyM.elecDemServed[t] for t in timeSteps[: -1]) <= sum(elecDem.iloc[t]
-                                                                                           for t in timeSteps[: -1]) * pyM.elecDemIsUnserved
+        return (
+            sum(elecDem.iloc[t] - pyM.elecDemServed[t] for t in timeSteps[:-1])
+            <= sum(elecDem.iloc[t] for t in timeSteps[:-1]) * pyM.elecDemIsUnserved
+        )
 
     pyM.Constr_ElecDemIsUnserved = pyomo.Constraint(rule=Constr_ElecDemIsUnserved_rule)
 
@@ -394,11 +544,15 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_IndDemServed = pyomo.Constraint(pyM.TimeSet, rule=Constr_IndDemServed_rule)
+    pyM.Constr_IndDemServed = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_IndDemServed_rule
+    )
 
     def Constr_IndDemIsUnserved_rule(pyM):
-        return sum(indDem.iloc[t] - pyM.indDemServed[t] for t in timeSteps[: -1]) <= sum(indDem.iloc[t]
-                                                                                         for t in timeSteps[: -1]) * pyM.indDemIsUnserved
+        return (
+            sum(indDem.iloc[t] - pyM.indDemServed[t] for t in timeSteps[:-1])
+            <= sum(indDem.iloc[t] for t in timeSteps[:-1]) * pyM.indDemIsUnserved
+        )
 
     pyM.Constr_IndDemIsUnserved = pyomo.Constraint(rule=Constr_IndDemIsUnserved_rule)
 
@@ -410,36 +564,39 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
             return pyomo.Constraint.Skip
 
     pyM.Constr_Soc_start_ub = pyomo.Constraint(
-        pyM.TimeSet, rule=Constr_soc_start_ub_rule)
+        pyM.TimeSet, rule=Constr_soc_start_ub_rule
+    )
 
     def Constr_soc_start_lb_rule(pyM, t):
         if t < len(soc_max_hour):
-            return pyM.Soc[t] >= soc_max_hour[t]-10
+            return pyM.Soc[t] >= soc_max_hour[t] - 10
         else:
             return pyomo.Constraint.Skip
 
-    pyM.Constr_Soc_start_lb = pyomo.Constraint(pyM.TimeSet, rule=Constr_soc_start_lb_rule)
+    pyM.Constr_Soc_start_lb = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_soc_start_lb_rule
+    )
 
     # fix state of charge slack to zero if not wanted
     if use_soc_slack is False:
         for i in timeSteps:
             pyM.Soc_slack[i].fix(0)
 
-    print(80*"=")
+    print(80 * "=")
     print("Starting solve...")
-    print(80*"=")
+    print(80 * "=")
 
     # set solver details
     solver = "glpk"  # gurobi glpk cbc
-    optimizer = opt.SolverFactory(solver) # , solver_io="python"
+    optimizer = opt.SolverFactory(solver)  # , solver_io="python"
     # optimizer = pyomo.SolverFactory(solver)
-    solver_info = optimizer.solve(pyM, tee=True) #, tee=True
+    solver_info = optimizer.solve(pyM, tee=True)  # , tee=True
 
-    print(solver_info['Problem'][0])
+    print(solver_info["Problem"][0])
 
-    print(80*"=")
+    print(80 * "=")
     print("Retrieving solution...")
-    print(80*"=")
+    print(80 * "=")
 
     # retrieve solution values and collect in a pandas dataframe
     socList = [pyM.Soc[t].value for t in timeSteps]
@@ -454,15 +611,20 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
     print("building DataFrame...")
     df = pd.DataFrame(
-        {"pipeImp": pipeImp.values, "lngImp": lngImp.values, "lngServed": lngServedList[: -1],
-         "pipeServed": pipeServedList[: -1],
-         "soc": socList[: -1],
-         "soc_slack": socSlackList[: -1],
-         "dom_served": domDemList[: -1],
-         "elec_served": elecDemList[: -1],
-         "ind_served": indDemList[: -1],
-         "ghd_served": ghdDemList[: -1],
-         "exp_n_oth_served": expAndOtherServedList[: -1]})
+        {
+            "pipeImp": pipeImp.values,
+            "lngImp": lngImp.values,
+            "lngServed": lngServedList[:-1],
+            "pipeServed": pipeServedList[:-1],
+            "soc": socList[:-1],
+            "soc_slack": socSlackList[:-1],
+            "dom_served": domDemList[:-1],
+            "elec_served": elecDemList[:-1],
+            "ind_served": indDemList[:-1],
+            "ghd_served": ghdDemList[:-1],
+            "exp_n_oth_served": expAndOtherServedList[:-1],
+        }
+    )
     df["time"] = pipeImp.index
     print("initial df created.")
     df = df.assign(dom_Dem=domDem.values)
@@ -484,16 +646,36 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
     df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
     df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
 
-    print("positive side of balance: ", df.soc_slack.sum() +
-          df.pipeServed.sum()+df.lngServed.sum())
-    print("storage_delta: ", df.soc.iloc[0]-df.soc.iloc[-1])
-    print("negative side of balance: ", df.dom_served.sum(
-    )+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
+    print(
+        "positive side of balance: ",
+        df.soc_slack.sum() + df.pipeServed.sum() + df.lngServed.sum(),
+    )
+    print("storage_delta: ", df.soc.iloc[0] - df.soc.iloc[-1])
+    print(
+        "negative side of balance: ",
+        df.dom_served.sum()
+        + df.elec_served.sum()
+        + df.ind_served.sum()
+        + df.ghd_served.sum()
+        + df.exp_n_oth_served.sum(),
+    )
 
     print("soc slack sum: ", df.soc_slack.sum())
 
-    df['balance'] = df.soc_slack.sum()+df.pipeServed.sum()+df.lngServed.sum()+df.soc.iloc[0]-df.soc.iloc[-1] - \
-        (df.dom_served.sum()+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
+    df["balance"] = (
+        df.soc_slack.sum()
+        + df.pipeServed.sum()
+        + df.lngServed.sum()
+        + df.soc.iloc[0]
+        - df.soc.iloc[-1]
+        - (
+            df.dom_served.sum()
+            + df.elec_served.sum()
+            + df.ind_served.sum()
+            + df.ghd_served.sum()
+            + df.exp_n_oth_served.sum()
+        )
+    )
     # print(df['balance'])
     print("saving...")
     # scenario_name = gdta.get_scenario_name(russ_share, lng_val, demand_reduct, use_soc_slack)
@@ -544,9 +726,10 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
     #     print(i.value)
     # plt.close()
 
+
 # # %%
 if __name__ == "__main__":
-    df = run_scenario(russ_share=0, lng_val=2.64, demand_reduct=True, use_soc_slack=False)
+    df = run_scenario(russ_share=0, lng_val=2.64, use_soc_slack=False)
     # # loop over all scenario variations
     # for russ_share in russian_gas_share:
     #     for lng_val in lng_values:
