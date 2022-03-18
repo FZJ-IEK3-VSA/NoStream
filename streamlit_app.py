@@ -653,7 +653,8 @@ hash_val = hash(
         use_soc_slack,
     )
 )
-
+default_hash = 3073516694676277863
+st.write(hash_val)
 
 st.markdown("## Optimierungsergebnis")
 if start_opti:
@@ -686,7 +687,7 @@ if start_opti:
         except Exception as e:
             st.write(e)
 else:
-    if hash_val == 3073516694676277863:
+    if hash_val == default_hash:
         with st.spinner(text="Ergebnisse laden..."):
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
