@@ -99,7 +99,7 @@ def run_scenario(
         total demand for the cts sectorexports and other demands
     """
     
-    storCap, soc_max_hour = get_storage_capacit(y)
+    storCap, soc_max_hour = get_storage_capacity()
 
     base_lng_import = 876  # 2.4 * 365
 
