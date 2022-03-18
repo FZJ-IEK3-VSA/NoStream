@@ -12,6 +12,14 @@ import base64
 
 import os
 
+def get_table_download_link(df):
+    """Generates a link allowing the data in a given panda dataframe to be downloaded
+    in:  dataframe
+    out: href string
+    """
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+    href = f'<a href="data:file/csv;base64,{b64}">Download csv file</a>'
 
 FZJcolor = gdta.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
@@ -699,3 +707,5 @@ if hash_val == default_hash:
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
+            st.text("Ergebnisse herunterladen:")
+            st.markdown(get_table_download_link(df), unsafe_allow_html=True)
