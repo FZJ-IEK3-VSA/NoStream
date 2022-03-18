@@ -124,8 +124,9 @@ for value in soc_max_day:
 
 
 def run_scenario(lng_val=2.64, russ_share=0, demand_reduct=True, use_soc_slack=False):
-    scenario(lng_val, russ_share, demand_reduct, use_soc_slack, total_domestic_demand, electricity_demand_const,
+    df = scenario(lng_val, russ_share, demand_reduct, use_soc_slack, total_domestic_demand, electricity_demand_const,
             electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
+    return df
 
 def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_slack:bool, total_domestic_demand: float,
              electricity_demand_const: float, electricity_demand_volatile: float, industry_demand_const: float,
@@ -495,9 +496,10 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
         (df.dom_served.sum()+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
     # print(df['balance'])
     print("saving...")
-    scenario_name = gdta.get_scenario_name(russ_share, lng_val, demand_reduct, use_soc_slack)
-    df.to_excel(f'Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx')
+    # scenario_name = gdta.get_scenario_name(russ_share, lng_val, demand_reduct, use_soc_slack)
+    # df.to_excel(f'Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx')
     print("Done!")
+    return df
 
     # fig, ax = plt.subplots(figsize=(20, 4))
     # ax.stackplot(timeSteps, socList)
@@ -544,7 +546,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
 # # %%
 if __name__ == "__main__":
-    run_scenario(russ_share=0, lng_val=2.64, demand_reduct=True, use_soc_slack=False)
+    df = run_scenario(russ_share=0, lng_val=2.64, demand_reduct=True, use_soc_slack=False)
     # # loop over all scenario variations
     # for russ_share in russian_gas_share:
     #     for lng_val in lng_values:
