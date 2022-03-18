@@ -738,6 +738,6 @@ if hash_val == default_hash:
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
             st.markdown("Ergebnisse herunterladen:")
-            if st.button('Download Dataframe as CSV'):
-                tmp_download_link = download_link(df, 'YOUR_DF.csv', 'Click here to download your data!')
-                st.markdown(tmp_download_link, unsafe_allow_html=True)
+            # if st.button('Download Dataframe as CSV'):
+            tmp_download_link = download_link(df, f"Optimization_Results_{hash_val}.csv", "Ergebnisse als .csv herunterladen")
+            st.markdown(tmp_download_link, unsafe_allow_html=True)
