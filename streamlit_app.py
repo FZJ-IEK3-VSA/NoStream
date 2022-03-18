@@ -55,6 +55,11 @@ st.text("")
 st.markdown("# Reduktion Russischer Gas-Importe")
 st.markdown("## Auswirkungen auf die Versorgungssicherheit in Europa")
 
+
+import_stop_date = st.date_input("Importstopp", value=datetime.date("2022-03-15"), min_value=datetime.date("2022-03-15"), max_value=datetime.date("2023-12-31"))
+
+
+
 cols = st.columns(3)
 # pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
 pl_reduction = cols[0].slider("Anteil russischer Erdgaslieferung [%]", min_value=0, max_value=100, value=0, step=5)
