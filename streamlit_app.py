@@ -8,6 +8,7 @@ import datetime
 import get_data as gdta
 import storage_sim as opti
 import base64
+
 # from PIL import Image
 
 import os
@@ -26,7 +27,7 @@ def download_link(object_to_download, download_filename, download_link_text):
     download_link(YOUR_STRING, 'YOUR_STRING.txt', 'Click here to download your text!')
 
     """
-    if isinstance(object_to_download,pd.DataFrame):
+    if isinstance(object_to_download, pd.DataFrame):
         object_to_download = object_to_download.to_csv(index=False)
 
     # some strings <-> bytes conversions necessary here
@@ -68,16 +69,16 @@ st.text("")
 
 
 def render_svg(figDir):
-    f = open(figDir,"r")
+    f = open(figDir, "r")
     lines = f.readlines()
-    svg =''.join(lines)
-    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    svg = "".join(lines)
+    b64 = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     return html
 
 
 with st.sidebar:
-    cols = st.columns([2,6])
+    cols = st.columns([2, 6])
     svg_image = render_svg("Input/FJZ IEK-3.svg")
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
@@ -90,21 +91,30 @@ with st.sidebar:
         )
 
         total_production = st.number_input(
-            "Innländische Erdgasproduktion¹ [TWh/a]", min_value=0, max_value=None, value=608
+            "Innländische Erdgasproduktion¹ [TWh/a]",
+            min_value=0,
+            max_value=None,
+            value=608,
         )
 
         cols = st.columns(2)
         total_import_russia = st.number_input(
-            "Erdgas-Import aus Russland¹ [TWh/a]", min_value=0, max_value=None, value=1752
+            "Erdgas-Import aus Russland¹ [TWh/a]",
+            min_value=0,
+            max_value=None,
+            value=1752,
         )
 
-        pl_reduction = st.slider(
-            "Reduktion der russischen Erdgas-Importe um [%]",
-            min_value=100,
-            max_value=0,
-            value=100,
-            step=1,
-        )/100
+        pl_reduction = (
+            st.slider(
+                "Reduktion der russischen Erdgas-Importe um [%]",
+                min_value=100,
+                max_value=0,
+                value=100,
+                step=1,
+            )
+            / 100
+        )
         russ_share = 1 - pl_reduction
 
         cols = st.columns(2)
@@ -241,7 +251,9 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    st.markdown("💻 [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)")
+    st.markdown(
+        "💻 [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)"
+    )
 
 
 use_soc_slack = False
@@ -264,20 +276,53 @@ fig.add_trace(
         legendgroup="Bedarfe",
         legendgrouptitle_text="Bedarfe",
         name="Haushalte",
+        marker=dict(color=FZJcolor.get("green")),
     )
 )
 
 yvals[ypos] = total_ghd_demand
-fig.add_trace(go.Bar(x=xval, y=yvals, legendgroup="Bedarfe", name="GHD",))
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Bedarfe",
+        name="GHD",
+        marker=dict(color=FZJcolor.get("purple2")),
+    )
+)
 
 yvals[ypos] = total_industry_demand
-fig.add_trace(go.Bar(x=xval, y=yvals, legendgroup="Bedarfe", name="Industrie",))
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Bedarfe",
+        name="Industrie",
+        marker=dict(color=FZJcolor.get("grey2")),
+    )
+)
 
 yvals[ypos] = total_electricity_demand
-fig.add_trace(go.Bar(x=xval, y=yvals, legendgroup="Bedarfe", name="Energie",))
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Bedarfe",
+        name="Energie",
+        marker=dict(color=FZJcolor.get("blue")),
+    )
+)
 
 yvals[ypos] = total_exports_and_other
-fig.add_trace(go.Bar(x=xval, y=yvals, legendgroup="Bedarfe", name="Export etc.",))
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Bedarfe",
+        name="Export etc.",
+        marker=dict(color=FZJcolor.get("blue2")),
+    )
+)
 
 ## Import & Produktion
 ypos = 1
@@ -290,12 +335,13 @@ fig.add_trace(
         legendgroup="Import & Produktion",
         legendgrouptitle_text="Import & Produktion",
         name="Import",
+        marker=dict(color=FZJcolor.get("orange")),
     )
 )
 
 yvals[ypos] = total_production
 fig.add_trace(
-    go.Bar(x=xval, y=yvals, legendgroup="Import & Produktion", name="Produktion",)
+    go.Bar(x=xval, y=yvals, legendgroup="Import & Produktion", name="Produktion", marker=dict(color=FZJcolor.get("green2")),)
 )
 
 
@@ -311,6 +357,7 @@ fig.add_trace(
         legendgroup="Importlücke",
         legendgrouptitle_text="Importlücke",
         name="Import Russland",
+        marker=dict(color=FZJcolor.get("red")),
     )
 )
 
@@ -325,13 +372,18 @@ fig.add_trace(
         legendgroup="Kompensation",
         legendgrouptitle_text="Kompensation",
         name="Haushalte (Nachfragereduktion)",
+        marker=dict(color=FZJcolor.get("green")),
     )
 )
 
 yvals[ypos] = total_ghd_demand * red_ghd_dem
 fig.add_trace(
     go.Bar(
-        x=xval, y=yvals, legendgroup="Kompensation", name="GHD (Nachfragereduktion)",
+        x=xval,
+        y=yvals,
+        legendgroup="Kompensation",
+        name="GHD (Nachfragereduktion)",
+        marker=dict(color=FZJcolor.get("purple2")),
     )
 )
 
@@ -342,6 +394,7 @@ fig.add_trace(
         y=yvals,
         legendgroup="Kompensation",
         name="Industrie (Nachfragereduktion)",
+        marker=dict(color=FZJcolor.get("grey2")),
     )
 )
 
@@ -352,6 +405,7 @@ fig.add_trace(
         y=yvals,
         legendgroup="Kompensation",
         name="Energie (Nachfragereduktion)",
+        marker=dict(color=FZJcolor.get("blue")),
     )
 )
 
@@ -362,12 +416,19 @@ fig.add_trace(
         y=yvals,
         legendgroup="Kompensation",
         name="Export etc. (Nachfragereduktion)",
+        marker=dict(color=FZJcolor.get("blue2")),
     )
 )
 
 yvals[ypos] = lng_add_capacity
 fig.add_trace(
-    go.Bar(x=xval, y=yvals, legendgroup="Kompensation", name="LNG Kapazitätserhöhung",)
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Kompensation",
+        name="LNG Kapazitätserhöhung",
+        marker=dict(color=FZJcolor.get("yellow3")),
+    )
 )
 
 
@@ -381,7 +442,6 @@ fig.update_layout(
 # fig.update_layout(showlegend=False)
 
 st.plotly_chart(fig, use_container_width=True)
-
 
 
 def plot_optimization_results(df):
@@ -671,7 +731,7 @@ hash_val = hash(
         use_soc_slack,
     )
 )
-default_hash = -5024794703248336817 # 3073516694676277863
+default_hash = -5024794703248336817  # 3073516694676277863
 # st.write(hash_val)
 
 st.markdown("## Optimierungsergebnisse")
@@ -717,5 +777,9 @@ if hash_val == default_hash:
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
-            tmp_download_link = download_link(df, f"Optimization_Results_{int(hash_val)}.csv", "Ergebnisse herunterladen")
+            tmp_download_link = download_link(
+                df,
+                f"Optimization_Results_{int(hash_val)}.csv",
+                "Ergebnisse herunterladen",
+            )
             st.markdown(tmp_download_link, unsafe_allow_html=True)

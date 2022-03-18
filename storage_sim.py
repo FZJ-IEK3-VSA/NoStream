@@ -50,7 +50,7 @@ def get_storage_capacity():
     for value in soc_max_day:
         hour_val = [value]
         soc_max_hour = soc_max_hour + 24 * hour_val
-    
+
     return storCap, soc_max_hour
 
 
@@ -98,7 +98,7 @@ def run_scenario(
     total_exports_and_other : float
         total demand for the cts sectorexports and other demands
     """
-    
+
     storCap, soc_max_hour = get_storage_capacity()
 
     base_lng_import = 876  # 2.4 * 365
@@ -150,8 +150,6 @@ def run_scenario(
         end="2023-07-02 11:00:00",
         freq="H",
     )
-
-
 
     def red_func(demand, red):
         """returns the reduced demand"""
@@ -629,20 +627,23 @@ def run_scenario(
     print("Done!")
     return df
 
+
 # %%
 if __name__ == "__main__":
     # Sensitivity analysis
     # import share of russion gas [-]
     russian_gas_share = [0.0]
-    
+
     # Average European LNG import [TWh/d]
     lng_add_capacities = [0.0, 965]  # 90% load
 
     # Demand reduction
-    demand_reduction = [True, False] # Input is currently useless
+    demand_reduction = [True, False]  # Input is currently useless
 
     # loop over all scenario variations
     for russ_share in russian_gas_share:
         for lng_add_capacity in lng_add_capacities:
             for demand_reduct in demand_reduction:
-                df = run_scenario(russ_share=0, lng_add_capacity=965, use_soc_slack=False)
+                df = run_scenario(
+                    russ_share=0, lng_add_capacity=965, use_soc_slack=False
+                )
