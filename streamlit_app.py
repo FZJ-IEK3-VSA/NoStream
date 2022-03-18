@@ -241,7 +241,7 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    st.markdown("[View code for optimization](https://github.com/ToniGustavson/eu_energy_independence/blob/3a5a78ca33caec7777fb3b04afea66a423182335/storage_sim.py)")
+    st.markdown("💻 [View code of the optimization](https://github.com/ToniGustavson/eu_energy_independence/blob/3a5a78ca33caec7777fb3b04afea66a423182335/storage_sim.py)")
 
 
 use_soc_slack = False
