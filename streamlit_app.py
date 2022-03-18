@@ -26,7 +26,7 @@ height = 1000 / scale
 
 ### Streamlit App
 st.set_page_config(
-    page_title="Energy Independence", page_icon="🇪🇺", layout="wide"  # layout="wide" 🚢
+    page_title="Energy Independence", page_icon="🇪🇺", layout="centered"  # wide
 )
 
 hide_streamlit_style = """
@@ -43,6 +43,19 @@ st.markdown("### Auswirkungen auf die Versorgungssicherheit in Europa")
 
 with st.expander("Importstopp", expanded=False):
     cols = st.columns(2)
+    total_import = cols[0].number_input(
+        "Gesamter Erdgasimport¹ [TWh/a]", min_value=0, max_value=None, value=4190
+    )
+
+    total_production = cols[1].number_input(
+        "Gesamte Erdgasproduktion¹ [TWh/a]", min_value=0, max_value=None, value=608
+    )
+
+    cols = st.columns(2)
+    total_import_russia = cols[0].number_input(
+        "Erdgasimport aus Russland¹ [TWh/a]", min_value=0, max_value=None, value=1752
+    )
+
     pl_reduction = cols[1].slider(
         "Reduktion der russischer Erdgas-Importe um [%]",
         min_value=100,
@@ -52,117 +65,143 @@ with st.expander("Importstopp", expanded=False):
     )
     pl_reduction = 1 - pl_reduction / 100
 
+    cols = st.columns(2)
     import_stop_date = cols[0].date_input(
         "Beginn der Importreduktion",
-        value=datetime.date(2022, 3, 15),
+        value=datetime.date(2022, 4, 16),
         min_value=datetime.date(2022, 3, 15),
         max_value=datetime.date(2023, 12, 31),
     )
+    import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
+
     st.markdown(
-        "Erdgasimporte 2019 in die EU27: 4190 TWh/a, Produktion 2019 innerhalb der EU27: 608 TWh/a, Import aus Russland 2019: 1752 TWh/a (Quelle: Eurostat 2022)"
+        "¹ Standardwerte entsprechen Werten für die EU27 aus 2019 (Quelle: Eurostat 2022)"
     )
-    total_import = 4190
-    total_production = 608
-    total_import_russia = 1752
 
 with st.expander("Nachfrageredutkion", expanded=False):
-    cols = st.columns(2)
-    # cols[0].markdown("Gesamt Erdgasbedarf (EU27, 2019): 3972 TWh/a")
-    demand_reduction_date = cols[0].date_input(
-        "Beginn der Nachfragereduktion",
-        value=datetime.date(2022, 3, 15),
-        min_value=datetime.date(2022, 3, 15),
-        max_value=datetime.date(2023, 12, 31),
-    )
-
     cols = st.columns(2)
     total_domestic_demand = cols[0].number_input(
         "Nachfrage Haushalte¹ [TWh/a]", min_value=0, max_value=None, value=926
     )
-    red_dom_dem = cols[1].slider(
-        "Reduktion der Nachfrage um [%]",
-        key="red_dom_dem",
-        min_value=0,
-        max_value=100,
-        value=13,
-        step=1,
+    red_dom_dem = (
+        cols[1].slider(
+            "Reduktion der Nachfrage um [%]",
+            key="red_dom_dem",
+            min_value=0,
+            max_value=100,
+            value=13,
+            step=1,
+        )
+        / 100
     )
-    red_dom_dem = red_dom_dem / 100
 
     cols = st.columns(2)
     total_ghd_demand = cols[0].number_input(
         "Nachfrage GHD¹ [TWh/a]", min_value=0, max_value=None, value=421
-    )  # 420.5
-    red_ghd_dem = cols[1].slider(
-        "Reduktion der Nachfrage um [%]",
-        key="red_ghd_dem",
-        min_value=0,
-        max_value=100,
-        value=8,
-        step=1,
     )
-    red_ghd_dem = red_ghd_dem / 100
+    red_ghd_dem = (
+        cols[1].slider(
+            "Reduktion der Nachfrage um [%]",
+            key="red_ghd_dem",
+            min_value=0,
+            max_value=100,
+            value=8,
+            step=1,
+        )
+        / 100
+    )
 
     cols = st.columns(2)
     total_electricity_demand = cols[0].number_input(
         "Nachfrage Energie-Sektor¹ [TWh/a]", min_value=0, max_value=None, value=1515
     )
-    red_elec_dem = cols[1].slider(
-        "Reduktion der Nachfrage um [%]",
-        key="red_elec_dem",
-        min_value=0,
-        max_value=100,
-        value=20,
-        step=1,
+    red_elec_dem = (
+        cols[1].slider(
+            "Reduktion der Nachfrage um [%]",
+            key="red_elec_dem",
+            min_value=0,
+            max_value=100,
+            value=20,
+            step=1,
+        )
+        / 100
     )
-    red_elec_dem = red_elec_dem / 100
 
     cols = st.columns(2)
     total_industry_demand = cols[0].number_input(
         "Nachfrage Industrie¹ [TWh/a]", min_value=0, max_value=None, value=1110
     )
-    red_ind_dem = cols[1].slider(
-        "Reduktion der Nachfrage um [%]",
-        key="red_ind_dem",
-        min_value=0,
-        max_value=100,
-        value=8,
-        step=1,
-    )
-    red_ind_dem = red_ind_dem / 100
-    st.markdown(
-        "¹ Standardwerte entsprechen den EU27 Erdgasbedarfen von 2019, zuzüglich 988 TWh/a Export und sonstige Bedarfe. Gesamterdgasbedarf 2019: 4961 TWh/a (Quelle: Eurostat 2022)"
+    red_ind_dem = (
+        cols[1].slider(
+            "Reduktion der Nachfrage um [%]",
+            key="red_ind_dem",
+            min_value=0,
+            max_value=100,
+            value=8,
+            step=1,
+        )
+        / 100
     )
 
-    total_exports_and_other = 988
-    red_exp_dem = 0 / 100
-
-with st.expander("LNG Kapazitäten", expanded=False):
     cols = st.columns(2)
-    lng_capacity = cols[1].number_input(
-        "Zusätzliche LNG Import Kapazität² [TWh/a]",
+    total_exports_and_other = cols[0].number_input(
+        "Export und sonstige Nachfragen¹ [TWh/a]",
         min_value=0,
-        max_value=1150,
-        value=965,
+        max_value=None,
+        value=988,
     )
-    lng_increase_date = cols[0].date_input(
-        "Beginn der LNG Kapazität-Erhöhung",
-        value=datetime.date(2022, 3, 15),
+    red_exp_dem = (
+        cols[1].slider(
+            "Reduktion der Nachfrage um [%]",
+            key="red_exp_dem",
+            min_value=0,
+            max_value=100,
+            value=0,
+            step=1,
+        )
+        / 100
+    )
+
+    cols = st.columns(2)
+    demand_reduction_date = cols[0].date_input(
+        "Beginn der Nachfragereduktion",
+        value=datetime.date(2022, 3, 16),
         min_value=datetime.date(2022, 3, 15),
         max_value=datetime.date(2023, 12, 31),
     )
-    st.markdown(
-        "² Aktuell genutzte LNG Kapazität: 875 TWh/a, Maximal nutzbare LNG Kapazitäten: 2025 TWh/a, Maximal zusätzlich nurzbare LNG-Kapazitäten: 1150 TWh/a (Quelle: GIE 2022)"
+    demand_reduction_date = datetime.datetime.fromordinal(
+        demand_reduction_date.toordinal()
     )
+
+    st.markdown(
+        "¹ Standardwerte entsprechen Werten für die EU27 aus 2019 (Quelle: Eurostat 2022)"
+    )
+
+with st.expander("LNG Kapazitäten", expanded=False):
+    cols = st.columns(2)
+    lng_capacity = cols[1].slider(
+        "Genutzte LNG Import Kapazität² [TWh/a]",
+        min_value=0,
+        max_value=2025,
+        value=965 + 875,
+    )
+    lng_base_capacity = 875
+    lng_add_capacity = lng_capacity - lng_base_capacity
+
+    lng_increase_date = cols[0].date_input(
+        "Beginn der LNG Kapazität-Erhöhung",
+        value=datetime.date(2022, 5, 1),
+        min_value=datetime.date(2022, 1, 1),
+        max_value=datetime.date(2023, 12, 30),
+    )
+    lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
+
+    st.markdown(
+        "² Aktuell genutzte LNG Kapazität in EU27: 875 TWh/a (Quelle: GIE 2022)"
+    )  # , Maximal nutzbare LNG Kapazitäten: 2025 TWh/a, Maximal zusätzlich nurzbare LNG-Kapazitäten: 1150 TWh/a
 
 
 cols = st.columns(3)
-# pl_reduction = cols[0].selectbox("Anteil russischer Gas-Importe [%]", [0])
-reduced_demand = cols[1].selectbox("Nachfrageredutkion", ["False", "True"], 1)
-# lng_capacity2 = cols[2].selectbox(
-#     "Zusätzliche LNG Import Kapazität [TWh/Tag]", [0, 2.6], 1
-# )  # [2.4, 4.0, 5.6]
-# soc_slack = cols[3].selectbox("SOC Slack", ["False", "True"], 0)
 soc_slack = False
 
 
@@ -243,13 +282,15 @@ fig.add_trace(
         y=yvals,
         legendgroup="Kompensation",
         legendgrouptitle_text="Kompensation",
-        name="Nachfragereduktion Haushalte",
+        name="Haushalte (Nachfragereduktion)",
     )
 )
 
 yvals[ypos] = total_ghd_demand * red_ghd_dem
 fig.add_trace(
-    go.Bar(x=xval, y=yvals, legendgroup="Kompensation", name="Nachfragereduktion GHD",)
+    go.Bar(
+        x=xval, y=yvals, legendgroup="Kompensation", name="GHD (Nachfragereduktion)",
+    )
 )
 
 yvals[ypos] = total_industry_demand * red_ind_dem
@@ -258,28 +299,31 @@ fig.add_trace(
         x=xval,
         y=yvals,
         legendgroup="Kompensation",
-        name="Nachfragereduktion Industrie",
+        name="Industrie (Nachfragereduktion)",
     )
 )
 
 yvals[ypos] = total_electricity_demand * red_elec_dem
 fig.add_trace(
     go.Bar(
-        x=xval, y=yvals, legendgroup="Kompensation", name="Nachfragereduktion Energie",
+        x=xval,
+        y=yvals,
+        legendgroup="Kompensation",
+        name="Energie (Nachfragereduktion)",
     )
 )
 
-yvals[ypos] = total_exports_and_other * 0
+yvals[ypos] = total_exports_and_other * red_exp_dem
 fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
         legendgroup="Kompensation",
-        name="Nachfragereduktion Export etc.",
+        name="Export etc. (Nachfragereduktion)",
     )
 )
 
-yvals[ypos] = lng_capacity
+yvals[ypos] = lng_add_capacity
 fig.add_trace(
     go.Bar(x=xval, y=yvals, legendgroup="Kompensation", name="LNG Kapazitätserhöhung",)
 )
@@ -297,7 +341,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 
-start_opti = st.button("Start optimization")
+start_opti = st.button("Optimierung ausführen")
 
 
 def plot_optimization_results(df):
@@ -310,6 +354,8 @@ def plot_optimization_results(df):
         + df.ghd_served
         + df.exp_n_oth_served
     )
+    unserved_demand = total_demand - total_demand_served
+
     fig = go.Figure()
     xvals = df.time
 
@@ -375,9 +421,6 @@ def plot_optimization_results(df):
         )
     )
 
-    unserved_demand = total_demand - total_demand_served
-    st.markdown(f"Abgeregelte Menge Erdgas: {int(sum(unserved_demand))} TWh")
-
     if sum(unserved_demand) > 0.001:
         fig.add_trace(
             go.Scatter(
@@ -385,7 +428,7 @@ def plot_optimization_results(df):
                 y=total_demand - total_demand_served,
                 stackgroup="one",
                 legendgroup="bedarf",
-                name="Ungedeckter Bedarf",
+                name=f"Abgeregelt ({int(sum(unserved_demand))} TWh)",
                 mode="none",
                 fillcolor=FZJcolor.get("red"),
             )
@@ -394,7 +437,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.lngServed,  # lng_val / 24,
+            y=df.lngServed,
             stackgroup="two",
             line=dict(color=FZJcolor.get("yellow3"), width=3.5),
             legendgroup="import",
@@ -434,8 +477,11 @@ def plot_optimization_results(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-    #%%
-    # SOC
+    # st.markdown(
+    #     f"Ungedeckter, abgeregelter Erdgasbedarf: {int(sum(unserved_demand))} TWh"
+    # )
+
+    ## SOC
     fig = go.Figure()
 
     fig.add_trace(
@@ -445,7 +491,7 @@ def plot_optimization_results(df):
             stackgroup="one",
             name="Füllstand",
             mode="none",
-            fillcolor=FZJcolor.get("black3"),
+            fillcolor=FZJcolor.get("orange"),
         )
     )
 
@@ -477,8 +523,7 @@ def plot_optimization_results(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-    #%%
-    # Pipeline Import
+    ##  Pipeline Import
     fig = go.Figure()
 
     fig.add_trace(
@@ -495,7 +540,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.lngServed,  # lng_val / 24,
+            y=df.lngServed,
             stackgroup="one",
             name="LNG Import",
             mode="none",
@@ -504,15 +549,11 @@ def plot_optimization_results(df):
     )
 
     fig.update_layout(
-        title=f"Erdgasimporte",
-        # font=dict(size=16),
-        yaxis_title="Erdgas [TWh/h]",
-        legend=legend_dict,
+        title=f"Erdgasimporte", yaxis_title="Erdgas [TWh/h]", legend=legend_dict,
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    #%%
-    # Storage Charge and discharge
+    ## Storage Charge and discharge
     storage_operation = df.lngServed + df.pipeServed - total_demand_served
     storage_discharge = [min(0, x) for x in storage_operation]
     storage_charge = np.array([max(0, x) for x in storage_operation])
@@ -521,7 +562,6 @@ def plot_optimization_results(df):
     storage_charge_pl = np.array([max(0, x) for x in storage_operation_pl])
 
     storage_operation_lng = storage_charge - storage_charge_pl
-    # storage_operation_lng = df.pipeServed - total_demand_served
     storage_charge_lng = np.array([max(0, x) for x in storage_operation_lng])
 
     fig = go.Figure()
@@ -561,7 +601,6 @@ def plot_optimization_results(df):
 
     fig.update_layout(
         title=f"Ein- und Ausspeicherung Gasspeicher",
-        # font=dict(size=16),
         yaxis_title="Erdgas [TWh/h]",
         legend=legend_dict,
     )
@@ -569,13 +608,18 @@ def plot_optimization_results(df):
     st.plotly_chart(fig, use_container_width=True)
 
 
-with st.spinner(text="Running optimization, this might take several minutes..."):
-    if start_opti:
-        scenario_name = gdta.get_scenario_name(
-            pl_reduction, lng_capacity / 365, reduced_demand, soc_slack
-        )
+if not start_opti:
+    with st.spinner(text="Ergebnisse laden..."):
+        scenario_name = "default_scenario"
+        df = gdta.get_optiRes(scenario_name)
+        plot_optimization_results(df)
+else:
+    with st.spinner(text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."):
         try:
             df = opti.run_scenario(
+                total_import=total_import,
+                total_production=total_production,
+                total_import_russia=total_import_russia,
                 total_domestic_demand=total_domestic_demand,
                 total_ghd_demand=total_ghd_demand,
                 total_electricity_demand=total_electricity_demand,
@@ -585,15 +629,15 @@ with st.spinner(text="Running optimization, this might take several minutes...")
                 red_elec_dem=red_elec_dem,
                 red_ghd_dem=red_ghd_dem,
                 red_ind_dem=red_ind_dem,
+                red_exp_dem=red_exp_dem,
+                import_stop_date=import_stop_date,
+                demand_reduction_date=demand_reduction_date,
+                lng_increase_date=lng_increase_date,
                 russ_share=pl_reduction,
-                lng_val=lng_capacity / 365,
+                lng_add_capacity=lng_add_capacity,
                 use_soc_slack=soc_slack,
             )
-            # df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
         except Exception as e:
             st.write(e)
-    # else:
-    #     scenario_name = "default_scenario"
-    #     df = gdta.get_optiRes(scenario_name)
-    #     plot_optimization_results(df)
+

@@ -5,9 +5,9 @@ from PIL import Image
 LHV_LNG = 0.006291  # kWh/m3 = MWh/10^3m3
 
 
-def get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack):
+def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
     return (
-        f"{int(pl_reduction*100)}_{int(lng_capacity*10)}_{reduced_demand}_{soc_slack}"
+        f"{int(pl_reduction*100)}_{int(lng_add_capacity)}_{reduced_demand}_{soc_slack}"
     )
 
 
