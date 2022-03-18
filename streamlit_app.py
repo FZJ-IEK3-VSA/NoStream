@@ -653,7 +653,7 @@ hash_val = hash(
         use_soc_slack,
     )
 )
-default_hash = 3073516694676277863
+default_hash = -5024794703248336817 # 3073516694676277863
 st.write(hash_val)
 
 st.markdown("## Optimierungsergebnis")
