@@ -654,7 +654,7 @@ hash_val = hash(
     )
 )
 default_hash = -5024794703248336817 # 3073516694676277863
-st.write(hash_val)
+# st.write(hash_val)
 
 st.markdown("## Optimierungsergebnis")
 if start_opti:
@@ -689,9 +689,9 @@ if start_opti:
 
 if hash_val == default_hash:
     if not start_opti:
-        with st.spinner(text="Ergebnisse laden..."):
+        with st.spinner(text="Lade Ergebnisse..."):
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
-    else:
-        st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im unten im Menüband auf der linken Seite")
+else:
+    st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im unten im Menüband auf der linken Seite")
