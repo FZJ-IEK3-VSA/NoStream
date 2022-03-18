@@ -1,9 +1,6 @@
 # %%
 import pandas as pd
 import numpy as np
-
-# import matplotlib.pyplot as plt
-# import matplotlib.dates as mdates
 import math
 import pyomo.environ as pyomo
 import pyomo.opt as opt
@@ -14,39 +11,11 @@ import streamlit as st
 import get_data as gdta
 import datetime
 
-# from pyutilib.services import register_executable, registered_executable
-# register_executable(name='glpsol')
-
-# import matplotlib
-# plt.rc('font', size=16)
-# plt.rc('xtick', labelsize=16)
-# plt.rc('ytick', labelsize=16)
-# plt.rc('axes', titlesize=16)
-# plt.rc('axes', titlesize=16)
-# plt.rc('legend', fontsize=16)
-# plt.rc('font', size=16)
-
-# matplotlib.rcParams['font.family'] = 'arial'
-# %%
-# %matplotlib inline
-
 
 periods_per_year = 8760
 
-
-# Sensitivity analysis
-# import share of russion gas [-]
-# russian_gas_share = [0.0]
-# Average European LNG import [TWh/d]
-
-# lng_add_capacityues = [0.0, 965]  # 90% load # [0.0, 1.6, 3.2]
-# Demand reduction
-# demand_reduction = [True, False]
-
-
 # Discounting factor [-/h]
 fac = (1 / 1.06) ** (1 / 8760)
-
 
 ## Time and dates
 # [h/a]
@@ -61,27 +30,28 @@ time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
 
 # Storage
-# Allow negative State of charge
-# use_soc_slack = False
+def get_storage_capacity():
 
-# Maximum storage capacity [TWh]
-storCap = 1100
+    # Maximum storage capacity [TWh]
+    storCap = 1100
 
-# Read daily state of charge data for the beginning of the year (source: GIE)
-df_storage = pd.read_excel("Input/Optimization/storage_data_5a.xlsx", index_col=0)
-year = 2022
-bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
-df_storage = df_storage.loc[bool_year, :]
-df_storage.sort_values("gasDayStartedOn", ignore_index=True, inplace=True)
+    # Read daily state of charge data for the beginning of the year (source: GIE)
+    df_storage = pd.read_excel("Input/Optimization/storage_data_5a.xlsx", index_col=0)
+    year = 2022
+    bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
+    df_storage = df_storage.loc[bool_year, :]
+    df_storage.sort_values("gasDayStartedOn", ignore_index=True, inplace=True)
 
-# Fix the state of charge values from January-March; otherwise soc_max = capacity_max [TWh]
-soc_max_day = df_storage.gasInStorage
+    # Fix the state of charge values from January-March; otherwise soc_max = capacity_max [TWh]
+    soc_max_day = df_storage.gasInStorage
 
-# Convert daily state of charge to hourly state of charge (hourly values=daily values/24) [TWh]
-soc_max_hour = []
-for value in soc_max_day:
-    hour_val = [value]
-    soc_max_hour = soc_max_hour + 24 * hour_val
+    # Convert daily state of charge to hourly state of charge (hourly values=daily values/24) [TWh]
+    soc_max_hour = []
+    for value in soc_max_day:
+        hour_val = [value]
+        soc_max_hour = soc_max_hour + 24 * hour_val
+    
+    return storCap, soc_max_hour
 
 
 def run_scenario(
@@ -105,6 +75,31 @@ def run_scenario(
     russ_share=0,
     use_soc_slack=False,
 ):
+    """Solves a MILP storage model given imports,exports, demands, and production.
+
+    Parameters
+    ----------
+    lng_add_capacity : float
+        increased daily LNG flow [TWh/d]
+    russ_share : float
+        share of Russian natural gas [0 - 1]
+    total_domestic_demand : float
+        total natural gas demand for domestic purposes [TWh/a]
+    electricity_demand_const : float
+        base (non-volatile) demand of natural gas for electricity production [TWh/a]
+    electricity_demand_volatile : float
+        volatile demand of natural gas for electricity production [TWh/a]
+    industry_demand_const : float
+        base (non-volatile) demand of natural gas for the industry sector [TWh/a]
+    industry_demand_volatile : float
+        volatile demand of natural gas for the industry sector [TWh/a]
+    total_ghd_demand : float
+        total demand for the cts sector
+    total_exports_and_other : float
+        total demand for the cts sectorexports and other demands
+    """
+    
+    storCap, soc_max_hour = get_storage_capacit(y)
 
     base_lng_import = 876  # 2.4 * 365
 
@@ -156,72 +151,7 @@ def run_scenario(
         freq="H",
     )
 
-    #     df = scenario(
-    #         lng_add_capacity,
-    #         russ_share,
-    #         use_soc_slack,
-    #         total_domestic_demand,
-    #         electricity_demand_const,
-    #         electricity_demand_volatile,
-    #         industry_demand_const,
-    #         industry_demand_volatile,
-    #         total_ghd_demand,
-    #         total_exports_and_other,
-    #         red_dom_dem,
-    #         red_elec_dem,
-    #         red_ghd_dem,
-    #         red_ind_dem,
-    #         time_index_import_normal,
-    #         time_index_import_reduced,
-    #         time_index_demand_reduced,
-    #         time_index_lng_increased,
-    #         base_lng_import,
-    #     )
-    #     return df
 
-    # def scenario(
-    #     lng_add_capacity: float,
-    #     russ_share: float,
-    #     use_soc_slack: bool,
-    #     total_domestic_demand: float,
-    #     electricity_demand_const: float,
-    #     electricity_demand_volatile: float,
-    #     industry_demand_const: float,
-    #     industry_demand_volatile: float,
-    #     total_ghd_demand: float,
-    #     total_exports_and_other:float,
-    #     red_dom_dem,
-    #     red_elec_dem,
-    #     red_ghd_dem,
-    #     red_ind_dem,
-    #     time_index_import_normal,
-    #     time_index_import_reduced,
-    #     time_index_demand_reduced,
-    #     time_index_lng_increased,
-    # ):
-    """Solves a MILP storage model given imports,exports, demands, and production.
-
-    Parameters
-    ----------
-    lng_add_capacity : float
-        increased daily LNG flow [TWh/d]
-    russ_share : float
-        share of Russian natural gas [0 - 1]
-    total_domestic_demand : float
-        total natural gas demand for domestic purposes [TWh/a]
-    electricity_demand_const : float
-        base (non-volatile) demand of natural gas for electricity production [TWh/a]
-    electricity_demand_volatile : float
-        volatile demand of natural gas for electricity production [TWh/a]
-    industry_demand_const : float
-        base (non-volatile) demand of natural gas for the industry sector [TWh/a]
-    industry_demand_volatile : float
-        volatile demand of natural gas for the industry sector [TWh/a]
-    total_ghd_demand : float
-        total demand for the cts sector
-    total_exports_and_other : float
-        total demand for the cts sectorexports and other demands
-    """
 
     def red_func(demand, red):
         """returns the reduced demand"""
@@ -690,7 +620,7 @@ def run_scenario(
             + df.exp_n_oth_served.sum()
         )
     )
-    # print(df['balance'])
+
     print("saving...")
     # scenario_name = gdta.get_scenario_name(
     #     russ_share, lng_add_capacity, demand_reduct, use_soc_slack
@@ -699,56 +629,20 @@ def run_scenario(
     print("Done!")
     return df
 
-    # fig, ax = plt.subplots(figsize=(20, 4))
-    # ax.stackplot(timeSteps, socList)
-    # ax.set_xticks(np.linspace(0, number_periods, 13+6))
-    # ax.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt',
-    #                     'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], rotation=90)
-    # ax.set_xlim(0, number_periods)
-    # ax.set_ylim(0, 1200)
-    # ax.set_xlabel('Time of the Year', fontsize=20)
-    # ax.set_ylabel('Storage Level [TWh]', fontsize=20)
-    # ax.set_title(
-    #     f'Natural Gas Storage Level ({russ_share*100} % Share of Russian gas, LNG val. {lng_add_capacity},demand reduction: {demand_reduct})',
-    #     fontsize=24, pad=10)
-    # # plt.show()
-
-    # plt.savefig(f'results_aGasSocScen{int(russ_share*100)}_{int(lng_add_capacity*10)}_{demand_reduct}_{use_soc_slack}.png')
-    # fig, ax = plt.subplots(figsize=(20, 4))
-    # ax.stackplot(
-    #     timeSteps, [i for i in pipeServedList[:-1]+[0]],
-    #     [i for i in lngServedList[:-1]+[0]],
-    #     labels=['pipeImp', 'lngImp'],
-    #     zorder=1)
-    # ax.stackplot(
-    #     timeSteps, domDemList[: -1] + [0],
-    #     elecDemList[: -1] + [0],
-    #     indDemList[: -1] + [0],
-    #     ghdDemList[: -1] + [0],
-    #     expAndOtherServedList[: -1] + [0],
-    #     labels=['domestic sector', 'electricity sector', 'industry sector', 'cts sector', 'export and other'])
-    # ax.set_xticks(np.linspace(0, 8760*1.5, 13+6))
-    # ax.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt',
-    #                     'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], rotation=90)
-    # ax.set_xlim(0, 8760*1.5)
-    # ax.set_ylim(0, 1.1)
-    # ax.set_xlabel('Time of the Year', fontsize=20)
-    # ax.set_ylabel('served demands [TWh/h]', fontsize=20)
-    # plt.legend()
-    # # plt.show()
-    # plt.savefig(f'results_aGasFlowScen{int(russ_share*100)}_{int(lng_add_capacity*10)}_{demand_reduct}_{use_soc_slack}.png')
-
-    # for i in [pyM.domDemIsUnserved, pyM.elecDemIsUnserved, pyM.ghdDemIsUnserved, pyM.indDemIsUnserved]:
-    #     print(i.value)
-    # plt.close()
-
-
-# # %%
+# %%
 if __name__ == "__main__":
-    df = run_scenario(russ_share=0, lng_add_capacity=965, use_soc_slack=False)
-    # # loop over all scenario variations
-    # for russ_share in russian_gas_share:
-    #     for lng_add_capacity in lng_add_capacityues:
-    #         for demand_reduct in demand_reduction:
-    #             scenario(lng_add_capacity, russ_share, demand_reduct, total_domestic_demand, electricity_demand_const,
-    #                      electricity_demand_volatile, industry_demand_const, industry_demand_volatile, total_ghd_demand)
+    # Sensitivity analysis
+    # import share of russion gas [-]
+    russian_gas_share = [0.0]
+    
+    # Average European LNG import [TWh/d]
+    lng_add_capacities = [0.0, 965]  # 90% load
+
+    # Demand reduction
+    demand_reduction = [True, False] # Input is currently useless
+
+    # loop over all scenario variations
+    for russ_share in russian_gas_share:
+        for lng_add_capacity in lng_add_capacities:
+            for demand_reduct in demand_reduction:
+                df = run_scenario(russ_share=0, lng_add_capacity=965, use_soc_slack=False)

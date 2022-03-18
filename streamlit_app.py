@@ -35,22 +35,6 @@ def download_link(object_to_download, download_filename, download_link_text):
     return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
 
 
-# # Examples
-# df = pd.DataFrame({'x': list(range(10)), 'y': list(range(10))})
-# st.write(df)
-
-
-
-
-def get_table_download_link(df):
-    """Generates a link allowing the data in a given panda dataframe to be downloaded
-    in:  dataframe
-    out: href string
-    """
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-    href = f'<a href="data:file/csv;base64,{b64}">Download csv file</a>'
-
 FZJcolor = gdta.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 
@@ -257,11 +241,7 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    # st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen'")
-    
-    # cancel_opti = st.button("Optimierung abbrechen")
-    # if cancel_opti:
-    #     st.stop()
+    st.markdown("[View code for optimization](https://github.com/ToniGustavson/eu_energy_independence/blob/3a5a78ca33caec7777fb3b04afea66a423182335/storage_sim.py)"")
 
 
 use_soc_slack = False
@@ -737,7 +717,5 @@ if hash_val == default_hash:
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
-            st.markdown("Ergebnisse herunterladen:")
-            # if st.button('Download Dataframe as CSV'):
-            tmp_download_link = download_link(df, f"Optimization_Results_{hash_val}.csv", "Ergebnisse als .csv herunterladen")
+            tmp_download_link = download_link(df, f"Optimization_Results_{int(hash_val)}.csv", "Ergebnisse herunterladen")
             st.markdown(tmp_download_link, unsafe_allow_html=True)
