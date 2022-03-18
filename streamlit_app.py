@@ -219,8 +219,8 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen'")
-    start_opti = st.button("Optimierung ausführen")
+    # st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen'")
+    
     # cancel_opti = st.button("Optimierung abbrechen")
     # if cancel_opti:
     #     st.stop()
@@ -656,7 +656,13 @@ hash_val = hash(
 default_hash = -5024794703248336817 # 3073516694676277863
 # st.write(hash_val)
 
-st.markdown("## Optimierungsergebnis")
+st.markdown("## Optimierungsergebnisse")
+start_opti = False
+if hash_val != default_hash:
+    # st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im Menüband unten auf der linken Seite")
+    start_opti = st.button("Optimierung ausführen")
+
+
 if start_opti:
     with st.spinner(
         text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
@@ -693,5 +699,3 @@ if hash_val == default_hash:
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
-else:
-    st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im unten im Menüband auf der linken Seite")
