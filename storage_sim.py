@@ -493,7 +493,7 @@ def scenario(lng_val: float, russ_share: float, demand_reduct: bool, use_soc_sla
 
     df['balance'] = df.soc_slack.sum()+df.pipeServed.sum()+df.lngServed.sum()+df.soc.iloc[0]-df.soc.iloc[-1] - \
         (df.dom_served.sum()+df.elec_served.sum()+df.ind_served.sum()+df.ghd_served.sum() + df.exp_n_oth_served.sum())
-    print(df['balance'])
+    # print(df['balance'])
     print("saving...")
     scenario_name = gdta.get_scenario_name(russ_share, lng_val, demand_reduct, use_soc_slack)
     df.to_excel(f'Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx')

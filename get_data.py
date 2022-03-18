@@ -9,7 +9,10 @@ def get_scenario_name(pl_reduction, lng_capacity, reduced_demand, soc_slack):
     
 
 def get_result_dir(scenario_name):
-    fileName = f"results_aGasFlowScen_{scenario_name}.xlsx"
+    if "default" in scenario_name:
+        fileName = f"default_scenario.xlsx"
+    else:
+        fileName = f"results_aGasFlowScen_{scenario_name}.xlsx"
     fileDir = os.path.join("Results_Optimization", fileName)
     return fileDir
 
