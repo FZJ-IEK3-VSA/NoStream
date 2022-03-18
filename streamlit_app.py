@@ -685,7 +685,7 @@ if start_opti:
                 import_stop_date=import_stop_date,
                 demand_reduction_date=demand_reduction_date,
                 lng_increase_date=lng_increase_date,
-                russ_share=pl_reduction,
+                russ_share=russ_share,
                 lng_add_capacity=lng_add_capacity,
                 use_soc_slack=use_soc_slack,
             )
