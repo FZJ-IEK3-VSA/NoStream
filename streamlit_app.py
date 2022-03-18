@@ -688,7 +688,7 @@ if start_opti:
             st.write(e)
 
 if hash_val == default_hash:
-    if not start_opti
+    if not start_opti:
         with st.spinner(text="Ergebnisse laden..."):
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
