@@ -219,7 +219,7 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    st.info("Starten Sie die Optimierung druch klicken auf 'Optimierung ausführen'")
+    st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen'")
     start_opti = st.button("Optimierung ausführen")
     # cancel_opti = st.button("Optimierung abbrechen")
     # if cancel_opti:
@@ -686,9 +686,12 @@ if start_opti:
             plot_optimization_results(df)
         except Exception as e:
             st.write(e)
-else:
-    if hash_val == default_hash:
+
+if hash_val == default_hash:
+    if not start_opti
         with st.spinner(text="Ergebnisse laden..."):
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
+    else:
+        st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im unten im Menüband auf der linken Seite")
