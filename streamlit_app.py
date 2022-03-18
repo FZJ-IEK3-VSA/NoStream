@@ -38,22 +38,24 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.text("")
-st.markdown("# Reduktion Russischer Gas-Importe")
+st.markdown("## Reduktion Russischer Erdgas-Importe")
 st.markdown("### Auswirkungen auf die Versorgungssicherheit in Europa")
 
+st.text("")
+st.markdown("Dashboard:")
 with st.expander("Importstopp", expanded=False):
     cols = st.columns(2)
     total_import = cols[0].number_input(
-        "Gesamter Erdgasimport¹ [TWh/a]", min_value=0, max_value=None, value=4190
+        "Gesamter Erdgas-Import¹ [TWh/a]", min_value=0, max_value=None, value=4190
     )
 
     total_production = cols[1].number_input(
-        "Gesamte Erdgasproduktion¹ [TWh/a]", min_value=0, max_value=None, value=608
+        "Innländische Erdgasproduktion¹ [TWh/a]", min_value=0, max_value=None, value=608
     )
 
     cols = st.columns(2)
     total_import_russia = cols[0].number_input(
-        "Erdgasimport aus Russland¹ [TWh/a]", min_value=0, max_value=None, value=1752
+        "Erdgas-Import aus Russland¹ [TWh/a]", min_value=0, max_value=None, value=1752
     )
 
     pl_reduction = cols[1].slider(
@@ -75,7 +77,7 @@ with st.expander("Importstopp", expanded=False):
     import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
 
     st.markdown(
-        "¹ Standardwerte entsprechen Werten für die EU27 aus 2019 (Quelle: Eurostat 2022)"
+        "¹ Voreingestellte Werte: Erdgas-Importe EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
     )
 
 with st.expander("Nachfrageredutkion", expanded=False):
@@ -174,7 +176,7 @@ with st.expander("Nachfrageredutkion", expanded=False):
     )
 
     st.markdown(
-        "¹ Standardwerte entsprechen Werten für die EU27 aus 2019 (Quelle: Eurostat 2022)"
+        "² Voreingestellte Werte: Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
     )
 
 with st.expander("LNG Kapazitäten", expanded=False):
@@ -197,7 +199,7 @@ with st.expander("LNG Kapazitäten", expanded=False):
     lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
 
     st.markdown(
-        "² Aktuell genutzte LNG Kapazität in EU27: 875 TWh/a (Quelle: GIE 2022)"
+        "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
     )  # , Maximal nutzbare LNG Kapazitäten: 2025 TWh/a, Maximal zusätzlich nurzbare LNG-Kapazitäten: 1150 TWh/a
 
 
@@ -614,7 +616,9 @@ if not start_opti:
         df = gdta.get_optiRes(scenario_name)
         plot_optimization_results(df)
 else:
-    with st.spinner(text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."):
+    with st.spinner(
+        text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
+    ):
         try:
             df = opti.run_scenario(
                 total_import=total_import,
@@ -640,4 +644,3 @@ else:
             plot_optimization_results(df)
         except Exception as e:
             st.write(e)
-
