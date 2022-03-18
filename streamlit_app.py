@@ -16,7 +16,7 @@ import os
 FZJcolor = gdta.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 
-font_dict = dict(size=18)
+font_dict = dict(size=16)
 
 write_image = False  # True False
 scale = 2
@@ -38,8 +38,8 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.text("")
-st.markdown("## Reduktion Russischer Erdgas-Importe")
-st.markdown("### Auswirkungen auf die Versorgungssicherheit in Europa")
+st.markdown("# Reduktion Russischer Erdgas-Importe")
+st.markdown("## Auswirkungen auf die Versorgungssicherheit in Europa")
 
 st.text("")
 # st.markdown("Dashboard:")
@@ -82,8 +82,8 @@ with st.sidebar:
             max_value=0,
             value=100,
             step=1,
-        )
-        pl_reduction = 1 - pl_reduction / 100
+        )/100
+        russ_share = 1 - pl_reduction
 
         cols = st.columns(2)
         import_stop_date = st.date_input(
@@ -226,9 +226,11 @@ with st.sidebar:
     #     st.stop()
 
 
-soc_slack = False
+use_soc_slack = False
 
 # Energiebilanz
+st.markdown("## Erdgas-Bilanz")
+
 fig = go.Figure()
 xval = ["Bedarfe", "Import & Produktion", "Importlücke Russland", "Kompensation"]
 yempty = [0, 0, 0, 0]
@@ -282,7 +284,7 @@ fig.add_trace(
 ## Importlücke
 ypos = 2
 yvals = yempty.copy()
-yvals[ypos] = total_import_russia * (1 - pl_reduction)
+yvals[ypos] = total_import_russia * pl_reduction
 
 fig.add_trace(
     go.Bar(
@@ -352,7 +354,7 @@ fig.add_trace(
 
 
 fig.update_layout(
-    title=f"Erdgas-Bilanz",
+    title=f"Status Quo, Import-Lücke und Kompensationsmöglichkeiten ",
     yaxis_title="Erdgas [TWh/a]",
     barmode="stack",
     font=font_dict,
@@ -481,7 +483,7 @@ def plot_optimization_results(df):
 
     fig.update_layout(
         title=f"Erdgasbedarfe und Import",
-        # font=font_dict,
+        font=font_dict,
         yaxis_title="Erdgas [TWh/h]",
         # legend=legend_dict,
     )
@@ -527,7 +529,7 @@ def plot_optimization_results(df):
 
     fig.update_layout(
         title=f"Speicherfüllstand",
-        # font=font_dict,
+        font=font_dict,
         yaxis_title="Erdgas [TWh]",
         legend=legend_dict,
     )
@@ -627,7 +629,33 @@ def plot_optimization_results(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-initial_run=True
+
+hash_val = hash(
+    (
+        total_import,
+        total_production,
+        total_import_russia,
+        total_domestic_demand,
+        total_ghd_demand,
+        total_electricity_demand,
+        total_industry_demand,
+        total_exports_and_other,
+        red_dom_dem,
+        red_elec_dem,
+        red_ghd_dem,
+        red_ind_dem,
+        red_exp_dem,
+        import_stop_date,
+        demand_reduction_date,
+        lng_increase_date,
+        russ_share,
+        lng_add_capacity,
+        use_soc_slack,
+    )
+)
+
+
+st.markdown("## Optimierungsergebnis")
 if start_opti:
     with st.spinner(
         text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
@@ -652,13 +680,14 @@ if start_opti:
                 lng_increase_date=lng_increase_date,
                 russ_share=pl_reduction,
                 lng_add_capacity=lng_add_capacity,
-                use_soc_slack=soc_slack,
+                use_soc_slack=use_soc_slack,
             )
             plot_optimization_results(df)
         except Exception as e:
             st.write(e)
-# else:
-    # with st.spinner(text="Ergebnisse laden..."):
-    #     scenario_name = "default_scenario"
-    #     df = gdta.get_optiRes(scenario_name)
-    #     plot_optimization_results(df)
+else:
+    if hash_val == 3073516694676277863:
+        with st.spinner(text="Ergebnisse laden..."):
+            scenario_name = "default_scenario"
+            df = gdta.get_optiRes(scenario_name)
+            plot_optimization_results(df)
