@@ -8,7 +8,6 @@ import datetime
 import get_data as gdta
 import storage_sim as opti
 import base64
-import hashlib
 
 # from PIL import Image
 
