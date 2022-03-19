@@ -13,11 +13,7 @@ import hashlib
 # from PIL import Image
 
 import os
-import sys
-hashseed = os.getenv('PYTHONHASHSEED')
-if not hashseed:
-    os.environ['PYTHONHASHSEED'] = '0'
-    os.execv(sys.executable, [sys.executable] + sys.argv)
+
 
 def download_df(object_to_download, download_filename, download_link_text):
 
@@ -754,7 +750,7 @@ hash_val = hash_from_tuple(
     )
 )
 default_hash = "0d451780c4414aa6d2548a4fc749b9cd"  # 3073516694676277863
-st.write(hash_val)
+# st.write(hash_val)
 
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
