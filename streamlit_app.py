@@ -14,26 +14,21 @@ import base64
 import os
 
 
-def download_link(object_to_download, download_filename, download_link_text):
-    """
-    Generates a link to download the given object_to_download.
+def download_df(object_to_download, download_filename, download_link_text):
 
-    object_to_download (str, pd.DataFrame):  The object to be downloaded.
-    download_filename (str): filename and extension of file. e.g. mydata.csv, some_txt_output.txt
-    download_link_text (str): Text to display for download link.
-
-    Examples:
-    download_link(YOUR_DF, 'YOUR_DF.csv', 'Click here to download data!')
-    download_link(YOUR_STRING, 'YOUR_STRING.txt', 'Click here to download your text!')
-
-    """
     if isinstance(object_to_download, pd.DataFrame):
         object_to_download = object_to_download.to_csv(index=False)
-
-    # some strings <-> bytes conversions necessary here
     b64 = base64.b64encode(object_to_download.encode()).decode()
 
-    return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
+    link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
+    st.markdown(link, unsafe_allow_html=True)
+
+def download_pdf(object_to_download, download_filename, download_link_text):
+    with open(object_to_download, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode('utf-8')
+
+    link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
+    st.markdown(link, unsafe_allow_html=True)
 
 
 FZJcolor = gdta.get_fzjColor()
@@ -66,6 +61,18 @@ st.markdown("## Auswirkungen auf die Versorgungssicherheit in Europa")
 
 st.text("")
 # st.markdown("Dashboard:")
+
+def displayPDF(file, width=700, height=1000):
+    # Opening file from file path
+    with open(file, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+    # Embedding PDF in HTML
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="{width}" height="{height}" type="application/pdf"></iframe>'
+    # pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="{width}" height="{height}" type="application/pdf">'
+
+    # Displaying File
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 
 def render_svg(figDir):
@@ -251,10 +258,13 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
+    st.text("")
     st.markdown(
-        "💻 [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)"
-    )
-
+        "⛲ [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)"
+    ) # 💻
+    
+    st.markdown("🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)")
+    # ℹ️ 📜
 
 use_soc_slack = False
 
@@ -777,9 +787,20 @@ if hash_val == default_hash:
             scenario_name = "default_scenario"
             df = gdta.get_optiRes(scenario_name)
             plot_optimization_results(df)
-            tmp_download_link = download_link(
+            download_df(
                 df,
                 f"Optimization_Results_{int(hash_val)}.csv",
                 "Ergebnisse herunterladen",
             )
-            st.markdown(tmp_download_link, unsafe_allow_html=True)
+
+
+st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
+download_pdf("Input/Analyse.pdf", "Analyse_energySupplyWithoutRussianGasAnalysis.pdf", "Analyse herunterladen")
+displayPDF("Input/Analyse.pdf", width=900, height=635)
+
+
+st.text("")
+
+st.markdown("## Pressemitteilung")
+download_pdf("Input/Pressemitteilung.pdf", "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf", "Pressemitteilung herunterladen")
+displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
