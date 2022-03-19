@@ -8,6 +8,7 @@ import datetime
 import get_data as gdta
 import storage_sim as opti
 import base64
+import hashlib
 
 # from PIL import Image
 
@@ -718,7 +719,14 @@ def plot_optimization_results(df):
     st.plotly_chart(fig, use_container_width=True)
 
 
-hash_val = hash(
+def hash_from_tuple(t):
+    m = hashlib.md5()
+    for s in t:
+        s = str(s)
+        m.update(s.encode())
+    return m.hexdigest()
+
+hash_val = hash_from_tuple(
     (
         total_import,
         total_production,
@@ -741,7 +749,7 @@ hash_val = hash(
         use_soc_slack,
     )
 )
-default_hash = -5024794703248336817  # 3073516694676277863
+default_hash = "0d451780c4414aa6d2548a4fc749b9cd"  # 3073516694676277863
 st.write(hash_val)
 
 st.markdown("## Optimierungsergebnisse")
