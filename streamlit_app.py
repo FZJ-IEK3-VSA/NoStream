@@ -742,7 +742,7 @@ hash_val = hash(
     )
 )
 default_hash = -5024794703248336817  # 3073516694676277863
-# st.write(hash_val)
+st.write(hash_val)
 
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
