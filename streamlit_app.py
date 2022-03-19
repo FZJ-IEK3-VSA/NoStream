@@ -720,11 +720,13 @@ def plot_optimization_results(df):
 
 
 def hash_from_tuple(t):
-    m = hashlib.md5()
+    # m = hashlib.md5()
+    res = ""
     for s in t:
         s = str(s)
-        m.update(s.encode())
-    return m.hexdigest()
+        res += s
+        #m.update(s.encode())
+    return res # m.hexdigest()
 
 hash_val = hash_from_tuple(
     (
@@ -749,7 +751,7 @@ hash_val = hash_from_tuple(
         use_soc_slack,
     )
 )
-default_hash = "0d451780c4414aa6d2548a4fc749b9cd"  # 3073516694676277863
+default_hash = "41906081752926421151511109880.130.20.080.080.02022-04-16 00:00:002022-03-16 00:00:002022-05-01 00:00:000.0965False"  # 3073516694676277863
 # st.write(hash_val)
 
 st.markdown("## Optimierungsergebnisse")
