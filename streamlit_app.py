@@ -13,7 +13,11 @@ import hashlib
 # from PIL import Image
 
 import os
-
+import sys
+hashseed = os.getenv('PYTHONHASHSEED')
+if not hashseed:
+    os.environ['PYTHONHASHSEED'] = '0'
+    os.execv(sys.executable, [sys.executable] + sys.argv)
 
 def download_df(object_to_download, download_filename, download_link_text):
 
@@ -797,7 +801,7 @@ if hash_val == default_hash:
             plot_optimization_results(df)
             download_df(
                 df,
-                f"Optimization_Results_{int(hash_val)}.csv",
+                f"Optimization_Results_{str(hash_val)}.csv",
                 "Ergebnisse herunterladen",
             )
 
