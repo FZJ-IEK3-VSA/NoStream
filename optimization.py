@@ -488,7 +488,7 @@ def run_scenario(
     print(80 * "=")
 
     # set solver details
-    solver = "glpk"
+    solver = "cbc"
     optimizer = opt.SolverFactory(solver)
     solver_info = optimizer.solve(pyM, tee=True)
 
