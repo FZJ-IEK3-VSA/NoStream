@@ -233,14 +233,6 @@ def run_scenario(
     pyM.ghdDemServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.lngServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.pipeServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
-    pyM.NegOffset = pyomo.Var(domain=pyomo.Binary)
-
-    # indicator variables indicating if demand is left unserved
-    pyM.expAndOtherIsUnserved = pyomo.Var(domain=pyomo.Binary)
-    pyM.domDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
-    pyM.elecDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
-    pyM.indDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
-    pyM.ghdDemIsUnserved = pyomo.Var(domain=pyomo.Binary)
 
     print(80 * "=")
     print("Variables created.")
@@ -277,47 +269,31 @@ def run_scenario(
     def Objective_rule(pyM):
         return (
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
-            + 0 * pyM.NegOffset
             + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
             + 1.0
-            * (
-                0 * pyM.expAndOtherIsUnserved
-                + sum(
-                    fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
-                    for t in timeSteps[:-1]
-                )
+            * sum(
+                fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
+                for t in timeSteps[:-1]
             )
             + 2.5
-            * (
-                0 * pyM.domDemIsUnserved
-                + sum(
-                    fac ** t * (domDem.iloc[t] - pyM.domDemServed[t])
-                    for t in timeSteps[:-1]
-                )
+            * sum(
+                fac ** t * (domDem.iloc[t] - pyM.domDemServed[t])
+                for t in timeSteps[:-1]
             )
             + 2.5
-            * (
-                0 * pyM.ghdDemIsUnserved
-                + sum(
-                    fac ** t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
-                    for t in timeSteps[:-1]
-                )
+            * sum(
+                fac ** t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
+                for t in timeSteps[:-1]
             )
             + 2
-            * (
-                0 * pyM.elecDemIsUnserved
-                + sum(
-                    fac ** t * (elecDem.iloc[t] - pyM.elecDemServed[t])
-                    for t in timeSteps[:-1]
-                )
+            * sum(
+                fac ** t * (elecDem.iloc[t] - pyM.elecDemServed[t])
+                for t in timeSteps[:-1]
             )
             + 1.5
-            * (
-                0 * pyM.indDemIsUnserved
-                + sum(
-                    fac ** t * (indDem.iloc[t] - pyM.indDemServed[t])
-                    for t in timeSteps[:-1]
-                )
+            * sum(
+                fac ** t * (indDem.iloc[t] - pyM.indDemServed[t])
+                for t in timeSteps[:-1]
             )
         )
 
@@ -374,25 +350,6 @@ def run_scenario(
         pyM.TimeSet, rule=Constr_ExpAndOtherServed_rule
     )
 
-    def Constr_ExpAndOtherIsUnserved_rule(pyM):
-        return (
-            sum(exp_n_oth.iloc[t] - pyM.expAndOtherServed[t] for t in timeSteps[:-1])
-            <= sum(exp_n_oth.iloc[t] for t in timeSteps[:-1])
-            * pyM.expAndOtherIsUnserved
-        )
-
-    pyM.Constr_ExpAndOtherIsUnserved = pyomo.Constraint(
-        rule=Constr_ExpAndOtherIsUnserved_rule
-    )
-
-    def Constr_DomDemIsUnserved_rule(pyM):
-        return (
-            sum(domDem.iloc[t] - pyM.domDemServed[t] for t in timeSteps[:-1])
-            <= sum(domDem.iloc[t] for t in timeSteps[:-1]) * pyM.domDemIsUnserved
-        )
-
-    pyM.Constr_DomDemIsUnserved = pyomo.Constraint(rule=Constr_DomDemIsUnserved_rule)
-
     def Constr_DomDemServed_rule(pyM, t):
         if t < timeSteps[-1]:
             return pyM.domDemServed[t] <= domDem.iloc[t]
@@ -413,14 +370,6 @@ def run_scenario(
         pyM.TimeSet, rule=Constr_GhdDemServed_rule
     )
 
-    def Constr_GhdDemIsUnserved_rule(pyM):
-        return (
-            sum(ghdDem.iloc[t] - pyM.ghdDemServed[t] for t in timeSteps[:-1])
-            <= sum(ghdDem.iloc[t] for t in timeSteps[:-1]) * pyM.ghdDemIsUnserved
-        )
-
-    pyM.Constr_GhdDemIsUnserved = pyomo.Constraint(rule=Constr_GhdDemIsUnserved_rule)
-
     def Constr_ElecDemServed_rule(pyM, t):
         if t < timeSteps[-1]:
             return pyM.elecDemServed[t] <= elecDem.iloc[t]
@@ -431,14 +380,6 @@ def run_scenario(
         pyM.TimeSet, rule=Constr_ElecDemServed_rule
     )
 
-    def Constr_ElecDemIsUnserved_rule(pyM):
-        return (
-            sum(elecDem.iloc[t] - pyM.elecDemServed[t] for t in timeSteps[:-1])
-            <= sum(elecDem.iloc[t] for t in timeSteps[:-1]) * pyM.elecDemIsUnserved
-        )
-
-    pyM.Constr_ElecDemIsUnserved = pyomo.Constraint(rule=Constr_ElecDemIsUnserved_rule)
-
     def Constr_IndDemServed_rule(pyM, t):
         if t < timeSteps[-1]:
             return pyM.indDemServed[t] <= indDem.iloc[t]
@@ -448,14 +389,6 @@ def run_scenario(
     pyM.Constr_IndDemServed = pyomo.Constraint(
         pyM.TimeSet, rule=Constr_IndDemServed_rule
     )
-
-    def Constr_IndDemIsUnserved_rule(pyM):
-        return (
-            sum(indDem.iloc[t] - pyM.indDemServed[t] for t in timeSteps[:-1])
-            <= sum(indDem.iloc[t] for t in timeSteps[:-1]) * pyM.indDemIsUnserved
-        )
-
-    pyM.Constr_IndDemIsUnserved = pyomo.Constraint(rule=Constr_IndDemIsUnserved_rule)
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
     def Constr_soc_start_ub_rule(pyM, t):

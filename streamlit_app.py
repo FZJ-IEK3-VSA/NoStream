@@ -112,7 +112,7 @@ with st.sidebar:
         )
 
         total_production = st.number_input(
-            "Innländische Erdgasproduktion¹ [TWh/a]",
+            "Inländische Erdgasproduktion¹ [TWh/a]",
             min_value=0,
             max_value=None,
             value=608,
@@ -764,7 +764,7 @@ if hash_val != default_hash:
 
 if start_opti:
     with st.spinner(
-        text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
+        text="Starte Optimierung. Rechenzeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
     ):
         try:
             df, input_data = opti.run_scenario(
