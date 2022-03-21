@@ -471,7 +471,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # df.to_excel(f"Results_Optimization/results_{scenario_name}.xlsx")
+    df.to_csv(f"Results_Optimization/results_{scenario_name}.csv")
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -499,7 +499,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # input_data.to_excel(f"Results_Optimization/input_data_{scenario_name}.xlsx")
+    input_data.to_csv(f"Results_Optimization/input_data_{scenario_name}.csv")
 
     # df["neg_offset"] = pyM.NegOffset.value
     # df["dom_unserved"] = pyM.domDemIsUnserved.value

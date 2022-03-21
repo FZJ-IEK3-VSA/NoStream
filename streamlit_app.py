@@ -553,7 +553,7 @@ def plot_optimization_results(df):
         go.Scatter(
             x=xvals,
             y=df.lngImp_served,
-            stackgroup="two",
+            # stackgroup="two",
             line=dict(color=FZJcolor.get("yellow3"), width=3.5),
             legendgroup="import",
             legendgrouptitle_text="Erdgasimport",
@@ -566,13 +566,26 @@ def plot_optimization_results(df):
         go.Scatter(
             x=xvals,
             y=df.pipeImp_served,
-            stackgroup="two",
+            # stackgroup="two",
             line=dict(color=FZJcolor.get("orange"), width=3.5),
             legendgroup="import",
             name="Pipeline Import",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
+
+    fig.add_trace(
+        go.Scatter(
+            x=xvals,
+            y=df.pipeImp_served + df.lngImp_served,
+            # stackgroup="two",
+            line=dict(color=FZJcolor.get("black1"), width=3.5),
+            legendgroup="import",
+            name="Gesamt Import",
+            fillcolor="rgba(0, 0, 0, 0)",
+        )
+    )
+
 
     fig.update_layout(
         title=f"Erdgasbedarfe und Import",
@@ -758,7 +771,7 @@ default_hash = "41906081752926421151511109880.130.20.080.080.02022-04-16 00:00:0
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
 
-if hash_val != default_hash:
+if True: # hash_val != default_hash:
     start_opti = st.button("Optimierung ausführen")
 
 
@@ -795,10 +808,10 @@ if start_opti:
 if hash_val == default_hash:
     if not start_opti:
         with st.spinner(text="Lade Ergebnisse..."):
-            df = pd.read_excel("Results_Optimization/default_results.xlsx", index_col=0)
+            df = pd.read_csv("Results_Optimization/default_results.csv", index_col=0)
             plot_optimization_results(df)
-            input_data = pd.read_excel(
-                "Results_Optimization/default_inputs.xlsx", index_col=0
+            input_data = pd.read_csv(
+                "Results_Optimization/default_inputs.csv", index_col=0
             )
 
 if start_opti or hash_val == default_hash:
