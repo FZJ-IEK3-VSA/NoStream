@@ -258,7 +258,7 @@ with st.sidebar:
 
     st.text("")
     st.markdown(
-        "⛲ [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/optimization.py)"
+        "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/master/optimization.py)"
     )  # 💻
 
     st.markdown(
