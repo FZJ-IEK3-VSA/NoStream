@@ -557,7 +557,7 @@ def run_scenario(
     input_data.loc["red_exp_dem", value_col] = red_exp_dem
     input_data.loc["import_stop_date", value_col] = import_stop_date
     input_data.loc["demand_reduction_date", value_col] = demand_reduction_date
-    input_data.loc["lng_increase_date", value_col] = lng_increase_date   
+    input_data.loc["lng_increase_date", value_col] = lng_increase_date
     input_data.loc["lng_base_import", value_col] = lng_base_import
     input_data.loc["lng_add_import", value_col] = lng_add_import
     input_data.loc["russ_share", value_col] = russ_share
@@ -566,8 +566,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-        # input_data.to_excel(f"Results_Optimization/input_data_{scenario_name}.xlsx")
-
+    # input_data.to_excel(f"Results_Optimization/input_data_{scenario_name}.xlsx")
 
     # df["neg_offset"] = pyM.NegOffset.value
     # df["dom_unserved"] = pyM.domDemIsUnserved.value
@@ -575,7 +574,6 @@ def run_scenario(
     # df["ind_unserved"] = pyM.indDemIsUnserved.value
     # df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
     # df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
-
 
     # print(
     #     "positive side of balance: ",
@@ -620,7 +618,6 @@ if __name__ == "__main__":
 
     # Average European LNG import [TWh/d]
     lng_add_capacities = [0.0, 965]  # 90% load
-
 
     # loop over all scenario variations
     for russ_share in russian_gas_share:

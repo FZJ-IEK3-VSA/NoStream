@@ -10,14 +10,16 @@ import base64
 import os
 
 
-def download_df(object_to_download, download_filename, download_link_text, streamlit_obj=None):
+def download_df(
+    object_to_download, download_filename, download_link_text, streamlit_obj=None
+):
 
     if isinstance(object_to_download, pd.DataFrame):
         object_to_download = object_to_download.to_csv()
     b64 = base64.b64encode(object_to_download.encode()).decode()
 
     link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
-    
+
     if streamlit_obj is None:
         st.markdown(link, unsafe_allow_html=True)
     else:
@@ -240,8 +242,8 @@ with st.sidebar:
             max_value=datetime.date(2023, 12, 30),
         )
         lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
-        
-        lng_base_import = 875 
+
+        lng_base_import = 875
         lng_total_import = st.slider(
             "Genutzte LNG Import Kapazität² [TWh/a]",
             min_value=0,
@@ -253,7 +255,7 @@ with st.sidebar:
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
-    
+
     st.text("")
     st.markdown(
         "⛲ [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)"
@@ -261,7 +263,7 @@ with st.sidebar:
 
     st.markdown(
         "🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
-    ) # 📜
+    )  # 📜
 
 use_soc_slack = False
 
@@ -795,7 +797,9 @@ if hash_val == default_hash:
         with st.spinner(text="Lade Ergebnisse..."):
             df = pd.read_excel("Results_Optimization/default_results.xlsx", index_col=0)
             plot_optimization_results(df)
-            input_data = pd.read_excel("Results_Optimization/default_inputs.xlsx", index_col=0)
+            input_data = pd.read_excel(
+                "Results_Optimization/default_inputs.xlsx", index_col=0
+            )
 
 if start_opti or hash_val == default_hash:
     short_hash = int(abs(hash(hash_val)))
@@ -805,9 +809,7 @@ if start_opti or hash_val == default_hash:
         "Optimierungsergebnisse herunterladen",
     )
     download_df(
-        input_data,
-        f"Input_Daten_{short_hash}.csv",
-        "Input-Daten herunterladen",
+        input_data, f"Input_Daten_{short_hash}.csv", "Input-Daten herunterladen",
     )
 
 
