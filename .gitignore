@@ -11,7 +11,8 @@ analysis/regions/*
 *.aux.xml
 
 # Remove things in testing results dir
-Results_Optimization/*
+# Results_Optimization/*
+Archiv/*
 
 # Extras
 .vscode/settings.json

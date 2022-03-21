@@ -1,8 +1,5 @@
 import pandas as pd
 import os
-from PIL import Image
-
-LHV_LNG = 0.006291  # kWh/m3 = MWh/10^3m3
 
 
 def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
@@ -49,20 +46,3 @@ def get_fzjColor():
 
     FZJcolor_dict = dict(zip(col_names, hex_vals))
     return FZJcolor_dict
-
-
-def get_countryColor(country, FZJcolor):
-    color_dict = {
-        "DE": "blue2",
-        "PL": "green",
-        "RO": "orange",
-        "LT": "yellow",
-        "GR": "grey3",
-        "EE": "lblue",
-        "BG": "pink",
-        "SK": "blue",
-        "FI": "yellow",
-    }
-    col_name = color_dict.get(country, "black")
-    color_val = FZJcolor.get(col_name)
-    return color_val

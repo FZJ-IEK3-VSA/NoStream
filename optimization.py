@@ -8,25 +8,8 @@ import time
 import warnings
 import copy
 import streamlit as st
-import get_data as gdta
+import utils as ut
 import datetime
-
-
-periods_per_year = 8760
-
-# Discounting factor [-/h]
-fac = (1 / 1.06) ** (1 / 8760)
-
-## Time and dates
-# [h/a]
-periods_per_year = 8760
-
-# Start date of the observation period
-start_date = "2022-01-01"
-number_periods = periods_per_year * 1.5
-
-# derive time index for the observation periods
-time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
 
 # Storage
@@ -63,15 +46,15 @@ def run_scenario(
     total_electricity_demand=1515.83,
     total_industry_demand=1110.88,
     total_exports_and_other=988,
-    red_dom_dem=0.13,  # 13%
-    red_elec_dem=0.20,  # 59%
-    red_ghd_dem=0.08,  # 8%
-    red_ind_dem=0.08,  # 8%
-    red_exp_dem=0,
+    red_dom_dem=0.13,
+    red_elec_dem=0.20,
+    red_ghd_dem=0.08,
+    red_ind_dem=0.08,
+    red_exp_dem=0.0,
     import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
     demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
     lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
-    lng_add_capacity=965,
+    lng_add_import=965,
     russ_share=0,
     use_soc_slack=False,
 ):
@@ -79,7 +62,7 @@ def run_scenario(
 
     Parameters
     ----------
-    lng_add_capacity : float
+    lng_add_import : float
         increased daily LNG flow [TWh/d]
     russ_share : float
         share of Russian natural gas [0 - 1]
@@ -98,161 +81,134 @@ def run_scenario(
     total_exports_and_other : float
         total demand for the cts sectorexports and other demands
     """
+    ###############################################################################
+    ############            Preprocessing/Input generation             ############
+    ###############################################################################
 
+    # Storage
     storCap, soc_max_hour = get_storage_capacity()
-
-    base_lng_import = 876  # 2.4 * 365
-
-    # Imports [TWh/a]
-    non_russian_pipeline_import_and_domestic_production = (
-        total_import + total_production - total_import_russia - base_lng_import
-    )
-
-    print("Non Russian Import:")
-    print(non_russian_pipeline_import_and_domestic_production)
 
     if red_dom_dem + red_elec_dem + red_ghd_dem + red_ind_dem + red_exp_dem > 0:
         demand_reduct = True
     else:
         demand_reduct = False
 
-    # Energy balance
-    # EUROSTAT 2019 (sankey)
-    # https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN
+    # Start date of the observation period
+    start_date = "2022-01-01"
+    periods_per_year = 8760  # [h/a]
+    number_periods = periods_per_year * 1.5
 
-    electricity_demand_volatile = total_electricity_demand * 0.3
-    electricity_demand_const = total_electricity_demand * 0.7
+    # Time index defualt
+    time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
-    industry_demand_volatile = total_industry_demand * 0.3
-    industry_demand_const = total_industry_demand * 0.7
-
-    # last stop import
+    # Time index import stop
     time_index_import_normal = pd.date_range(
         start="2022-01-01 00:00:00", end=import_stop_date, freq="H"
     )
 
-    time_index_import_reduced = pd.date_range(
+    time_index_import_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
         end="2023-07-02 11:00:00",
         freq="H",
     )
 
-    # derive time for the reduced demand
-    time_index_demand_reduced = pd.date_range(
+    # Time index reduced demand
+    time_index_demand_red = pd.date_range(
         start=demand_reduction_date + datetime.timedelta(hours=1),
         end="2023-07-02 11:00:00",
         freq="H",
     )
 
-    # time for increased lng
+    # Time index increased lng
     time_index_lng_increased = pd.date_range(
         start=lng_increase_date + datetime.timedelta(hours=1),
         end="2023-07-02 11:00:00",
         freq="H",
     )
 
-    def red_func(demand, red):
-        """returns the reduced demand"""
-        return demand * (1 - red)
-
-    # read timeseries for volatility modeling
-    ts = (
+    # Normalized volatile timeseries
+    ts_vol = (
         pd.read_csv("Input/Optimization/ts_normalized.csv")["Private Haushalte"]
     ).values
 
     # split and recombine to extend to 1.5 years timeframe
-    h1, h2 = np.split(ts, [4380])
-    new_ts = np.concatenate((ts, h1))
+    h1, h2 = np.split(ts_vol, [int(0.5 * periods_per_year)])
+    ts_vol = np.concatenate((ts_vol, h1))
+    ts_const = np.ones_like(ts_vol) * 1 / periods_per_year
 
-    # setup initial demand timeseries
-    domDem = pd.Series(new_ts * total_domestic_demand, index=time_index)
+    # Setup initial demand timeseries
+    # Energy balance, EUROSTAT 2019 (sankey)
+    # https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN
+    electricity_demand_volatile = total_electricity_demand * 0.3
+    electricity_demand_const = total_electricity_demand * 0.7
 
-    elecDem_vol = pd.Series(new_ts * electricity_demand_volatile, index=time_index)
+    industry_demand_volatile = total_industry_demand * 0.3
+    industry_demand_const = total_industry_demand * 0.7
 
-    elecDem_const = pd.Series(
-        electricity_demand_const / periods_per_year, index=time_index
-    )
+    domDem = pd.Series(ts_vol * total_domestic_demand, index=time_index)
+    ghdDem = pd.Series(ts_const * total_ghd_demand, index=time_index)
+    exp_n_oth = pd.Series(ts_const * total_exports_and_other, index=time_index)
 
-    ghdDem = pd.Series(total_ghd_demand / periods_per_year, index=time_index)
-
-    exp_n_oth = pd.Series(total_exports_and_other / 8760, index=time_index)
-
-    indDem_vol = pd.Series(new_ts * industry_demand_volatile, index=time_index)
-
-    indDem_const = pd.Series(industry_demand_const / periods_per_year, index=time_index)
-
-    # Demand Reduction
-    domDem_reduced = pd.Series(
-        new_ts * red_func(total_domestic_demand, red_dom_dem), index=time_index
-    )
-
-    domDem[time_index_demand_reduced] = domDem_reduced[time_index_demand_reduced]
-
-    elecDem_vol_reduced = pd.Series(
-        new_ts * red_func(electricity_demand_volatile, red_elec_dem), index=time_index
-    )
-
-    elecDem_vol[time_index_demand_reduced] = elecDem_vol_reduced[
-        time_index_demand_reduced
-    ]
-
-    elecDem_const_reduced = pd.Series(
-        red_func(electricity_demand_const, red_elec_dem) / periods_per_year,
-        index=time_index,
-    )
-
-    elecDem_const[time_index_demand_reduced] = elecDem_const_reduced[
-        time_index_demand_reduced
-    ]
-
-    ghdDem_reduced = pd.Series(
-        red_func(total_ghd_demand, red_ghd_dem) / periods_per_year, index=time_index
-    )
-    ghdDem[time_index_demand_reduced] = ghdDem_reduced[time_index_demand_reduced]
-
-    indDem_vol_reduced = pd.Series(
-        new_ts * red_func(industry_demand_volatile, red_ind_dem), index=time_index
-    )
-
-    indDem_vol[time_index_demand_reduced] = indDem_vol_reduced[
-        time_index_demand_reduced
-    ]
-
-    indDem_const_reduced = pd.Series(
-        red_func(industry_demand_const, red_ind_dem) / periods_per_year,
-        index=time_index,
-    )
-
-    indDem_const[time_index_demand_reduced] = indDem_const_reduced[
-        time_index_demand_reduced
-    ].values
-
-    # combine volatile and constant parts of the volatile sectors
+    elecDem_vol = pd.Series(ts_vol * electricity_demand_volatile, index=time_index)
+    elecDem_const = pd.Series(ts_const * electricity_demand_const, index=time_index)
     elecDem = elecDem_vol + elecDem_const
+
+    indDem_vol = pd.Series(ts_vol * industry_demand_volatile, index=time_index)
+    indDem_const = pd.Series(ts_const * industry_demand_const, index=time_index)
     indDem = indDem_vol + indDem_const
 
-    # setup initial pipeline supply (before embargo)
-    pipe_normal = pd.Series(
-        (total_import_russia + non_russian_pipeline_import_and_domestic_production)
-        / periods_per_year,
-        index=time_index_import_normal,
+    # Demand reduction
+    def red_func(demand, red):
+        """returns the reduced demand"""
+        return demand * (1 - red)
+
+    domDem_red = red_func(domDem, red_dom_dem)
+    domDem[time_index_demand_red] = domDem_red[time_index_demand_red]
+
+    ghdDem_red = red_func(ghdDem, red_ghd_dem)
+    ghdDem[time_index_demand_red] = ghdDem_red[time_index_demand_red]
+
+    exp_n_oth_red = red_func(exp_n_oth, red_exp_dem)
+    exp_n_oth[time_index_demand_red] = exp_n_oth_red[time_index_demand_red]
+
+    elecDem_red = red_func(elecDem, red_elec_dem)
+    elecDem[time_index_demand_red] = elecDem_red[time_index_demand_red]
+
+    indDem_red = red_func(indDem, red_ind_dem)
+    indDem[time_index_demand_red] = indDem_red[time_index_demand_red]
+
+    # Pipeline Supply
+    # Non russian pipeline imports [TWh/a]
+    lng_base_import = 876  # LNG Import 2021 [TWh/a]
+    non_russian_pipeline_import_and_domestic_production = (
+        total_import + total_production - total_import_russia - lng_base_import
     )
-    pipe_reduced = pd.Series(
-        (
+
+    pipeImp = pd.Series(
+        ts_const
+        * (total_import_russia + non_russian_pipeline_import_and_domestic_production),
+        index=time_index,
+    )
+    pipeImp_red = pd.Series(
+        ts_const
+        * (
             russ_share * total_import_russia
             + non_russian_pipeline_import_and_domestic_production
-        )
-        / periods_per_year,
-        index=time_index_import_reduced,
+        ),
+        index=time_index,
     )
-    pipeImp = pd.concat([pipe_normal, pipe_reduced])
+    pipeImp[time_index_import_red] = pipeImp_red[time_index_import_red]
 
-    # setup LNG timeseries
-    lngImp = pd.Series((base_lng_import) / periods_per_year, index=time_index)
-    lngImp[time_index_lng_increased] = pd.Series(
-        (lng_add_capacity + base_lng_import) / periods_per_year,
-        index=time_index_lng_increased,
+    # Setup LNG timeseries
+    lngImp = pd.Series(ts_const * lng_base_import, index=time_index)
+    lngImp_increased = pd.Series(
+        ts_const * (lng_add_import + lng_base_import), index=time_index
     )
+    lngImp[time_index_lng_increased] = lngImp_increased[time_index_lng_increased]
+
+    ###############################################################################
+    ############                      Optimization                     ############
+    ###############################################################################
 
     # create a PYOMO optimzation model
     pyM = pyomo.ConcreteModel()
@@ -277,7 +233,6 @@ def run_scenario(
     pyM.ghdDemServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.lngServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.pipeServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
-
     pyM.NegOffset = pyomo.Var(domain=pyomo.Binary)
 
     # indicator variables indicating if demand is left unserved
@@ -315,6 +270,10 @@ def run_scenario(
 
     # define the objective function (to be minimized) penalizes unserved demands discounted
     # by factor to inscentivize a late occurance
+
+    # Discounting factor [-/h]
+    fac = (1 / 1.06) ** (1 / 8760)
+
     def Objective_rule(pyM):
         return (
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
@@ -529,10 +488,9 @@ def run_scenario(
     print(80 * "=")
 
     # set solver details
-    solver = "glpk"  # gurobi glpk cbc
-    optimizer = opt.SolverFactory(solver)  # , solver_io="python"
-    # optimizer = pyomo.SolverFactory(solver)
-    solver_info = optimizer.solve(pyM, tee=True)  # , tee=True
+    solver = "glpk"
+    optimizer = opt.SolverFactory(solver)
+    solver_info = optimizer.solve(pyM, tee=True)
 
     print(solver_info["Problem"][0])
 
@@ -541,91 +499,117 @@ def run_scenario(
     print(80 * "=")
 
     # retrieve solution values and collect in a pandas dataframe
-    socList = [pyM.Soc[t].value for t in timeSteps]
-    socSlackList = [pyM.Soc_slack[t].value for t in timeSteps]
-    domDemList = [pyM.domDemServed[t].value for t in timeSteps]
-    elecDemList = [pyM.elecDemServed[t].value for t in timeSteps]
-    indDemList = [pyM.indDemServed[t].value for t in timeSteps]
-    ghdDemList = [pyM.ghdDemServed[t].value for t in timeSteps]
-    pipeServedList = [pyM.pipeServed[t].value for t in timeSteps]
-    lngServedList = [pyM.lngServed[t].value for t in timeSteps]
-    expAndOtherServedList = [pyM.expAndOtherServed[t].value for t in timeSteps]
+    pipeServedList = pd.Series([pyM.pipeServed[t].value for t in timeSteps[:-1]])
+    lngServedList = pd.Series([pyM.lngServed[t].value for t in timeSteps[:-1]])
+    socList = pd.Series([pyM.Soc[t].value for t in timeSteps[:-1]])
+    socSlackList = pd.Series([pyM.Soc_slack[t].value for t in timeSteps[:-1]])
+    domDemServedList = pd.Series([pyM.domDemServed[t].value for t in timeSteps[:-1]])
+    elecDemServedList = pd.Series([pyM.elecDemServed[t].value for t in timeSteps[:-1]])
+    indDemServedList = pd.Series([pyM.indDemServed[t].value for t in timeSteps[:-1]])
+    ghdDemServedList = pd.Series([pyM.ghdDemServed[t].value for t in timeSteps[:-1]])
+    expAndOtherServedList = pd.Series(
+        [pyM.expAndOtherServed[t].value for t in timeSteps[:-1]]
+    )
 
     print("building DataFrame...")
-    df = pd.DataFrame(
-        {
-            "pipeImp": pipeImp.values,
-            "lngImp": lngImp.values,
-            "lngServed": lngServedList[:-1],
-            "pipeServed": pipeServedList[:-1],
-            "soc": socList[:-1],
-            "soc_slack": socSlackList[:-1],
-            "dom_served": domDemList[:-1],
-            "elec_served": elecDemList[:-1],
-            "ind_served": indDemList[:-1],
-            "ghd_served": ghdDemList[:-1],
-            "exp_n_oth_served": expAndOtherServedList[:-1],
-        }
+    df = pd.DataFrame()
+    df = df.assign(
+        time=pipeImp.index,
+        pipeImp=pipeImp.values,
+        pipeImp_served=pipeServedList,
+        lngImp=lngImp.values,
+        lngImp_served=lngServedList,
+        domDem=domDem.values,
+        domDem_served=domDemServedList,
+        elecDem=elecDem.values,
+        elecDem_served=elecDemServedList,
+        indDem=indDem.values,
+        indDem_served=indDemServedList,
+        ghdDem=ghdDem.values,
+        ghdDem_served=ghdDemServedList,
+        exp_n_oth=exp_n_oth.values,
+        exp_n_oth_served=expAndOtherServedList,
+        soc=socList.values,
+        soc_slack=socSlackList,
     )
-    df["time"] = pipeImp.index
-    print("initial df created.")
-    df = df.assign(dom_Dem=domDem.values)
-    df = df.assign(elec_Dem=elecDem.values)
-    df = df.assign(ind_Dem=indDem.values)
-    df = df.assign(ghd_Dem=ghdDem.values)
-    df = df.assign(exp_n_oth=exp_n_oth.values)
-    print("columns assigned, adding scalar values...")
-    df["russ_share"] = russ_share
-    df["lng_add_capacity"] = lng_add_capacity
-    df["storCap"] = storCap
-    df["stor_Start"] = storCap
-    df["timeSteps"] = timeSteps[:-1]
-
-    df["neg_offset"] = pyM.NegOffset.value
-    df["dom_unserved"] = pyM.domDemIsUnserved.value
-    df["elec_unserved"] = pyM.elecDemIsUnserved.value
-    df["ind_unserved"] = pyM.indDemIsUnserved.value
-    df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
-    df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
-
-    print(
-        "positive side of balance: ",
-        df.soc_slack.sum() + df.pipeServed.sum() + df.lngServed.sum(),
-    )
-    print("storage_delta: ", df.soc.iloc[0] - df.soc.iloc[-1])
-    print(
-        "negative side of balance: ",
-        df.dom_served.sum()
-        + df.elec_served.sum()
-        + df.ind_served.sum()
-        + df.ghd_served.sum()
-        + df.exp_n_oth_served.sum(),
-    )
-
-    print("soc slack sum: ", df.soc_slack.sum())
-
-    df["balance"] = (
-        df.soc_slack.sum()
-        + df.pipeServed.sum()
-        + df.lngServed.sum()
-        + df.soc.iloc[0]
-        - df.soc.iloc[-1]
-        - (
-            df.dom_served.sum()
-            + df.elec_served.sum()
-            + df.ind_served.sum()
-            + df.ghd_served.sum()
-            + df.exp_n_oth_served.sum()
-        )
-    )
+    df.fillna(0, inplace=True)
 
     print("saving...")
-    # scenario_name = gdta.get_scenario_name(
-    #     russ_share, lng_add_capacity, demand_reduct, use_soc_slack
+    scenario_name = ut.get_scenario_name(
+        russ_share, lng_add_import, demand_reduct, use_soc_slack
+    )
+    # df.to_excel(f"Results_Optimization/results_{scenario_name}.xlsx")
+
+    value_col = "value"
+    input_data = pd.DataFrame(columns=["value"])
+    input_data.loc["total_import", value_col] = total_import
+    input_data.loc["total_production", value_col] = total_production
+    input_data.loc["total_import_russia", value_col] = total_import_russia
+    input_data.loc["total_domestic_demand", value_col] = total_domestic_demand
+    input_data.loc["total_ghd_demand", value_col] = total_ghd_demand
+    input_data.loc["total_electricity_demand", value_col] = total_electricity_demand
+    input_data.loc["total_industry_demand", value_col] = total_industry_demand
+    input_data.loc["total_exports_and_other", value_col] = total_exports_and_other
+    input_data.loc["red_dom_dem", value_col] = red_dom_dem
+    input_data.loc["red_elec_dem", value_col] = red_elec_dem
+    input_data.loc["red_ghd_dem", value_col] = red_ghd_dem
+    input_data.loc["red_ind_dem", value_col] = red_ind_dem
+    input_data.loc["red_exp_dem", value_col] = red_exp_dem
+    input_data.loc["import_stop_date", value_col] = import_stop_date
+    input_data.loc["demand_reduction_date", value_col] = demand_reduction_date
+    input_data.loc["lng_increase_date", value_col] = lng_increase_date   
+    input_data.loc["lng_base_import", value_col] = lng_base_import
+    input_data.loc["lng_add_import", value_col] = lng_add_import
+    input_data.loc["russ_share", value_col] = russ_share
+    input_data.loc["storCap", value_col] = storCap
+    print("saving...")
+    scenario_name = ut.get_scenario_name(
+        russ_share, lng_add_import, demand_reduct, use_soc_slack
+    )
+        # input_data.to_excel(f"Results_Optimization/input_data_{scenario_name}.xlsx")
+
+
+    # df["neg_offset"] = pyM.NegOffset.value
+    # df["dom_unserved"] = pyM.domDemIsUnserved.value
+    # df["elec_unserved"] = pyM.elecDemIsUnserved.value
+    # df["ind_unserved"] = pyM.indDemIsUnserved.value
+    # df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
+    # df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
+
+
+    # print(
+    #     "positive side of balance: ",
+    #     df.soc_slack.sum() + df.pipeImp_served.sum() + df.lngImp_served.sum(),
     # )
-    # df.to_excel(f"Results_Optimization/results_aGasFlowScen_{scenario_name}.xlsx")
+    # print("storage_delta: ", df.soc.iloc[0] - df.soc.iloc[-1])
+    # print(
+    #     "negative side of balance: ",
+    #     df.domDem_served.sum()
+    #     + df.elecDem_served.sum()
+    #     + df.indDem_served.sum()
+    #     + df.ghdDem_served.sum()
+    #     + df.exp_n_oth_served.sum(),
+    # )
+
+    # print("soc slack sum: ", df.soc_slack.sum())
+
+    # df["balance"] = (
+    #     df.soc_slack.sum()
+    #     + df.pipeImp_served.sum()
+    #     + df.lngImp_served.sum()
+    #     + df.soc.iloc[0]
+    #     - df.soc.iloc[-1]
+    #     - (
+    #         df.domDem_served.sum()
+    #         + df.elecDem_served.sum()
+    #         + df.indDem_served.sum()
+    #         + df.ghdDem_served.sum()
+    #         + df.exp_n_oth_served.sum()
+    #     )
+    # )
+
     print("Done!")
-    return df
+    return df, input_data
 
 
 # %%
@@ -637,13 +621,10 @@ if __name__ == "__main__":
     # Average European LNG import [TWh/d]
     lng_add_capacities = [0.0, 965]  # 90% load
 
-    # Demand reduction
-    demand_reduction = [True, False]  # Input is currently useless
 
     # loop over all scenario variations
     for russ_share in russian_gas_share:
-        for lng_add_capacity in lng_add_capacities:
-            for demand_reduct in demand_reduction:
-                df = run_scenario(
-                    russ_share=0, lng_add_capacity=965, use_soc_slack=False
-                )
+        for lng_add_import in lng_add_capacities:
+            df, input_data = run_scenario(
+                russ_share=0, lng_add_import=965, use_soc_slack=False
+            )

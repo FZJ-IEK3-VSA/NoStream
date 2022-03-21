@@ -2,36 +2,37 @@
 import pandas as pd
 import streamlit as st
 import numpy as np
-
 import plotly.graph_objects as go
 import datetime
-import get_data as gdta
-import storage_sim as opti
+import utils as ut
+import optimization as opti
 import base64
-
-# from PIL import Image
-
 import os
 
 
-def download_df(object_to_download, download_filename, download_link_text):
+def download_df(object_to_download, download_filename, download_link_text, streamlit_obj=None):
 
     if isinstance(object_to_download, pd.DataFrame):
-        object_to_download = object_to_download.to_csv(index=False)
+        object_to_download = object_to_download.to_csv()
     b64 = base64.b64encode(object_to_download.encode()).decode()
 
     link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
-    st.markdown(link, unsafe_allow_html=True)
+    
+    if streamlit_obj is None:
+        st.markdown(link, unsafe_allow_html=True)
+    else:
+        streamlit_obj.markdown(link, unsafe_allow_html=True)
+
 
 def download_pdf(object_to_download, download_filename, download_link_text):
     with open(object_to_download, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode('utf-8')
+        b64 = base64.b64encode(f.read()).decode("utf-8")
 
     link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
     st.markdown(link, unsafe_allow_html=True)
 
 
-FZJcolor = gdta.get_fzjColor()
+FZJcolor = ut.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 
 font_dict = dict(size=16)
@@ -44,7 +45,10 @@ height = 1000 / scale
 
 ### Streamlit App
 st.set_page_config(
-    page_title="Energy Independence", page_icon="🇪🇺", layout="wide"  # wide centered
+    page_title="Energy Independence",
+    page_icon="🇪🇺",
+    layout="wide",
+    initial_sidebar_state="expanded",  # wide centered
 )
 
 hide_streamlit_style = """
@@ -62,10 +66,11 @@ st.markdown("## Auswirkungen auf die Versorgungssicherheit in Europa")
 st.text("")
 # st.markdown("Dashboard:")
 
+
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path
     with open(file, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
 
     # Embedding PDF in HTML
     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="{width}" height="{height}" type="application/pdf"></iframe>'
@@ -92,7 +97,14 @@ with st.sidebar:
 
     st.markdown("### Einstellungen")
     with st.expander("Importstopp", expanded=False):
-        # cols = st.columns(2)
+        import_stop_date = st.date_input(
+            "Beginn der Importreduktion",
+            value=datetime.date(2022, 4, 16),
+            min_value=datetime.date(2022, 3, 15),
+            max_value=datetime.date(2023, 12, 31),
+        )
+        import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
+
         total_import = st.number_input(
             "Erdgas-Import gesamt¹ [TWh/a]", min_value=0, max_value=None, value=4190
         )
@@ -104,7 +116,6 @@ with st.sidebar:
             value=608,
         )
 
-        cols = st.columns(2)
         total_import_russia = st.number_input(
             "Erdgas-Import aus Russland¹ [TWh/a]",
             min_value=0,
@@ -124,21 +135,21 @@ with st.sidebar:
         )
         russ_share = 1 - pl_reduction
 
-        cols = st.columns(2)
-        import_stop_date = st.date_input(
-            "Beginn der Importreduktion",
-            value=datetime.date(2022, 4, 16),
-            min_value=datetime.date(2022, 3, 15),
-            max_value=datetime.date(2023, 12, 31),
-        )
-        import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
-
         st.markdown(
-            "¹ Voreingestellte Werte entsprechen Erdgas-Import EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+            "¹ Voreingestellte Werte: Erdgas-Import/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         )
 
     with st.expander("Nachfrageredutkion", expanded=False):
-        cols = st.columns(2)
+        demand_reduction_date = st.date_input(
+            "Beginn der Nachfragereduktion",
+            value=datetime.date(2022, 3, 16),
+            min_value=datetime.date(2022, 3, 15),
+            max_value=datetime.date(2023, 12, 31),
+        )
+        demand_reduction_date = datetime.datetime.fromordinal(
+            demand_reduction_date.toordinal()
+        )
+
         total_domestic_demand = st.number_input(
             "Nachfrage Haushalte¹ [TWh/a]", min_value=0, max_value=None, value=926
         )
@@ -154,7 +165,6 @@ with st.sidebar:
             / 100
         )
 
-        cols = st.columns(2)
         total_ghd_demand = st.number_input(
             "Nachfrage GHD¹ [TWh/a]", min_value=0, max_value=None, value=421
         )
@@ -170,7 +180,6 @@ with st.sidebar:
             / 100
         )
 
-        cols = st.columns(2)
         total_electricity_demand = st.number_input(
             "Nachfrage Energie-Sektor¹ [TWh/a]", min_value=0, max_value=None, value=1515
         )
@@ -186,7 +195,6 @@ with st.sidebar:
             / 100
         )
 
-        cols = st.columns(2)
         total_industry_demand = st.number_input(
             "Nachfrage Industrie¹ [TWh/a]", min_value=0, max_value=None, value=1110
         )
@@ -202,7 +210,6 @@ with st.sidebar:
             / 100
         )
 
-        cols = st.columns(2)
         total_exports_and_other = st.number_input(
             "Export und sonstige Nachfragen¹ [TWh/a]",
             min_value=0,
@@ -221,32 +228,11 @@ with st.sidebar:
             / 100
         )
 
-        cols = st.columns(2)
-        demand_reduction_date = st.date_input(
-            "Beginn der Nachfragereduktion",
-            value=datetime.date(2022, 3, 16),
-            min_value=datetime.date(2022, 3, 15),
-            max_value=datetime.date(2023, 12, 31),
-        )
-        demand_reduction_date = datetime.datetime.fromordinal(
-            demand_reduction_date.toordinal()
-        )
-
         st.markdown(
             "² Voreingestellte Werte: Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
 
     with st.expander("LNG Kapazitäten", expanded=False):
-        cols = st.columns(2)
-        lng_capacity = st.slider(
-            "Genutzte LNG Import Kapazität² [TWh/a]",
-            min_value=0,
-            max_value=2025,
-            value=965 + 875,
-        )
-        lng_base_capacity = 875
-        lng_add_capacity = lng_capacity - lng_base_capacity
-
         lng_increase_date = st.date_input(
             "Beginn der LNG Kapazität-Erhöhung",
             value=datetime.date(2022, 5, 1),
@@ -254,17 +240,28 @@ with st.sidebar:
             max_value=datetime.date(2023, 12, 30),
         )
         lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
+        
+        lng_base_import = 875 
+        lng_total_import = st.slider(
+            "Genutzte LNG Import Kapazität² [TWh/a]",
+            min_value=0,
+            max_value=2025,
+            value=965 + lng_base_import,
+        )
+        lng_add_import = lng_total_import - lng_base_import
 
         st.markdown(
             "³ Genutzte LNG-Kapazitäten EU27 (2021): 875 TWh/a (43% Auslastung) (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         )
+    
     st.text("")
     st.markdown(
         "⛲ [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/storage_sim.py)"
-    ) # 💻
-    
-    st.markdown("🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)")
-    # ℹ️ 📜
+    )  # 💻
+
+    st.markdown(
+        "🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
+    ) # 📜
 
 use_soc_slack = False
 
@@ -351,7 +348,13 @@ fig.add_trace(
 
 yvals[ypos] = total_production
 fig.add_trace(
-    go.Bar(x=xval, y=yvals, legendgroup="Import & Produktion", name="Produktion", marker=dict(color=FZJcolor.get("green2")),)
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Import & Produktion",
+        name="Produktion",
+        marker=dict(color=FZJcolor.get("green2")),
+    )
 )
 
 
@@ -430,7 +433,7 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = lng_add_capacity
+yvals[ypos] = lng_add_import
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -456,12 +459,12 @@ st.plotly_chart(fig, use_container_width=True)
 
 def plot_optimization_results(df):
     # Demand
-    total_demand = df.dom_Dem + df.elec_Dem + df.ind_Dem + df.ghd_Dem + df.exp_n_oth
+    total_demand = df.domDem + df.elecDem + df.indDem + df.ghdDem + df.exp_n_oth
     total_demand_served = (
-        df.dom_served
-        + df.elec_served
-        + df.ind_served
-        + df.ghd_served
+        df.domDem_served
+        + df.elecDem_served
+        + df.indDem_served
+        + df.ghdDem_served
         + df.exp_n_oth_served
     )
     unserved_demand = total_demand - total_demand_served
@@ -472,7 +475,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.dom_served,
+            y=df.domDem_served,
             stackgroup="one",
             legendgroup="bedarf",
             name="Haushalte",
@@ -485,7 +488,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.ghd_served,
+            y=df.ghdDem_served,
             stackgroup="one",
             legendgroup="bedarf",
             name="GHD",
@@ -497,7 +500,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.elec_served,
+            y=df.elecDem_served,
             stackgroup="one",
             legendgroup="bedarf",
             name="Energie",
@@ -509,7 +512,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.ind_served,
+            y=df.indDem_served,
             stackgroup="one",
             legendgroup="bedarf",
             legendgrouptitle_text="Erdgasbedarfe",
@@ -547,7 +550,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.lngServed,
+            y=df.lngImp_served,
             stackgroup="two",
             line=dict(color=FZJcolor.get("yellow3"), width=3.5),
             legendgroup="import",
@@ -560,7 +563,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.pipeServed,
+            y=df.pipeImp_served,
             stackgroup="two",
             line=dict(color=FZJcolor.get("orange"), width=3.5),
             legendgroup="import",
@@ -587,10 +590,6 @@ def plot_optimization_results(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # st.markdown(
-    #     f"Ungedeckter, abgeregelter Erdgasbedarf: {int(sum(unserved_demand))} TWh"
-    # )
-
     ## SOC
     fig = go.Figure()
 
@@ -609,7 +608,7 @@ def plot_optimization_results(df):
         go.Scatter(
             x=xvals,
             y=np.ones(len(xvals)) * 1100,
-            name="Maximale Kapazität",
+            name="Speicherkapazität",
             line=dict(color=FZJcolor.get("black"), width=2),
             fillcolor="rgba(0, 0, 0, 0)",
         )
@@ -639,7 +638,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.pipeServed,
+            y=df.pipeImp_served,
             stackgroup="one",
             name="Pipeline Import",
             mode="none",
@@ -650,7 +649,7 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
-            y=df.lngServed,
+            y=df.lngImp_served,
             stackgroup="one",
             name="LNG Import",
             mode="none",
@@ -664,11 +663,11 @@ def plot_optimization_results(df):
     st.plotly_chart(fig, use_container_width=True)
 
     ## Storage Charge and discharge
-    storage_operation = df.lngServed + df.pipeServed - total_demand_served
+    storage_operation = df.lngImp_served + df.pipeImp_served - total_demand_served
     storage_discharge = [min(0, x) for x in storage_operation]
     storage_charge = np.array([max(0, x) for x in storage_operation])
 
-    storage_operation_pl = df.pipeServed - total_demand_served
+    storage_operation_pl = df.pipeImp_served - total_demand_served
     storage_charge_pl = np.array([max(0, x) for x in storage_operation_pl])
 
     storage_operation_lng = storage_charge - storage_charge_pl
@@ -724,8 +723,9 @@ def hash_from_tuple(t):
     for s in t:
         s = str(s)
         res += s
-        #m.update(s.encode())
-    return res # m.hexdigest()
+        # m.update(s.encode())
+    return res  # m.hexdigest()
+
 
 hash_val = hash_from_tuple(
     (
@@ -746,7 +746,7 @@ hash_val = hash_from_tuple(
         demand_reduction_date,
         lng_increase_date,
         russ_share,
-        lng_add_capacity,
+        lng_add_import,
         use_soc_slack,
     )
 )
@@ -755,8 +755,8 @@ default_hash = "41906081752926421151511109880.130.20.080.080.02022-04-16 00:00:0
 
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
+
 if hash_val != default_hash:
-    # st.info("Starten Sie die Optimierung druch Klicken auf 'Optimierung ausführen' im Menüband unten auf der linken Seite")
     start_opti = st.button("Optimierung ausführen")
 
 
@@ -765,7 +765,7 @@ if start_opti:
         text="Starte Optimierung. Rechnezeit kann 3-5 Minuten in Anspruch nehmen ☕ ..."
     ):
         try:
-            df = opti.run_scenario(
+            df, input_data = opti.run_scenario(
                 total_import=total_import,
                 total_production=total_production,
                 total_import_russia=total_import_russia,
@@ -783,7 +783,7 @@ if start_opti:
                 demand_reduction_date=demand_reduction_date,
                 lng_increase_date=lng_increase_date,
                 russ_share=russ_share,
-                lng_add_capacity=lng_add_capacity,
+                lng_add_import=lng_add_import,
                 use_soc_slack=use_soc_slack,
             )
             plot_optimization_results(df)
@@ -793,23 +793,40 @@ if start_opti:
 if hash_val == default_hash:
     if not start_opti:
         with st.spinner(text="Lade Ergebnisse..."):
-            scenario_name = "default_scenario"
-            df = gdta.get_optiRes(scenario_name)
+            df = pd.read_excel("Results_Optimization/default_results.xlsx", index_col=0)
             plot_optimization_results(df)
-            download_df(
-                df,
-                f"Optimization_Results_{str(hash_val)}.csv",
-                "Ergebnisse herunterladen",
-            )
+            input_data = pd.read_excel("Results_Optimization/default_inputs.xlsx", index_col=0)
+
+if start_opti or hash_val == default_hash:
+    short_hash = int(abs(hash(hash_val)))
+    download_df(
+        df,
+        f"Optimierungsergebnisse_{short_hash}.csv",
+        "Optimierungsergebnisse herunterladen",
+    )
+    download_df(
+        input_data,
+        f"Input_Daten_{short_hash}.csv",
+        "Input-Daten herunterladen",
+    )
 
 
 st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
-download_pdf("Input/Analyse.pdf", "Analyse_energySupplyWithoutRussianGasAnalysis.pdf", "Analyse herunterladen")
+download_pdf(
+    "Input/Analyse.pdf",
+    "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
+    "Analyse herunterladen",
+)
+
 displayPDF("Input/Analyse.pdf", width=900, height=635)
 
 
 st.text("")
 
 st.markdown("## Pressemitteilung")
-download_pdf("Input/Pressemitteilung.pdf", "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf", "Pressemitteilung herunterladen")
+download_pdf(
+    "Input/Pressemitteilung.pdf",
+    "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
+    "Pressemitteilung herunterladen",
+)
 displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
