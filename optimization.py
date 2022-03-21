@@ -391,9 +391,10 @@ def run_scenario(
     )
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
+    buffer_value = 30
     def Constr_soc_start_ub_rule(pyM, t):
         if t < len(soc_max_hour):
-            return pyM.Soc[t] <= soc_max_hour[t] + 10
+            return pyM.Soc[t] <= soc_max_hour[t] + buffer_value
         else:
             return pyomo.Constraint.Skip
 
@@ -403,7 +404,7 @@ def run_scenario(
 
     def Constr_soc_start_lb_rule(pyM, t):
         if t < len(soc_max_hour):
-            return pyM.Soc[t] >= soc_max_hour[t] - 10
+            return pyM.Soc[t] >= soc_max_hour[t] - buffer_value
         else:
             return pyomo.Constraint.Skip
 
@@ -471,7 +472,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    df.to_csv(f"Results_Optimization/results_{scenario_name}.csv")
+    # df.to_csv(f"Results_Optimization/results_{scenario_name}.csv")
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -499,7 +500,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    input_data.to_csv(f"Results_Optimization/input_data_{scenario_name}.csv")
+    # input_data.to_csv(f"Results_Optimization/input_data_{scenario_name}.csv")
 
     # df["neg_offset"] = pyM.NegOffset.value
     # df["dom_unserved"] = pyM.domDemIsUnserved.value

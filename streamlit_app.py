@@ -460,6 +460,11 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 def plot_optimization_results(df):
+    # Prevent flickering at the beginning
+    df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
+    df.loc[0:1080, "pipeImp_served"] = df.loc[0:1080, "pipeImp"]
+
+
     # Demand
     total_demand = df.domDem + df.elecDem + df.indDem + df.ghdDem + df.exp_n_oth
     total_demand_served = (
@@ -469,7 +474,10 @@ def plot_optimization_results(df):
         + df.ghdDem_served
         + df.exp_n_oth_served
     )
+
+    threshold = 0.001
     unserved_demand = total_demand - total_demand_served
+    unserved_demand = [x if x > threshold else 0 for x in unserved_demand]
 
     fig = go.Figure()
     xvals = df.time
@@ -536,7 +544,7 @@ def plot_optimization_results(df):
         )
     )
 
-    if sum(unserved_demand) > 0.001:
+    if sum(unserved_demand) > threshold:
         fig.add_trace(
             go.Scatter(
                 x=xvals,
@@ -771,7 +779,7 @@ default_hash = "41906081752926421151511109880.130.20.080.080.02022-04-16 00:00:0
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
 
-if True: # hash_val != default_hash:
+if hash_val != default_hash:
     start_opti = st.button("Optimierung ausführen")
 
 
@@ -825,23 +833,24 @@ if start_opti or hash_val == default_hash:
         input_data, f"Input_Daten_{short_hash}.csv", "Input-Daten herunterladen",
     )
 
+st.text("")
 
-st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
+st.markdown("## Downloads: Energieversorgung ohne russisches Erdgas")
 download_pdf(
     "Input/Analyse.pdf",
     "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
     "Analyse herunterladen",
 )
 
-displayPDF("Input/Analyse.pdf", width=900, height=635)
+# displayPDF("Input/Analyse.pdf", width=900, height=635)
 
 
-st.text("")
+# st.text("")
 
-st.markdown("## Pressemitteilung")
+# st.markdown("## Pressemitteilung")
 download_pdf(
     "Input/Pressemitteilung.pdf",
     "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
     "Pressemitteilung herunterladen",
 )
-displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
+# displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
