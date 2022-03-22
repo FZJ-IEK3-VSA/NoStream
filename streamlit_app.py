@@ -575,6 +575,10 @@ def plot_optimization_results(df):
     df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
     df.loc[0:1080, "pipeImp_served"] = df.loc[0:1080, "pipeImp"]
 
+    # Prevent last values from being zero
+    df.loc[len(df)-3:len(df), "lngImp_served"] = df.loc[len(df)-6:len(df)-4, "lngImp_served"]
+    df.loc[len(df)-3:len(df), "pipeImp_served"] = df.loc[len(df)-6:len(df)-4, "pipeImp_served"] 
+
     # Demand
     total_demand = df.domDem + df.elecDem + df.indDem + df.ghdDem + df.exp_n_oth
     total_demand_served = (
