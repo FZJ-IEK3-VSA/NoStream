@@ -435,21 +435,21 @@ delta = omitted - compensation
 
 if delta > 0:
     symb = ">"
-    rel_str = "größer als die"
+    rel_str = "**größer** als die"
     symb_2 = "❌"
     likely = ""
 elif delta < 0:
     symb = "<"
-    rel_str = "kleiner als die"
+    rel_str = "**kleiner** als die"
     symb_2 = "✔️"
     likely = "un"
 else:
     symb = "="
     symb_2 = "⚖️"
-    rel_str = "gleich der"
+    rel_str = "**gleich** der"
     likely = "un"
 
-title = f"Wegfallender Import {symb} Kompensation"  # Wegfall ({omitted} TWh/a) {symb} Komp. ({compensation} TWh/a) {symb_2}
+title = f"Wegfallender Import und Kompensation"  # Wegfall ({omitted} TWh/a) {symb} Komp. ({compensation} TWh/a) {symb_2}
 
 # ypos = 1  # 3
 # yvals = yempty.copy()
@@ -561,8 +561,13 @@ fig.update_layout(
 # fig.update_layout(showlegend=False)
 
 cols[1].plotly_chart(fig, use_container_width=True)
-message = f"{symb_2} Der Wegfall russischer Erdgas-Importe ({omitted} TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG Kapazitäten und Nachfragereduktionen ({compensation} TWh/a). Erzwungene Abregelungen von Erdgasbedarfen in der Optimierung sind {likely}wahrscheinlich."
-st.info(message)
+message = f"Der Wegfall russischer Erdgas-Importe (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
+# st.info(message)
+
+if delta>0:
+    st.info(message)
+else:
+    st.success(message)
 
 
 def plot_optimization_results(df):
@@ -924,7 +929,7 @@ if start_opti:
 
 if scen_code == default_scen_code:
     if not start_opti:
-        with st.spinner(text="Lade Ergebnisse..."):
+        with st.spinner(text="Lade Ergebnisse des Standard-Szenarios..."):
             df = pd.read_csv("Results_Optimization/default_results.csv", index_col=0)
             plot_optimization_results(df)
             input_data = pd.read_csv(
