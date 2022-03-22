@@ -392,6 +392,7 @@ def run_scenario(
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
     buffer_value = 30
+
     def Constr_soc_start_ub_rule(pyM, t):
         if t < len(soc_max_hour):
             return pyM.Soc[t] <= soc_max_hour[t] + buffer_value
