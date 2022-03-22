@@ -945,27 +945,28 @@ if start_opti or scen_code == default_scen_code:
     download_df(
         df,
         f"Optimierungsergebnisse_{short_hash}.csv",
-        "Optimierungsergebnisse herunterladen",
+        "💾 Optimierungsergebnisse speichern",
     )
     download_df(
-        input_data, f"Input_Daten_{short_hash}.csv", "Input-Daten herunterladen",
+        input_data, f"Input_Daten_{short_hash}.csv", "💾 Input-Daten speichern",
     )
 
 st.text("")
 
-st.markdown("## Downloads: Energieversorgung ohne russisches Erdgas")
-download_pdf(
-    "Input/Analyse.pdf",
-    "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
-    "Analyse herunterladen",
-)
+st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
+st.markdown("🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)")
+# download_pdf(
+#     "Input/Analyse.pdf",
+#     "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
+#     "Analyse herunterladen",
+# )
 
 # displayPDF("Input/Analyse.pdf", width=900, height=635)
 
 # st.markdown("## Pressemitteilung")
-download_pdf(
-    "Input/Pressemitteilung.pdf",
-    "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
-    "Pressemitteilung herunterladen",
-)
+# download_pdf(
+#     "Input/Pressemitteilung.pdf",
+#     "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
+#     "Pressemitteilung herunterladen",
+# )
 # displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)

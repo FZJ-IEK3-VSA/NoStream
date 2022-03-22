@@ -13,6 +13,7 @@ Archiv/
 *.aux.xml
 *.bat
 *.ini
+*.tmp
 
 # Extras
 .vscode/settings.json
