@@ -962,9 +962,6 @@ download_pdf(
 
 # displayPDF("Input/Analyse.pdf", width=900, height=635)
 
-
-# st.text("")
-
 # st.markdown("## Pressemitteilung")
 download_pdf(
     "Input/Pressemitteilung.pdf",
