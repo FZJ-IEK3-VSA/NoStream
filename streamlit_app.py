@@ -561,7 +561,7 @@ fig.update_layout(
 # fig.update_layout(showlegend=False)
 
 cols[1].plotly_chart(fig, use_container_width=True)
-message = f"{symb_2} Der Wegfall von russischen Erdgas-Importen ({omitted} TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG Kapazitäten und Nachfragereduktionen ({compensation} TWh/a). Abregelungen von Erdgasbedarfen in der Optimierung sind {likely}wahrscheinlich. {symb_2}"
+message = f"{symb_2} Der Wegfall russischer Erdgas-Importe ({omitted} TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG Kapazitäten und Nachfragereduktionen ({compensation} TWh/a). Erzwungene Abregelungen von Erdgasbedarfen in der Optimierung sind {likely}wahrscheinlich."
 st.info(message)
 
 
