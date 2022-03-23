@@ -7,9 +7,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - "/etc/nginx/.htpasswd:/etc/nginx/.htpasswd"
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
-      - /home/sysadmin/certificates:/etc/nginx/conf.d/certificates
+      - ~/certificates:/etc/nginx/conf.d/certificates
     depends_on:
       - streamlit
     restart: always
@@ -20,7 +19,3 @@ services:
       context: .
       dockerfile: streamlit/Dockerfile
     restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      - PORT=3000
