@@ -19,7 +19,7 @@ def get_storage_capacity():
     storCap = 1100
 
     # Read daily state of charge data for the beginning of the year (source: GIE)
-    df_storage = pd.read_excel("Input/Optimization/storage_data_5a.xlsx", index_col=0)
+    df_storage = pd.read_excel("static/Optimization/storage_data_5a.xlsx", index_col=0)
     year = 2022
     bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
     df_storage = df_storage.loc[bool_year, :]
@@ -128,7 +128,7 @@ def run_scenario(
 
     # Normalized volatile timeseries
     ts_vol = (
-        pd.read_csv("Input/Optimization/ts_normalized.csv")["Private Haushalte"]
+        pd.read_csv("static/Optimization/ts_normalized.csv")["Private Haushalte"]
     ).values
 
     # split and recombine to extend to 1.5 years timeframe
@@ -538,7 +538,6 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # df.to_excel(f"Results_Optimization/results_{scenario_name}.xlsx")
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -566,45 +565,6 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # input_data.to_excel(f"Results_Optimization/input_data_{scenario_name}.xlsx")
-
-    # df["neg_offset"] = pyM.NegOffset.value
-    # df["dom_unserved"] = pyM.domDemIsUnserved.value
-    # df["elec_unserved"] = pyM.elecDemIsUnserved.value
-    # df["ind_unserved"] = pyM.indDemIsUnserved.value
-    # df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
-    # df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
-
-    # print(
-    #     "positive side of balance: ",
-    #     df.soc_slack.sum() + df.pipeImp_served.sum() + df.lngImp_served.sum(),
-    # )
-    # print("storage_delta: ", df.soc.iloc[0] - df.soc.iloc[-1])
-    # print(
-    #     "negative side of balance: ",
-    #     df.domDem_served.sum()
-    #     + df.elecDem_served.sum()
-    #     + df.indDem_served.sum()
-    #     + df.ghdDem_served.sum()
-    #     + df.exp_n_oth_served.sum(),
-    # )
-
-    # print("soc slack sum: ", df.soc_slack.sum())
-
-    # df["balance"] = (
-    #     df.soc_slack.sum()
-    #     + df.pipeImp_served.sum()
-    #     + df.lngImp_served.sum()
-    #     + df.soc.iloc[0]
-    #     - df.soc.iloc[-1]
-    #     - (
-    #         df.domDem_served.sum()
-    #         + df.elecDem_served.sum()
-    #         + df.indDem_served.sum()
-    #         + df.ghdDem_served.sum()
-    #         + df.exp_n_oth_served.sum()
-    #     )
-    # )
 
     print("Done!")
     return df, input_data

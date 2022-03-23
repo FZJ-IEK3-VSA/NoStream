@@ -93,7 +93,7 @@ def render_svg(figDir):
 
 with st.sidebar:
     cols = st.columns([2, 6])
-    svg_image = render_svg("Input/FJZ IEK-3.svg")
+    svg_image = render_svg("static/FJZ IEK-3.svg")
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
@@ -795,10 +795,10 @@ if start_opti:
 if hash_val == default_hash:
     if not start_opti:
         with st.spinner(text="Lade Ergebnisse..."):
-            df = pd.read_excel("Results_Optimization/default_results.xlsx", index_col=0)
+            df = pd.read_excel("static/results/default_results.xlsx", index_col=0)
             plot_optimization_results(df)
             input_data = pd.read_excel(
-                "Results_Optimization/default_inputs.xlsx", index_col=0
+                "static/results/default_inputs.xlsx", index_col=0
             )
 
 if start_opti or hash_val == default_hash:
@@ -815,20 +815,20 @@ if start_opti or hash_val == default_hash:
 
 st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
 download_pdf(
-    "Input/Analyse.pdf",
+    "static/Analyse.pdf",
     "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
     "Analyse herunterladen",
 )
 
-displayPDF("Input/Analyse.pdf", width=900, height=635)
+displayPDF("static/Analyse.pdf", width=900, height=635)
 
 
 st.text("")
 
 st.markdown("## Pressemitteilung")
 download_pdf(
-    "Input/Pressemitteilung.pdf",
+    "static/Pressemitteilung.pdf",
     "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
     "Pressemitteilung herunterladen",
 )
-displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
+displayPDF("static/Pressemitteilung.pdf", width=900, height=635)
