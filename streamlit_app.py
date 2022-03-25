@@ -61,11 +61,10 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-st.text("")
 st.markdown("# No Stream: Erdgas Energy Dashboard")
 
 st.markdown(
-    "### Sichere Energie für Europa ohne russische Erdgas-Importe"
+    "### Sichere Energie für Europa ohne russische Erdgasimporte"
 )
 
 
@@ -109,7 +108,7 @@ with st.sidebar:
 
         pl_reduction = (
             st.slider(
-                "Reduktion der russischen Erdgas-Importe um [%]",
+                "Reduktion der russischen Erdgasimporte um [%]",
                 min_value=100,
                 max_value=0,
                 value=100,
@@ -122,7 +121,7 @@ with st.sidebar:
         # st.text("")
 
         # total_import = st.number_input(
-        #     "Erdgas-Import gesamt¹ [TWh/a]", min_value=0, max_value=None, value=4190
+        #     "Erdgasomport gesamt¹ [TWh/a]", min_value=0, max_value=None, value=4190
         # )
 
         # total_production = st.number_input(
@@ -133,14 +132,14 @@ with st.sidebar:
         # )
 
         # total_import_russia = st.number_input(
-        #     "Erdgas-Import aus Russland¹ [TWh/a]",
+        #     "Erdgasimport aus Russland¹ [TWh/a]",
         #     min_value=0,
         #     max_value=None,
         #     value=1752,
         # )
 
         # st.markdown(
-        #     "¹ Voreingestellte Werte: Erdgas-Import/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+        #     "¹ Voreingestellte Werte: Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         # )
 
     with st.expander("Nachfrageredutkion", expanded=False):
@@ -279,16 +278,16 @@ with st.sidebar:
     st.markdown("### Status Quo")
     with st.expander("Erdgasimporte", expanded=False):
         total_import_russia = 1752
-        st.metric("Erdgas-Import aus Russland²", f"{total_import_russia} TWh/a")
+        st.metric("Erdgasimport aus Russland²", f"{total_import_russia} TWh/a")
 
         total_import = 4190
-        st.metric("Erdgas-Import gesamt²", f"{total_import} TWh/a")
+        st.metric("Erdgasimport gesamt²", f"{total_import} TWh/a")
 
         total_production = 608
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
         # total_import = st.number_input(
-        #     "Erdgas-Import gesamt² [TWh/a]", min_value=0, max_value=None, value=4190
+        #     "Erdgasimport gesamt² [TWh/a]", min_value=0, max_value=None, value=4190
         # )
 
         # total_production = st.number_input(
@@ -299,14 +298,14 @@ with st.sidebar:
         # )
 
         # total_import_russia = st.number_input(
-        #     "Erdgas-Import aus Russland² [TWh/a]",
+        #     "Erdgasimport aus Russland² [TWh/a]",
         #     min_value=0,
         #     max_value=None,
         #     value=1752,
         # )
 
         st.markdown(
-            "² Erdgas-Import/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+            "² Erdgasimport/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         ) # Voreingestellte Werte: 
 
     with st.expander("Erdgas-Nachfrage", expanded=False):
@@ -641,7 +640,7 @@ else:
     rel_str = "**gleich** der"
     likely = "un"
 
-message = f"Der Wegfall russischer Erdgas-Importe (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
+message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
 
 
 if delta>0:
