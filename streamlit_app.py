@@ -67,7 +67,6 @@ st.markdown(
     "### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte"
 )
 
-
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path
     with open(file, "rb") as f:
@@ -96,10 +95,10 @@ with st.sidebar:
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
-    st.markdown("### Embargo und Kompensation")
-    with st.expander("Importstopp Russland", expanded=False):
+    st.markdown("### Einstellungen")
+    with st.expander("Embargo", expanded=False):
         import_stop_date = st.date_input(
-            "Beginn der Importreduktion",
+            "Reduktion russischer Erdgasimporte ab",
             value=datetime.date(2022, 4, 16),
             min_value=datetime.date(2022, 3, 15),
             max_value=datetime.date(2023, 12, 31),
@@ -118,33 +117,10 @@ with st.sidebar:
         )
         russ_share = 1 - pl_reduction
 
-        # st.text("")
 
-        # total_import = st.number_input(
-        #     "Erdgasomport gesamt¹ [TWh/a]", min_value=0, max_value=None, value=4190
-        # )
-
-        # total_production = st.number_input(
-        #     "Inländische Erdgasproduktion¹ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=608,
-        # )
-
-        # total_import_russia = st.number_input(
-        #     "Erdgasimport aus Russland¹ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=1752,
-        # )
-
-        # st.markdown(
-        #     "¹ Voreingestellte Werte: Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
-        # )
-
-    with st.expander("Nachfrageredutkion", expanded=False):
+    with st.expander("Kompensation - Nachfragereduktion", expanded=False):
         demand_reduction_date = st.date_input(
-            "Beginn der Nachfragereduktion",
+            "Nachfragereduktion ab",
             value=datetime.date(2022, 3, 16),
             min_value=datetime.date(2022, 3, 15),
             max_value=datetime.date(2023, 12, 31),
@@ -214,40 +190,11 @@ with st.sidebar:
             / 100
         )
 
-        # st.text("")
-
-        # total_domestic_demand = st.number_input(
-        #     "Nachfrage Haushalte¹ [TWh/a]", min_value=0, max_value=None, value=926
-        # )
-
-        # total_ghd_demand = st.number_input(
-        #     "Nachfrage GHD¹ [TWh/a]", min_value=0, max_value=None, value=421
-        # )
-
-        # total_electricity_demand = st.number_input(
-        #     "Nachfrage Energie-Sektor¹ [TWh/a]", min_value=0, max_value=None, value=1515
-        # )
-
-        # total_industry_demand = st.number_input(
-        #     "Nachfrage Industrie¹ [TWh/a]", min_value=0, max_value=None, value=1110
-        # )
-
-        # total_exports_and_other = st.number_input(
-        #     "Export und sonstige Nachfragen¹ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=988,
-        # )
-
-        # st.markdown(
-        #     "² Voreingestellte Werte: Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
-        # )
-
     
-    with st.expander("Zusätzliche LNG Kapazitäten", expanded=False):
+    with st.expander("Kompensation - Kapazitätserhöhung LNG", expanded=False):
         lng_base_import = 875
         lng_increase_date = st.date_input(
-            "Beginn der LNG Kapazität-Erhöhung",
+            "LNG Kapazitätserhöhung ab",
             value=datetime.date(2022, 5, 1),
             min_value=datetime.date(2022, 1, 1),
             max_value=datetime.date(2023, 12, 30),
@@ -258,18 +205,8 @@ with st.sidebar:
             "Zusätzliche LNG Kapazität¹ [TWh/a]",
             min_value=0,
             max_value=2025 - lng_base_import,
-            value=965,  # + lng_base_import,
+            value=965,
         )
-        # lng_add_import = lng_total_import - lng_base_import
-
-        # st.text("")
-
-        # total_exports_and_other = st.number_input(
-        #     "Aktueller LNG Import³ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=lng_base_import,
-        # )
 
         st.markdown(
             "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
@@ -277,7 +214,7 @@ with st.sidebar:
 
 
     st.markdown("### Status Quo")
-    with st.expander("Erdgasimporte", expanded=False):
+    with st.expander("Versorgung", expanded=False):
         total_import = 4190
         st.metric("Erdgasimport gesamt²", f"{total_import} TWh/a")
 
@@ -287,85 +224,38 @@ with st.sidebar:
         total_production = 608
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
-        # total_import = st.number_input(
-        #     "Erdgasimport gesamt² [TWh/a]", min_value=0, max_value=None, value=4190
-        # )
+        st.metric("LNG Import³", f"{lng_base_import} TWh/a")
 
-        # total_production = st.number_input(
-        #     "Inländische Erdgasproduktion² [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=608,
-        # )
 
-        # total_import_russia = st.number_input(
-        #     "Erdgasimport aus Russland² [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=1752,
-        # )
+        st.text("")
 
         st.markdown(
-            "² Erdgasimport/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
-        ) # Voreingestellte Werte: 
+            "² Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+        )
 
-    with st.expander("Erdgasnachfrage", expanded=False):
+        st.markdown(
+            "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
+        )
+
+    with st.expander("Bedarfe", expanded=False):
         total_electricity_demand = 1515
-        st.metric("Nachfrage Energie-Sektor³", f"{total_electricity_demand} TWh/a")
+        st.metric("Nachfrage Energie-Sektor⁴", f"{total_electricity_demand} TWh/a")
 
         total_industry_demand = 1110
-        st.metric("Nachfrage Industrie³", f"{total_industry_demand} TWh/a")
+        st.metric("Nachfrage Industrie⁴", f"{total_industry_demand} TWh/a")
 
         total_exports_and_other = 988
-        st.metric("Export und sonstige Nachfragen³", f"{total_exports_and_other} TWh/a")
+        st.metric("Export und sonstige Nachfragen⁴", f"{total_exports_and_other} TWh/a")
 
         total_domestic_demand = 926
-        st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
+        st.metric("Nachfrage Haushalte⁴", f"{total_domestic_demand} TWh/a")
 
         total_ghd_demand = 421
-        st.metric("Nachfrage GHD³", f"{total_ghd_demand} TWh/a")
-
-        # total_domestic_demand = st.number_input(
-        #     "Nachfrage Haushalte³ [TWh/a]", min_value=0, max_value=None, value=926
-        # )
-
-        # total_ghd_demand = st.number_input(
-        #     "Nachfrage GHD³ [TWh/a]", min_value=0, max_value=None, value=421
-        # )
-
-        # total_electricity_demand = st.number_input(
-        #     "Nachfrage Energie-Sektor³ [TWh/a]", min_value=0, max_value=None, value=1515
-        # )
-
-        # total_industry_demand = st.number_input(
-        #     "Nachfrage Industrie³ [TWh/a]", min_value=0, max_value=None, value=1110
-        # )
-
-        # total_exports_and_other = st.number_input(
-        #     "Export und sonstige Nachfragen³ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=988,
-        # )
+        st.metric("Nachfrage GHD⁴", f"{total_ghd_demand} TWh/a")
 
         st.markdown(
-            "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
-        ) # Voreingestellte Werte: 
-
-    with st.expander("LNG Kapazitäten", expanded=False):
-        st.metric("Aktueller LNG Import⁴", f"{lng_base_import} TWh/a")
-        # total_exports_and_other = lng_base_import
-
-        # total_exports_and_other = st.number_input(
-        #     "Aktueller LNG Import⁴ [TWh/a]",
-        #     min_value=0,
-        #     max_value=None,
-        #     value=lng_base_import,
-        # )
-
-        st.markdown(
-            "⁴ Genutzte LNG-Kapazitäten EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
-        ) # Voreingestellter Wert: 
+            "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
+        )
 
 
     st.text("")
@@ -390,7 +280,7 @@ use_soc_slack = False
 # Embarge und Kompensation
 cols = st.columns(2)
 fig = go.Figure()
-xval = ["Wegfall", "Kompensation"]
+xval = ["Embargo", "Kompensation"]
 yempty = [0, 0]
 
 ## Importlücke
@@ -401,8 +291,8 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Wegfall",
-        legendgrouptitle_text=f"Wegfall",  # ({omitted} TWh/a)",
+        legendgroup="Embargo",
+        legendgrouptitle_text=f"Embargo",  # ({omitted} TWh/a)",
         name="Import Russland",
         marker=dict(color=FZJcolor.get("red")),
     )
@@ -416,8 +306,8 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
-        legendgrouptitle_text=f"Kompensation",  # ({compensation} TWh/a)",
+        legendgroup="Nachfragereduktion",
+        legendgrouptitle_text=f"Nachfragereduktion",
         name="Haushalte",
         marker=dict(color=FZJcolor.get("green")),
     )
@@ -428,7 +318,7 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Nachfragereduktion",
         name="GHD",
         marker=dict(color=FZJcolor.get("purple2")),
     )
@@ -439,7 +329,7 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Nachfragereduktion",
         name="Industrie",
         marker=dict(color=FZJcolor.get("grey2")),
     )
@@ -450,7 +340,7 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Nachfragereduktion",
         name="Energie",
         marker=dict(color=FZJcolor.get("blue")),
     )
@@ -461,7 +351,7 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Nachfragereduktion",
         name="Export etc.",
         marker=dict(color=FZJcolor.get("blue2")),
     )
@@ -473,7 +363,8 @@ fig.add_trace(
         x=xval,
         y=yvals,
         legendgroup="Kompensation",
-        name="LNG (zusätzlich)",
+        legendgrouptitle_text=f"Kapazitätserhöhung",
+        name="LNG",
         marker=dict(color=FZJcolor.get("yellow3")),
     )
 )
@@ -492,11 +383,11 @@ cols[0].plotly_chart(fig, use_container_width=True)
 st.text("")
 # Status Quo
 fig = go.Figure()
-xval = ["Bedarf", "Versorgung"]
+xval = ["Versorgung", "Bedarfe"]
 yempty = [0, 0]
 
 ## Bedarfe
-ypos = 0
+ypos = 1
 yvals = yempty.copy()
 yvals[ypos] = total_domestic_demand
 fig.add_trace(
@@ -555,7 +446,7 @@ fig.add_trace(
 )
 
 ## Import & Produktion
-ypos = 1
+ypos = 0
 yvals = yempty.copy()
 
 yvals[ypos] = total_production
