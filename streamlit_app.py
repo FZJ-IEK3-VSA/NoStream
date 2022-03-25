@@ -355,7 +355,7 @@ with st.sidebar:
 
     with st.expander("LNG Kapazitäten", expanded=False):
         st.metric("Export und sonstige Nachfragen³", f"{lng_base_import} TWh/a")
-        total_exports_and_other = lng_base_import
+        # total_exports_and_other = lng_base_import
 
         # total_exports_and_other = st.number_input(
         #     "Aktueller LNG Import⁴ [TWh/a]",
@@ -971,7 +971,7 @@ scen_code = get_scen_code(
         use_soc_slack,
     ]
 )
-default_scen_code = "4190006080017520092600421001515001110008750013208802022041600000020220316000000202205010000000965000"
+default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000" # 4190006080017520092600421001515001110008750013208802022041600000020220316000000202205010000000965000
 # st.write(scen_code)
 
 st.markdown("## Optimierungsergebnisse")
