@@ -1,4 +1,4 @@
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/tonigustavson/eu_energy_independence)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/fzj-iek3-vsa/nostream)
 
 
 <a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html"><img src="https://www.fz-juelich.de/metis-platform/EN/_Documents/Pictures/FZJ-logo_340x185.jpg?__blob=normal
