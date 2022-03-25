@@ -64,7 +64,7 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 st.markdown("# No Stream: Erdgas Energy Dashboard")
 
 st.markdown(
-    "### Sichere Energie für Europa ohne russische Erdgasimporte"
+    "### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte"
 )
 
 
@@ -373,9 +373,15 @@ with st.sidebar:
         "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/master/optimization.py)"
     )  # 💻
 
+    # st.markdown(f'<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="drawing" height="20"/>', unsafe_allow_html=True)
+
     st.markdown(
         "🌎 [Zur Institutsseite (IEK-3)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
     )  # 📜 🔎 Institut für Energie- und Klimaforschung - Techno-ökonomische Systemanalyse
+
+    # st.markdown(
+    #     "🇪🇺 Untersuchungsraum: EU27"
+    # )
 
 use_soc_slack = False
 
