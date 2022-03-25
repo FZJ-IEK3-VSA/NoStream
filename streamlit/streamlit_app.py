@@ -811,24 +811,3 @@ if start_opti or hash_val == default_hash:
     download_df(
         input_data, f"Input_Daten_{short_hash}.csv", "Input-Daten herunterladen",
     )
-
-
-st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
-download_pdf(
-    "static/Analyse.pdf",
-    "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
-    "Analyse herunterladen",
-)
-
-displayPDF("static/Analyse.pdf", width=900, height=635)
-
-
-st.text("")
-
-st.markdown("## Pressemitteilung")
-download_pdf(
-    "static/Pressemitteilung.pdf",
-    "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
-    "Pressemitteilung herunterladen",
-)
-displayPDF("static/Pressemitteilung.pdf", width=900, height=635)
