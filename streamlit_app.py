@@ -108,7 +108,7 @@ with st.sidebar:
 
         pl_reduction = (
             st.slider(
-                "Reduktion der russischen Erdgasimporte um [%]",
+                "Reduktion russischer Erdgasimporte um [%]",
                 min_value=100,
                 max_value=0,
                 value=100,
@@ -153,29 +153,6 @@ with st.sidebar:
             demand_reduction_date.toordinal()
         )
 
-        red_dom_dem = (
-            st.slider(
-                "Reduktion der Nachfrage Haushalte um [%]",
-                key="red_dom_dem",
-                min_value=0,
-                max_value=100,
-                value=13,
-                step=1,
-            )
-            / 100
-        )
-
-        red_ghd_dem = (
-            st.slider(
-                "Reduktion der Nachfrage GHD um [%]",
-                key="red_ghd_dem",
-                min_value=0,
-                max_value=100,
-                value=8,
-                step=1,
-            )
-            / 100
-        )
 
         red_elec_dem = (
             st.slider(
@@ -189,10 +166,34 @@ with st.sidebar:
             / 100
         )
 
+        red_dom_dem = (
+            st.slider(
+                "Reduktion der Nachfrage Haushalte um [%]",
+                key="red_dom_dem",
+                min_value=0,
+                max_value=100,
+                value=13,
+                step=1,
+            )
+            / 100
+        )
+
         red_ind_dem = (
             st.slider(
                 "Reduktion der Nachfrage Industrie um [%]",
                 key="red_ind_dem",
+                min_value=0,
+                max_value=100,
+                value=8,
+                step=1,
+            )
+            / 100
+        )
+
+        red_ghd_dem = (
+            st.slider(
+                "Reduktion der Nachfrage GHD um [%]",
+                key="red_ghd_dem",
                 min_value=0,
                 max_value=100,
                 value=8,
@@ -277,11 +278,11 @@ with st.sidebar:
 
     st.markdown("### Status Quo")
     with st.expander("Erdgasimporte", expanded=False):
-        total_import_russia = 1752
-        st.metric("Erdgasimport aus Russland²", f"{total_import_russia} TWh/a")
-
         total_import = 4190
         st.metric("Erdgasimport gesamt²", f"{total_import} TWh/a")
+
+        total_import_russia = 1752
+        st.metric("Erdgasimport aus Russland²", f"{total_import_russia} TWh/a")
 
         total_production = 608
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
@@ -308,13 +309,7 @@ with st.sidebar:
             "² Erdgasimport/-Produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         ) # Voreingestellte Werte: 
 
-    with st.expander("Erdgas-Nachfrage", expanded=False):
-        total_domestic_demand = 926
-        st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
-
-        total_ghd_demand = 421
-        st.metric("Nachfrage GHD³", f"{total_ghd_demand} TWh/a")
-
+    with st.expander("Erdgasnachfrage", expanded=False):
         total_electricity_demand = 1515
         st.metric("Nachfrage Energie-Sektor³", f"{total_electricity_demand} TWh/a")
 
@@ -324,6 +319,11 @@ with st.sidebar:
         total_exports_and_other = 988
         st.metric("Export und sonstige Nachfragen³", f"{total_exports_and_other} TWh/a")
 
+        total_domestic_demand = 926
+        st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
+
+        total_ghd_demand = 421
+        st.metric("Nachfrage GHD³", f"{total_ghd_demand} TWh/a")
 
         # total_domestic_demand = st.number_input(
         #     "Nachfrage Haushalte³ [TWh/a]", min_value=0, max_value=None, value=926
@@ -353,7 +353,7 @@ with st.sidebar:
         ) # Voreingestellte Werte: 
 
     with st.expander("LNG Kapazitäten", expanded=False):
-        st.metric("Export und sonstige Nachfragen³", f"{lng_base_import} TWh/a")
+        st.metric("Aktueller LNG Import⁴", f"{lng_base_import} TWh/a")
         # total_exports_and_other = lng_base_import
 
         # total_exports_and_other = st.number_input(
