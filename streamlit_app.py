@@ -909,7 +909,7 @@ if start_opti:
 
 if scen_code == default_scen_code:
     if not start_opti:
-        with st.spinner(text="Lade Ergebnisse des Standard-Szenarios..."):
+        with st.spinner(text="Lade Ergebnisse des Standardszenarios..."):
             df = pd.read_csv("Input/Optimization/default_results.csv", index_col=0)
             plot_optimization_results(df)
             input_data = pd.read_csv(
