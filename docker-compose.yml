@@ -2,12 +2,12 @@ version: "3.4"
 services:
   nginx:
     container_name: "nginx"
-    image: nginx:latest
     ports:
       - "80:80"
       - "443:443"
+    image: nginx:latest
     volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
       - ~/certificates:/etc/nginx/conf.d/certificates
     depends_on:
       - streamlit
@@ -19,3 +19,5 @@ services:
       context: .
       dockerfile: streamlit/Dockerfile
     restart: always
+    ports:
+      - 8501:8501
