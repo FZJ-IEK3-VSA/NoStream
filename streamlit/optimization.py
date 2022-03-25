@@ -488,7 +488,18 @@ def run_scenario(
     print(80 * "=")
 
     # set solver details
+    # Check which solvers are available and choose default solver if no solver is specified explicitely
+    # Order of possible solvers in solverList defines the priority of chosen default solver.
+    solverList = ["cbc", "gurobi", "glpk"]
     solver = "cbc"
+
+    if opt.SolverFactory("gurobi").available():
+        solver = "gurobi"
+    elif opt.SolverFactory("cbc").available():
+        solver = "cbc"
+    else:
+        solver = "glpk"
+
     optimizer = opt.SolverFactory(solver)
     solver_info = optimizer.solve(pyM, tee=True)
 

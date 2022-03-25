@@ -1,8 +1,11 @@
-name: minimal
+name: no-stream
+channels:
+  - defaults
+  - conda-forge
 dependencies:
-  - python
+  - python=3.9
   - pip
-  - coin-cbc
+  - glpk
   - pip:
     - numpy
     - pandas
