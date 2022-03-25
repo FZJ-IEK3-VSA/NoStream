@@ -93,7 +93,7 @@ def render_svg(figDir):
 
 with st.sidebar:
     cols = st.columns([2, 6])
-    svg_image = render_svg("static/FJZ IEK-3.svg")
+    svg_image = r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">' + render_svg("static/FJZ IEK-3.svg") + r'</a>'
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
@@ -258,12 +258,16 @@ with st.sidebar:
 
     st.text("")
     st.markdown(
-        "⛲ [Quellcode der Optimierung](https://github.com/ToniGustavson/eu_energy_independence/blob/master/optimization.py)"
+        "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/develop/streamlit/optimization.py)"
     )  # 💻
 
     st.markdown(
-        "🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
+        "🔎 [Weitere Informationen](https://www.fz-juelich.de/iek/iek-3/DE/News/energySupplyWithoutRussianGas/_node.html)"
     )  # 📜
+
+    st.markdown(
+        "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
+    )  # 
 
 use_soc_slack = False
 
