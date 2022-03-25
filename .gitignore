@@ -5,7 +5,6 @@ env/*
 */.ipynb_checkpoints/*
 __pycache__/
 analysis/regions/*
-static/results/*
 Archiv/
 
 # File types to ignore

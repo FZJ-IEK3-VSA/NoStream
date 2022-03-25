@@ -798,7 +798,7 @@ if hash_val == default_hash:
             df = pd.read_excel("static/results/default_results.xlsx", index_col=0)
             plot_optimization_results(df)
             input_data = pd.read_excel(
-                "static/results/default_inputs.xlsx", index_col=0
+                "static/default_inputs.xlsx", index_col=0
             )
 
 if start_opti or hash_val == default_hash:
