@@ -209,7 +209,7 @@ with st.sidebar:
         )
 
         st.markdown(
-            "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
+            "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
 
 
