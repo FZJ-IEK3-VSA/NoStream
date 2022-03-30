@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 
+APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
     return (
@@ -13,7 +14,7 @@ def get_result_dir(scenario_name):
         fileName = f"default_scenario.xlsx"
     else:
         fileName = f"results_aGasFlowScen_{scenario_name}.xlsx"
-    fileDir = os.path.join("Results_Optimization", fileName)
+    fileDir = os.path.join("static/results", fileName)
     return fileDir
 
 
@@ -31,7 +32,7 @@ def get_optiRes(scenario_name):
 
 
 def get_fzjColor():
-    FZJcolor = pd.read_csv("Input/FZJcolor.csv")
+    FZJcolor = pd.read_csv(os.path.join("static", "FZJcolor.csv"))
 
     def rgb_to_hex(reg_vals):
         def clamp(x):

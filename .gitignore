@@ -5,7 +5,10 @@ env/*
 */.ipynb_checkpoints/*
 __pycache__/
 analysis/regions/*
+<<<<<<< HEAD
+=======
 Results_Optimization/
+>>>>>>> master
 Archiv/
 
 # File types to ignore
