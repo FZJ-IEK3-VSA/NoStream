@@ -63,9 +63,8 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.markdown("# No Stream: Erdgas Energy Dashboard")
 
-st.markdown(
-    "### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte"
-)
+st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte")
+
 
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path
@@ -91,7 +90,11 @@ def render_svg(figDir):
 
 with st.sidebar:
     cols = st.columns([2, 6])
-    svg_image = r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">' + render_svg("static/FJZ IEK-3.svg") + r'</a>'
+    svg_image = (
+        r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">'
+        + render_svg("static/FJZ IEK-3.svg")
+        + r"</a>"
+    )
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
@@ -117,7 +120,6 @@ with st.sidebar:
         )
         russ_share = 1 - pl_reduction
 
-
     with st.expander("Kompensation - Nachfragereduktion", expanded=False):
         demand_reduction_date = st.date_input(
             "Nachfragereduktion ab",
@@ -128,7 +130,6 @@ with st.sidebar:
         demand_reduction_date = datetime.datetime.fromordinal(
             demand_reduction_date.toordinal()
         )
-
 
         red_elec_dem = (
             st.slider(
@@ -190,11 +191,10 @@ with st.sidebar:
             / 100
         )
 
-    
-    with st.expander("Kompensation - Kapazitätserhöhung LNG", expanded=False):
+    with st.expander("Kompensation - Importerhöhung", expanded=False):
         lng_base_import = 875
         lng_increase_date = st.date_input(
-            "LNG Kapazitätserhöhung ab",
+            "Kapazitätserhöhung der Importe ab",
             value=datetime.date(2022, 5, 1),
             min_value=datetime.date(2022, 1, 1),
             max_value=datetime.date(2023, 12, 30),
@@ -208,10 +208,15 @@ with st.sidebar:
             value=965,
         )
 
+        pl_add_import = st.slider(
+            "Zusätzliche Pipeline Importe [TWh/a]",
+            min_value=0,
+            max_value=1000,
+            value=0,
+        )
         st.markdown(
             "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
-
 
     st.markdown("### Status Quo")
     with st.expander("Versorgung", expanded=False):
@@ -225,7 +230,6 @@ with st.sidebar:
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
         st.metric("LNG Import³", f"{lng_base_import} TWh/a")
-
 
         st.text("")
 
@@ -257,7 +261,6 @@ with st.sidebar:
             "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
 
-
     st.text("")
     st.markdown(
         "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/develop/streamlit/optimization.py)"
@@ -275,7 +278,7 @@ with st.sidebar:
 
     st.markdown(
         "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
-    )  # 
+    )  #
 
 use_soc_slack = False
 
@@ -366,12 +369,24 @@ fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Kapazitätserhöhung",
         legendgrouptitle_text=f"Kapazitätserhöhung",
         name="LNG",
         marker=dict(color=FZJcolor.get("yellow3")),
     )
 )
+
+yvals[ypos] = pl_add_import
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Kapazitätserhöhung",
+        name="Pipeline",
+        marker=dict(color=FZJcolor.get("orange")),
+    )
+)
+
 
 fig.update_layout(
     title="Embargo und Kompensation",
@@ -511,9 +526,9 @@ fig.update_layout(
 cols[1].plotly_chart(fig, use_container_width=True)
 
 
-
 compensation = (
     lng_add_import
+    + pl_add_import
     + total_exports_and_other * red_exp_dem
     + total_electricity_demand * red_elec_dem
     + total_industry_demand * red_ind_dem
@@ -544,7 +559,7 @@ else:
 message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
 
 
-if delta>0:
+if delta > 0:
     st.info(message)
 else:
     st.success(message)
@@ -556,8 +571,12 @@ def plot_optimization_results(df):
     df.loc[0:1080, "pipeImp_served"] = df.loc[0:1080, "pipeImp"]
 
     # Prevent last values from being zero
-    df.loc[len(df)-3:len(df), "lngImp_served"] = df.loc[len(df)-6:len(df)-4, "lngImp_served"]
-    df.loc[len(df)-3:len(df), "pipeImp_served"] = df.loc[len(df)-6:len(df)-4, "pipeImp_served"] 
+    df.loc[len(df) - 3 : len(df), "lngImp_served"] = df.loc[
+        len(df) - 6 : len(df) - 4, "lngImp_served"
+    ]
+    df.loc[len(df) - 3 : len(df), "pipeImp_served"] = df.loc[
+        len(df) - 6 : len(df) - 4, "pipeImp_served"
+    ]
 
     # Demand
     total_demand = df.domDem + df.elecDem + df.indDem + df.ghdDem + df.exp_n_oth
@@ -659,7 +678,7 @@ def plot_optimization_results(df):
             line=dict(color=FZJcolor.get("yellow3"), width=3.5),
             legendgroup="import",
             legendgrouptitle_text="Erdgasimport",
-            name="LNG Import",
+            name="LNG",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -671,7 +690,7 @@ def plot_optimization_results(df):
             # stackgroup="two",
             line=dict(color=FZJcolor.get("orange"), width=3.5),
             legendgroup="import",
-            name="Pipeline Import",
+            name="Pipeline",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -683,7 +702,7 @@ def plot_optimization_results(df):
             # stackgroup="two",
             line=dict(color=FZJcolor.get("black1"), width=3.5),
             legendgroup="import",
-            name="Gesamt Import",
+            name="Gesamt",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -867,12 +886,14 @@ scen_code = get_scen_code(
         demand_reduction_date,
         lng_increase_date,
         russ_share,
+        lng_base_import,
         lng_add_import,
+        pl_add_import,
         use_soc_slack,
     ]
 )
-default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000" # 4190006080017520092600421001515001110008750013208802022041600000020220316000000202205010000000965000
-# st.write(scen_code)
+default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000"  # 41900060800175200926004210015150011100098800132088020220416000000202203160000002022050100000009650000
+st.write(scen_code)
 
 st.markdown("## Optimierungsergebnisse")
 start_opti = False
@@ -904,7 +925,9 @@ if start_opti:
                 demand_reduction_date=demand_reduction_date,
                 lng_increase_date=lng_increase_date,
                 russ_share=russ_share,
+                lng_base_import=lng_base_import,
                 lng_add_import=lng_add_import,
+                pl_add_import=pl_add_import,
                 use_soc_slack=use_soc_slack,
             )
             plot_optimization_results(df)
@@ -916,9 +939,7 @@ if scen_code == default_scen_code:
         with st.spinner(text="Lade Ergebnisse des Standardszenarios..."):
             df = pd.read_csv("static/results/default_results.csv", index_col=0)
             plot_optimization_results(df)
-            input_data = pd.read_csv(
-                "static/default_inputs.csv", index_col=0
-            )
+            input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
 
 if start_opti or scen_code == default_scen_code:
     short_hash = int(abs(hash(scen_code)))
@@ -934,6 +955,8 @@ if start_opti or scen_code == default_scen_code:
 st.text("")
 
 st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
-st.markdown("🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)")
+st.markdown(
+    "🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)"
+)
 
 # %%

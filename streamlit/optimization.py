@@ -54,7 +54,9 @@ def run_scenario(
     import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
     demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
     lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
+    lng_base_import=875,
     lng_add_import=965,
+    pl_add_import=0,
     russ_share=0,
     use_soc_slack=False,
 ):
@@ -102,11 +104,11 @@ def run_scenario(
     time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
     # Time index import stop
-    time_index_import_normal = pd.date_range(
-        start="2022-01-01 00:00:00", end=import_stop_date, freq="H"
-    )
+    # time_index_import_normal = pd.date_range(
+    #     start="2022-01-01 00:00:00", end=import_stop_date, freq="H"
+    # )
 
-    time_index_import_red = pd.date_range(
+    time_index_pl_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
         end="2023-07-02 11:00:00",
         freq="H",
@@ -125,6 +127,7 @@ def run_scenario(
         end="2023-07-02 11:00:00",
         freq="H",
     )
+    time_index_pl_increased = time_index_lng_increased.copy()
 
     # Normalized volatile timeseries
     ts_vol = (
@@ -179,7 +182,6 @@ def run_scenario(
 
     # Pipeline Supply
     # Non russian pipeline imports [TWh/a]
-    lng_base_import = 876  # LNG Import 2021 [TWh/a]
     non_russian_pipeline_import_and_domestic_production = (
         total_import + total_production - total_import_russia - lng_base_import
     )
@@ -197,7 +199,19 @@ def run_scenario(
         ),
         index=time_index,
     )
-    pipeImp[time_index_import_red] = pipeImp_red[time_index_import_red]
+
+    pipeImp_increased = pd.Series(
+        ts_const
+        * (
+            russ_share * total_import_russia
+            + non_russian_pipeline_import_and_domestic_production
+            + pl_add_import
+        ),
+        index=time_index,
+    )
+
+    pipeImp[time_index_pl_red] = pipeImp_red[time_index_pl_red]
+    pipeImp[time_index_pl_increased] = pipeImp_increased[time_index_pl_increased]
 
     # Setup LNG timeseries
     lngImp = pd.Series(ts_const * lng_base_import, index=time_index)
@@ -484,7 +498,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # df.to_csv(f"Results_Optimization/results_{scenario_name}.csv")
+    # df.to_csv(f"default_results.csv") #results_{scenario_name}
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -506,13 +520,14 @@ def run_scenario(
     input_data.loc["lng_increase_date", value_col] = lng_increase_date
     input_data.loc["lng_base_import", value_col] = lng_base_import
     input_data.loc["lng_add_import", value_col] = lng_add_import
+    input_data.loc["pl_add_import", value_col] = pl_add_import
     input_data.loc["russ_share", value_col] = russ_share
     input_data.loc["storCap", value_col] = storCap
     print("saving...")
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # input_data.to_csv(f"Results_Optimization/input_data_{scenario_name}.csv")
+    # input_data.to_csv(f"default_inputs.csv") #input_data_{scenario_name}
 
     # df["neg_offset"] = pyM.NegOffset.value
     # df["dom_unserved"] = pyM.domDemIsUnserved.value

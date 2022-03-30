@@ -1,0 +1,22 @@
+,value
+total_import,4190
+total_production,608
+total_import_russia,1752
+total_domestic_demand,926
+total_ghd_demand,421
+total_electricity_demand,1515
+total_industry_demand,1110
+total_exports_and_other,988
+red_dom_dem,0.13
+red_elec_dem,0.2
+red_ghd_dem,0.08
+red_ind_dem,0.08
+red_exp_dem,0.0
+import_stop_date,2022-04-16 00:00:00
+demand_reduction_date,2022-03-16 00:00:00
+lng_increase_date,2022-05-01 00:00:00
+lng_base_import,875
+lng_add_import,139
+pl_add_import,1000
+russ_share,0.0
+storCap,1100
