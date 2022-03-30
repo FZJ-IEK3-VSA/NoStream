@@ -63,9 +63,8 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 st.markdown("# No Stream: Erdgas Energy Dashboard")
 
-st.markdown(
-    "### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte"
-)
+st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte")
+
 
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path
@@ -91,7 +90,11 @@ def render_svg(figDir):
 
 with st.sidebar:
     cols = st.columns([2, 6])
-    svg_image = r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">' + render_svg("static/FJZ IEK-3.svg") + r'</a>'
+    svg_image = (
+        r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">'
+        + render_svg("static/FJZ IEK-3.svg")
+        + r"</a>"
+    )
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
@@ -116,7 +119,6 @@ with st.sidebar:
             / 100
         )
         russ_share = 1 - pl_reduction
-
 
     with st.expander("Kompensation - Nachfragereduktion", expanded=False):
         demand_reduction_date = st.date_input(
@@ -189,7 +191,6 @@ with st.sidebar:
             / 100
         )
 
-    
     with st.expander("Kompensation - Kapazitätserhöhung LNG", expanded=False):
         lng_base_import = 875
         lng_increase_date = st.date_input(
@@ -211,7 +212,6 @@ with st.sidebar:
             "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
 
-
     st.markdown("### Status Quo")
     with st.expander("Versorgung", expanded=False):
         total_import = 4190
@@ -224,7 +224,6 @@ with st.sidebar:
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
         st.metric("LNG Import³", f"{lng_base_import} TWh/a")
-
 
         st.text("")
 
@@ -256,7 +255,6 @@ with st.sidebar:
             "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
 
-
     st.text("")
     st.markdown(
         "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/develop/streamlit/optimization.py)"
@@ -274,7 +272,7 @@ with st.sidebar:
 
     st.markdown(
         "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
-    )  # 
+    )  #
 
 use_soc_slack = False
 
@@ -512,7 +510,6 @@ fig.update_layout(
 cols[1].plotly_chart(fig, use_container_width=True)
 
 
-
 compensation = (
     lng_add_import
     + total_exports_and_other * red_exp_dem
@@ -545,7 +542,7 @@ else:
 message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
 
 
-if delta>0:
+if delta > 0:
     st.info(message)
 else:
     st.success(message)
@@ -557,8 +554,12 @@ def plot_optimization_results(df):
     df.loc[0:1080, "pipeImp_served"] = df.loc[0:1080, "pipeImp"]
 
     # Prevent last values from being zero
-    df.loc[len(df)-3:len(df), "lngImp_served"] = df.loc[len(df)-6:len(df)-4, "lngImp_served"]
-    df.loc[len(df)-3:len(df), "pipeImp_served"] = df.loc[len(df)-6:len(df)-4, "pipeImp_served"] 
+    df.loc[len(df) - 3 : len(df), "lngImp_served"] = df.loc[
+        len(df) - 6 : len(df) - 4, "lngImp_served"
+    ]
+    df.loc[len(df) - 3 : len(df), "pipeImp_served"] = df.loc[
+        len(df) - 6 : len(df) - 4, "pipeImp_served"
+    ]
 
     # Demand
     total_demand = df.domDem + df.elecDem + df.indDem + df.ghdDem + df.exp_n_oth
@@ -638,7 +639,6 @@ def plot_optimization_results(df):
             fillcolor=FZJcolor.get("grey2"),
         )
     )
-
 
     if sum(unserved_demand) > threshold:
         fig.add_trace(
@@ -873,7 +873,7 @@ scen_code = get_scen_code(
         use_soc_slack,
     ]
 )
-default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000" 
+default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000"
 # st.write(scen_code)
 
 st.markdown("## Optimierungsergebnisse")
@@ -918,9 +918,7 @@ if scen_code == default_scen_code:
         with st.spinner(text="Lade Ergebnisse des Standardszenarios..."):
             df = pd.read_csv("static/results/default_results.csv", index_col=0)
             plot_optimization_results(df)
-            input_data = pd.read_csv(
-                "static/default_inputs.csv", index_col=0
-            )
+            input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
 
 if start_opti or scen_code == default_scen_code:
     short_hash = int(abs(hash(scen_code)))
@@ -936,6 +934,8 @@ if start_opti or scen_code == default_scen_code:
 st.text("")
 
 st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
-st.markdown("🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)")
+st.markdown(
+    "🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)"
+)
 
 # %%

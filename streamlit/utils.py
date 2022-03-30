@@ -3,6 +3,7 @@ import os
 
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
+
 def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
     return (
         f"{int(pl_reduction*100)}_{int(lng_add_capacity)}_{reduced_demand}_{soc_slack}"
