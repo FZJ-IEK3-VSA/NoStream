@@ -19,7 +19,7 @@ def get_storage_capacity():
     storCap = 1100
 
     # Read daily state of charge data for the beginning of the year (source: GIE)
-    df_storage = pd.read_excel("Input/Optimization/storage_data_5a.xlsx", index_col=0)
+    df_storage = pd.read_excel("static/Optimization/storage_data_5a.xlsx", index_col=0)
     year = 2022
     bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
     df_storage = df_storage.loc[bool_year, :]
@@ -128,7 +128,7 @@ def run_scenario(
 
     # Normalized volatile timeseries
     ts_vol = (
-        pd.read_csv("Input/Optimization/ts_normalized.csv")["Private Haushalte"]
+        pd.read_csv("static/Optimization/ts_normalized.csv")["Private Haushalte"]
     ).values
 
     # split and recombine to extend to 1.5 years timeframe
@@ -423,7 +423,18 @@ def run_scenario(
     print(80 * "=")
 
     # set solver details
-    solver = "glpk"
+    # Check which solvers are available and choose default solver if no solver is specified explicitely
+    # Order of possible solvers in solverList defines the priority of chosen default solver.
+    solverList = ["cbc", "gurobi", "glpk"]
+    solver = "cbc"
+
+    if opt.SolverFactory("gurobi").available():
+        solver = "gurobi"
+    elif opt.SolverFactory("cbc").available():
+        solver = "cbc"
+    else:
+        solver = "glpk"
+
     optimizer = opt.SolverFactory(solver)
     solver_info = optimizer.solve(pyM, tee=True)
 

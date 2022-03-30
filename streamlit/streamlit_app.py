@@ -91,7 +91,7 @@ def render_svg(figDir):
 
 with st.sidebar:
     cols = st.columns([2, 6])
-    svg_image = render_svg("Input/FJZ IEK-3.svg")
+    svg_image = r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">' + render_svg("static/FJZ IEK-3.svg") + r'</a>'
     cols[0].write(svg_image, unsafe_allow_html=True)
     st.text("")
 
@@ -209,7 +209,7 @@ with st.sidebar:
         )
 
         st.markdown(
-            "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
+            "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
 
 
@@ -260,7 +260,7 @@ with st.sidebar:
 
     st.text("")
     st.markdown(
-        "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/master/optimization.py)"
+        "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/develop/streamlit/optimization.py)"
     )  # 💻
 
     # st.markdown(f'<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="drawing" height="20"/>', unsafe_allow_html=True)
@@ -272,6 +272,10 @@ with st.sidebar:
     # st.markdown(
     #     "🇪🇺 Untersuchungsraum: EU27"
     # )
+
+    st.markdown(
+        "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
+    )  # 
 
 use_soc_slack = False
 
@@ -910,10 +914,10 @@ if start_opti:
 if scen_code == default_scen_code:
     if not start_opti:
         with st.spinner(text="Lade Ergebnisse des Standardszenarios..."):
-            df = pd.read_csv("Input/Optimization/default_results.csv", index_col=0)
+            df = pd.read_csv("static/results/default_results.csv", index_col=0)
             plot_optimization_results(df)
             input_data = pd.read_csv(
-                "Input/Optimization/default_inputs.csv", index_col=0
+                "static/default_inputs.csv", index_col=0
             )
 
 if start_opti or scen_code == default_scen_code:
@@ -931,20 +935,5 @@ st.text("")
 
 st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
 st.markdown("🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)")
-# download_pdf(
-#     "Input/Analyse.pdf",
-#     "Analyse_energySupplyWithoutRussianGasAnalysis.pdf",
-#     "Analyse herunterladen",
-# )
-
-# displayPDF("Input/Analyse.pdf", width=900, height=635)
-
-# st.markdown("## Pressemitteilung")
-# download_pdf(
-#     "Input/Pressemitteilung.pdf",
-#     "Pressemitteilung_energySupplyWithoutRussianGasAnalysis.pdf",
-#     "Pressemitteilung herunterladen",
-# )
-# displayPDF("Input/Pressemitteilung.pdf", width=900, height=635)
 
 # %%
