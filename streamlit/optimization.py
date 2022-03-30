@@ -270,7 +270,7 @@ def run_scenario(
         return (
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
             + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
-            + 1.0
+            + 3.0
             * sum(
                 fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
                 for t in timeSteps[:-1]
@@ -484,7 +484,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # df.to_csv(f"Results_Optimization/results_{scenario_name}.csv")
+    df.to_csv(f"default_results.csv") #results_{scenario_name}
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -512,7 +512,7 @@ def run_scenario(
     scenario_name = ut.get_scenario_name(
         russ_share, lng_add_import, demand_reduct, use_soc_slack
     )
-    # input_data.to_csv(f"Results_Optimization/input_data_{scenario_name}.csv")
+    input_data.to_csv(f"default_inputs.csv") #input_data_{scenario_name}
 
     # df["neg_offset"] = pyM.NegOffset.value
     # df["dom_unserved"] = pyM.domDemIsUnserved.value

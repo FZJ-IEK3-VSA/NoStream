@@ -129,6 +129,17 @@ with st.sidebar:
             demand_reduction_date.toordinal()
         )
 
+        red_ind_dem = (
+            st.slider(
+                "Reduktion der Nachfrage Industrie um [%]",
+                key="red_ind_dem",
+                min_value=0,
+                max_value=100,
+                value=8,
+                step=1,
+            )
+            / 100
+        )
 
         red_elec_dem = (
             st.slider(
@@ -142,30 +153,6 @@ with st.sidebar:
             / 100
         )
 
-        red_dom_dem = (
-            st.slider(
-                "Reduktion der Nachfrage Haushalte um [%]",
-                key="red_dom_dem",
-                min_value=0,
-                max_value=100,
-                value=13,
-                step=1,
-            )
-            / 100
-        )
-
-        red_ind_dem = (
-            st.slider(
-                "Reduktion der Nachfrage Industrie um [%]",
-                key="red_ind_dem",
-                min_value=0,
-                max_value=100,
-                value=8,
-                step=1,
-            )
-            / 100
-        )
-
         red_ghd_dem = (
             st.slider(
                 "Reduktion der Nachfrage GHD um [%]",
@@ -173,6 +160,18 @@ with st.sidebar:
                 min_value=0,
                 max_value=100,
                 value=8,
+                step=1,
+            )
+            / 100
+        )
+
+        red_dom_dem = (
+            st.slider(
+                "Reduktion der Nachfrage Haushalte um [%]",
+                key="red_dom_dem",
+                min_value=0,
+                max_value=100,
+                value=13,
                 step=1,
             )
             / 100
@@ -238,20 +237,20 @@ with st.sidebar:
         )
 
     with st.expander("Bedarfe", expanded=False):
-        total_electricity_demand = 1515
-        st.metric("Nachfrage Energie-Sektor⁴", f"{total_electricity_demand} TWh/a")
-
         total_industry_demand = 1110
         st.metric("Nachfrage Industrie⁴", f"{total_industry_demand} TWh/a")
 
-        total_exports_and_other = 988
-        st.metric("Export und sonstige Nachfragen⁴", f"{total_exports_and_other} TWh/a")
+        total_electricity_demand = 1515
+        st.metric("Nachfrage Energie-Sektor⁴", f"{total_electricity_demand} TWh/a")
+
+        total_ghd_demand = 421
+        st.metric("Nachfrage GHD⁴", f"{total_ghd_demand} TWh/a")
 
         total_domestic_demand = 926
         st.metric("Nachfrage Haushalte⁴", f"{total_domestic_demand} TWh/a")
 
-        total_ghd_demand = 421
-        st.metric("Nachfrage GHD⁴", f"{total_ghd_demand} TWh/a")
+        total_exports_and_other = 988
+        st.metric("Export und sonstige Nachfragen⁴", f"{total_exports_and_other} TWh/a")
 
         st.markdown(
             "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
@@ -303,8 +302,20 @@ fig.add_trace(
 )
 
 ## Kompensation
-ypos = 1  # 3
+ypos = 1
 yvals = yempty.copy()
+
+yvals[ypos] = total_exports_and_other * red_exp_dem
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Nachfragereduktion",
+        name="Export etc.",
+        marker=dict(color=FZJcolor.get("blue2")),
+    )
+)
+
 yvals[ypos] = total_domestic_demand * red_dom_dem
 fig.add_trace(
     go.Bar(
@@ -328,17 +339,6 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = total_industry_demand * red_ind_dem
-fig.add_trace(
-    go.Bar(
-        x=xval,
-        y=yvals,
-        legendgroup="Nachfragereduktion",
-        name="Industrie",
-        marker=dict(color=FZJcolor.get("grey2")),
-    )
-)
-
 yvals[ypos] = total_electricity_demand * red_elec_dem
 fig.add_trace(
     go.Bar(
@@ -350,14 +350,14 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = total_exports_and_other * red_exp_dem
+yvals[ypos] = total_industry_demand * red_ind_dem
 fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
         legendgroup="Nachfragereduktion",
-        name="Export etc.",
-        marker=dict(color=FZJcolor.get("blue2")),
+        name="Industrie",
+        marker=dict(color=FZJcolor.get("grey2")),
     )
 )
 
@@ -393,6 +393,18 @@ yempty = [0, 0]
 ## Bedarfe
 ypos = 1
 yvals = yempty.copy()
+
+yvals[ypos] = total_exports_and_other
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Bedarfe",
+        name="Export etc.",
+        marker=dict(color=FZJcolor.get("blue2")),
+    )
+)
+
 yvals[ypos] = total_domestic_demand
 fig.add_trace(
     go.Bar(
@@ -416,17 +428,6 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = total_industry_demand
-fig.add_trace(
-    go.Bar(
-        x=xval,
-        y=yvals,
-        legendgroup="Bedarfe",
-        name="Industrie",
-        marker=dict(color=FZJcolor.get("grey2")),
-    )
-)
-
 yvals[ypos] = total_electricity_demand
 fig.add_trace(
     go.Bar(
@@ -438,14 +439,14 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = total_exports_and_other
+yvals[ypos] = total_industry_demand
 fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
         legendgroup="Bedarfe",
-        name="Export etc.",
-        marker=dict(color=FZJcolor.get("blue2")),
+        name="Industrie",
+        marker=dict(color=FZJcolor.get("grey2")),
     )
 )
 
@@ -579,6 +580,18 @@ def plot_optimization_results(df):
     fig.add_trace(
         go.Scatter(
             x=xvals,
+            y=df.exp_n_oth_served,
+            stackgroup="one",
+            legendgroup="bedarf",
+            name="Export und sonstige",
+            mode="none",
+            fillcolor=FZJcolor.get("blue2"),
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=xvals,
             y=df.domDem_served,
             stackgroup="one",
             legendgroup="bedarf",
@@ -626,17 +639,6 @@ def plot_optimization_results(df):
         )
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=df.exp_n_oth_served,
-            stackgroup="one",
-            legendgroup="bedarf",
-            name="Export und sonstige",
-            mode="none",
-            fillcolor=FZJcolor.get("blue2"),
-        )
-    )
 
     if sum(unserved_demand) > threshold:
         fig.add_trace(
@@ -871,7 +873,7 @@ scen_code = get_scen_code(
         use_soc_slack,
     ]
 )
-default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000" # 4190006080017520092600421001515001110008750013208802022041600000020220316000000202205010000000965000
+default_scen_code = "4190006080017520092600421001515001110009880013208802022041600000020220316000000202205010000000965000" 
 # st.write(scen_code)
 
 st.markdown("## Optimierungsergebnisse")
