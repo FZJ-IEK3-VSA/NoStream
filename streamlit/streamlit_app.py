@@ -192,7 +192,7 @@ with st.sidebar:
         )
 
     with st.expander("Kompensation - Importerhöhung", expanded=False):
-        base_lng_import = 875
+        total_lng_import = 914  # 875
         lng_increase_date = st.date_input(
             "Kapazitätserhöhung der Importe ab",
             value=datetime.date(2022, 5, 1),
@@ -204,7 +204,7 @@ with st.sidebar:
         add_lng_import = st.slider(
             "Zusätzliche LNG Kapazität¹ [TWh/a]",
             min_value=0,
-            max_value=2025 - base_lng_import,
+            max_value=2025 - total_lng_import,
             value=965,
         )
 
@@ -229,7 +229,10 @@ with st.sidebar:
         total_production = 608
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
-        st.metric("LNG Import³", f"{base_lng_import} TWh/a")
+        st.metric("LNG Import gesamt²", f"{total_lng_import} TWh/a")
+
+        total_lng_import_russia = 160
+        st.metric("LNG aus Russland²", f"{total_lng_import_russia} TWh/a")
 
         st.text("")
 
@@ -237,9 +240,9 @@ with st.sidebar:
             "² Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         )
 
-        st.markdown(
-            "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
-        )
+        # st.markdown(
+        #     "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
+        # )
 
     with st.expander("Bedarfe", expanded=False):
         total_industry_demand = 1110
@@ -481,7 +484,7 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = base_lng_import
+yvals[ypos] = total_lng_import
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -493,7 +496,7 @@ fig.add_trace(
 )
 
 
-yvals[ypos] = total_pl_import - total_pl_import_russia - base_lng_import
+yvals[ypos] = total_pl_import - total_pl_import_russia - total_lng_import
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -888,7 +891,7 @@ scen_code = get_scen_code(
         demand_reduction_date,
         lng_increase_date,
         russ_share,
-        base_lng_import,
+        total_lng_import,
         add_lng_import,
         add_pl_import,
         use_soc_slack,
@@ -927,7 +930,7 @@ if start_opti:
                 demand_reduction_date=demand_reduction_date,
                 lng_increase_date=lng_increase_date,
                 russ_share=russ_share,
-                base_lng_import=base_lng_import,
+                total_lng_import=total_lng_import,
                 add_lng_import=add_lng_import,
                 add_pl_import=add_pl_import,
                 use_soc_slack=use_soc_slack,

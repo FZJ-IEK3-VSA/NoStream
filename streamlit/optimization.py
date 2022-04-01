@@ -54,7 +54,7 @@ def run_scenario(
     import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
     demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
     lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
-    base_lng_import=875,
+    total_lng_import=875,
     add_lng_import=965,
     add_pl_import=0,
     russ_share=0,
@@ -183,7 +183,7 @@ def run_scenario(
     # Pipeline Supply
     # Non russian pipeline imports [TWh/a]
     non_russian_pipeline_import_and_domestic_production = (
-        total_pl_import + total_production - total_pl_import_russia - base_lng_import
+        total_pl_import + total_production - total_pl_import_russia - total_lng_import
     )
 
     pipeImp = pd.Series(
@@ -214,9 +214,9 @@ def run_scenario(
     pipeImp[time_index_pl_increased] = pipeImp_increased[time_index_pl_increased]
 
     # Setup LNG timeseries
-    lngImp = pd.Series(ts_const * base_lng_import, index=time_index)
+    lngImp = pd.Series(ts_const * total_lng_import, index=time_index)
     lngImp_increased = pd.Series(
-        ts_const * (add_lng_import + base_lng_import), index=time_index
+        ts_const * (add_lng_import + total_lng_import), index=time_index
     )
     lngImp[time_index_lng_increased] = lngImp_increased[time_index_lng_increased]
 
@@ -518,7 +518,7 @@ def run_scenario(
     input_data.loc["import_stop_date", value_col] = import_stop_date
     input_data.loc["demand_reduction_date", value_col] = demand_reduction_date
     input_data.loc["lng_increase_date", value_col] = lng_increase_date
-    input_data.loc["base_lng_import", value_col] = base_lng_import
+    input_data.loc["total_lng_import", value_col] = total_lng_import
     input_data.loc["add_lng_import", value_col] = add_lng_import
     input_data.loc["add_pl_import", value_col] = add_pl_import
     input_data.loc["russ_share", value_col] = russ_share
