@@ -284,7 +284,7 @@ def run_scenario(
         return (
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
             + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
-            + 1.0
+            + 3.0
             * sum(
                 fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
                 for t in timeSteps[:-1]
