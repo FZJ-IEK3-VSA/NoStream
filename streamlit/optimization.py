@@ -38,9 +38,11 @@ def get_storage_capacity():
 
 
 def run_scenario(
-    total_pl_import=4190,
-    total_production=608,
+    total_ng_import=4190,
     total_pl_import_russia=1752,
+    total_ng_production=608,
+    total_lng_import=914,
+    total_lng_import_russia=160,
     total_domestic_demand=926,
     total_ghd_demand=420.5,
     total_electricity_demand=1515.83,
@@ -54,11 +56,9 @@ def run_scenario(
     import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
     demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
     lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
-    base_lng_import=875,
     add_lng_import=965,
     add_pl_import=0,
-    russ_share=0,
-    use_soc_slack=False,
+    reduction_import_russia=1,
 ):
     """Solves a MILP storage model given imports,exports, demands, and production.
 
@@ -66,8 +66,8 @@ def run_scenario(
     ----------
     add_lng_import : float
         increased daily LNG flow [TWh/d]
-    russ_share : float
-        share of Russian natural gas [0 - 1]
+    reduction_import_russia : float
+        reduction rate of Russian natural gas/LNG imports [0 - 1]
     total_domestic_demand : float
         total natural gas demand for domestic purposes [TWh/a]
     electricity_demand_const : float
@@ -113,6 +113,7 @@ def run_scenario(
         end="2023-07-02 11:00:00",
         freq="H",
     )
+    time_index_lng_red = time_index_pl_red.copy()
 
     # Time index reduced demand
     time_index_demand_red = pd.date_range(
@@ -182,43 +183,50 @@ def run_scenario(
 
     # Pipeline Supply
     # Non russian pipeline imports [TWh/a]
-    non_russian_pipeline_import_and_domestic_production = (
-        total_pl_import + total_production - total_pl_import_russia - base_lng_import
-    )
+    # non_russian_pipeline_import_and_domestic_production = (
+    #     total_pl_import + total_ng_production - total_pl_import_russia - total_lng_import
+    # )
 
-    pipeImp = pd.Series(
-        ts_const
-        * (total_pl_import_russia + non_russian_pipeline_import_and_domestic_production),
-        index=time_index,
-    )
-    pipeImp_red = pd.Series(
-        ts_const
-        * (
-            russ_share * total_pl_import_russia
-            + non_russian_pipeline_import_and_domestic_production
-        ),
+    # Pipeline Supply
+    total_pl_import = total_ng_import - total_lng_import
+
+    plImp = pd.Series(ts_const * (total_pl_import), index=time_index,)
+
+    plImp_red = pd.Series(
+        ts_const * (total_pl_import - reduction_import_russia * total_pl_import_russia),
         index=time_index,
     )
 
-    pipeImp_increased = pd.Series(
+    plImp_increased = pd.Series(
         ts_const
         * (
-            russ_share * total_pl_import_russia
-            + non_russian_pipeline_import_and_domestic_production
+            total_pl_import
+            - reduction_import_russia * total_pl_import_russia
             + add_pl_import
         ),
         index=time_index,
     )
 
-    pipeImp[time_index_pl_red] = pipeImp_red[time_index_pl_red]
-    pipeImp[time_index_pl_increased] = pipeImp_increased[time_index_pl_increased]
+    plImp[time_index_pl_red] = plImp_red[time_index_pl_red]
+    plImp[time_index_pl_increased] = plImp_increased[time_index_pl_increased]
 
-    # Setup LNG timeseries
-    lngImp = pd.Series(ts_const * base_lng_import, index=time_index)
-    lngImp_increased = pd.Series(
-        ts_const * (add_lng_import + base_lng_import), index=time_index
+    # LNG supply
+    lngImp = pd.Series(ts_const * total_lng_import, index=time_index)
+
+    lngImp_red = pd.Series(
+        ts_const * (total_lng_import - total_lng_import_russia), index=time_index,
     )
+
+    lngImp_increased = pd.Series(
+        ts_const * (total_lng_import - total_lng_import_russia + add_lng_import),
+        index=time_index,
+    )
+
+    lngImp[time_index_lng_red] = lngImp_red[time_index_lng_red]
     lngImp[time_index_lng_increased] = lngImp_increased[time_index_lng_increased]
+
+    # Domestiv production
+    domProd = pd.Series(ts_const * total_ng_production, index=time_index)
 
     ###############################################################################
     ############                      Optimization                     ############
@@ -246,7 +254,8 @@ def run_scenario(
     pyM.indDemServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.ghdDemServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.lngServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
-    pyM.pipeServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
+    pyM.plServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
+    pyM.prodServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
 
     print(80 * "=")
     print("Variables created.")
@@ -264,11 +273,20 @@ def run_scenario(
     # actual hourly natural gas pipeline flow must be less than the maximum given
     def Constr_pipe_ub_rule(pyM, t):
         if t < timeSteps[-1]:
-            return pyM.pipeServed[t] <= pipeImp.iloc[t]
+            return pyM.plServed[t] <= plImp.iloc[t]
         else:
             return pyomo.Constraint.Skip
 
     pyM.Constr_pipe_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_pipe_ub_rule)
+
+    # actual hourly natural gas production flow must be less than the maximum given
+    def Constr_prod_ub_rule(pyM, t):
+        if t < timeSteps[-1]:
+            return pyM.prodServed[t] <= domProd.iloc[t]
+        else:
+            return pyomo.Constraint.Skip
+
+    pyM.Constr_prod_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_prod_ub_rule)
 
     print(80 * "=")
     print("pipe and lng constraint created.")
@@ -327,8 +345,9 @@ def run_scenario(
                 - pyM.elecDemServed[t]
                 - pyM.indDemServed[t]
                 - pyM.ghdDemServed[t]
-                + pyM.pipeServed[t]
+                + pyM.plServed[t]
                 + pyM.lngServed[t]
+                + pyM.prodServed[t]
                 - pyM.expAndOtherServed[t]
             )
         else:
@@ -428,6 +447,7 @@ def run_scenario(
     )
 
     # fix state of charge slack to zero if not wanted
+    use_soc_slack = False
     if use_soc_slack is False:
         for i in timeSteps:
             pyM.Soc_slack[i].fix(0)
@@ -459,8 +479,9 @@ def run_scenario(
     print(80 * "=")
 
     # retrieve solution values and collect in a pandas dataframe
-    pipeServedList = pd.Series([pyM.pipeServed[t].value for t in timeSteps[:-1]])
+    plServedList = pd.Series([pyM.plServed[t].value for t in timeSteps[:-1]])
     lngServedList = pd.Series([pyM.lngServed[t].value for t in timeSteps[:-1]])
+    prodServedList = pd.Series([pyM.prodServed[t].value for t in timeSteps[:-1]])
     socList = pd.Series([pyM.Soc[t].value for t in timeSteps[:-1]])
     socSlackList = pd.Series([pyM.Soc_slack[t].value for t in timeSteps[:-1]])
     domDemServedList = pd.Series([pyM.domDemServed[t].value for t in timeSteps[:-1]])
@@ -474,11 +495,13 @@ def run_scenario(
     print("building DataFrame...")
     df = pd.DataFrame()
     df = df.assign(
-        time=pipeImp.index,
-        pipeImp=pipeImp.values,
-        pipeImp_served=pipeServedList,
+        time=plImp.index,
+        plImp=plImp.values,
+        plImp_served=plServedList,
         lngImp=lngImp.values,
         lngImp_served=lngServedList,
+        domProd=domProd.values,
+        domProd_served=prodServedList,
         domDem=domDem.values,
         domDem_served=domDemServedList,
         elecDem=elecDem.values,
@@ -495,15 +518,12 @@ def run_scenario(
     df.fillna(0, inplace=True)
 
     print("saving...")
-    scenario_name = ut.get_scenario_name(
-        russ_share, add_lng_import, demand_reduct, use_soc_slack
-    )
-    # df.to_csv(f"default_results.csv") #results_{scenario_name}
+    # df.to_csv(f"default_results.csv")
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
     input_data.loc["total_pl_import", value_col] = total_pl_import
-    input_data.loc["total_production", value_col] = total_production
+    input_data.loc["total_ng_production", value_col] = total_ng_production
     input_data.loc["total_pl_import_russia", value_col] = total_pl_import_russia
     input_data.loc["total_domestic_demand", value_col] = total_domestic_demand
     input_data.loc["total_ghd_demand", value_col] = total_ghd_demand
@@ -518,54 +538,13 @@ def run_scenario(
     input_data.loc["import_stop_date", value_col] = import_stop_date
     input_data.loc["demand_reduction_date", value_col] = demand_reduction_date
     input_data.loc["lng_increase_date", value_col] = lng_increase_date
-    input_data.loc["base_lng_import", value_col] = base_lng_import
+    input_data.loc["total_lng_import", value_col] = total_lng_import
     input_data.loc["add_lng_import", value_col] = add_lng_import
     input_data.loc["add_pl_import", value_col] = add_pl_import
-    input_data.loc["russ_share", value_col] = russ_share
+    input_data.loc["reduction_import_russia", value_col] = reduction_import_russia
     input_data.loc["storCap", value_col] = storCap
     print("saving...")
-    scenario_name = ut.get_scenario_name(
-        russ_share, add_lng_import, demand_reduct, use_soc_slack
-    )
-    # input_data.to_csv(f"default_inputs.csv") #input_data_{scenario_name}
-
-    # df["neg_offset"] = pyM.NegOffset.value
-    # df["dom_unserved"] = pyM.domDemIsUnserved.value
-    # df["elec_unserved"] = pyM.elecDemIsUnserved.value
-    # df["ind_unserved"] = pyM.indDemIsUnserved.value
-    # df["ghd_unserved"] = pyM.ghdDemIsUnserved.value
-    # df["exp_n_oth_unserved"] = pyM.expAndOtherIsUnserved.value
-
-    # print(
-    #     "positive side of balance: ",
-    #     df.soc_slack.sum() + df.pipeImp_served.sum() + df.lngImp_served.sum(),
-    # )
-    # print("storage_delta: ", df.soc.iloc[0] - df.soc.iloc[-1])
-    # print(
-    #     "negative side of balance: ",
-    #     df.domDem_served.sum()
-    #     + df.elecDem_served.sum()
-    #     + df.indDem_served.sum()
-    #     + df.ghdDem_served.sum()
-    #     + df.exp_n_oth_served.sum(),
-    # )
-
-    # print("soc slack sum: ", df.soc_slack.sum())
-
-    # df["balance"] = (
-    #     df.soc_slack.sum()
-    #     + df.pipeImp_served.sum()
-    #     + df.lngImp_served.sum()
-    #     + df.soc.iloc[0]
-    #     - df.soc.iloc[-1]
-    #     - (
-    #         df.domDem_served.sum()
-    #         + df.elecDem_served.sum()
-    #         + df.indDem_served.sum()
-    #         + df.ghdDem_served.sum()
-    #         + df.exp_n_oth_served.sum()
-    #     )
-    # )
+    # input_data.to_csv(f"default_inputs.csv")
 
     print("Done!")
     return df, input_data
@@ -574,15 +553,16 @@ def run_scenario(
 # %%
 if __name__ == "__main__":
     # Sensitivity analysis
-    # import share of russion gas [-]
-    russian_gas_share = [0.0]
+
+    # reduction of russion gas/LNG [-]
+    russian_gas_reduction = [0, 1]
 
     # Average European LNG import [TWh/d]
     lng_add_capacities = [0.0, 965]  # 90% load
 
     # loop over all scenario variations
-    for russ_share in russian_gas_share:
+    for russ_red in russian_gas_reduction:
         for add_lng_import in lng_add_capacities:
             df, input_data = run_scenario(
-                russ_share=0, add_lng_import=965, use_soc_slack=False
+                reduction_import_russia=russ_red, add_lng_import=add_lng_import
             )
