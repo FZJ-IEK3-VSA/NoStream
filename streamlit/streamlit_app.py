@@ -191,39 +191,45 @@ with st.sidebar:
             / 100
         )
 
-    with st.expander("Kompensation - Kapazitätserhöhung LNG", expanded=False):
-        lng_base_import = 875
+    with st.expander("Kompensation - Importerhöhung", expanded=False):
+        base_lng_import = 875
         lng_increase_date = st.date_input(
-            "LNG Kapazitätserhöhung ab",
+            "Kapazitätserhöhung der Importe ab",
             value=datetime.date(2022, 5, 1),
             min_value=datetime.date(2022, 1, 1),
             max_value=datetime.date(2023, 12, 30),
         )
         lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
 
-        lng_add_import = st.slider(
+        add_lng_import = st.slider(
             "Zusätzliche LNG Kapazität¹ [TWh/a]",
             min_value=0,
-            max_value=2025 - lng_base_import,
+            max_value=2025 - base_lng_import,
             value=965,
         )
 
+        add_pl_import = st.slider(
+            "Zusätzliche Pipeline Importe [TWh/a]",
+            min_value=0,
+            max_value=1000,
+            value=0,
+        )
         st.markdown(
             "¹ Genutzte LNG-Kapazitäten EU27, 2021: 875 TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: 1150 TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
 
     st.markdown("### Status Quo")
     with st.expander("Versorgung", expanded=False):
-        total_import = 4190
-        st.metric("Erdgasimport gesamt²", f"{total_import} TWh/a")
+        total_pl_import = 4190
+        st.metric("Erdgasimport gesamt²", f"{total_pl_import} TWh/a")
 
-        total_import_russia = 1752
-        st.metric("Erdgasimport aus Russland²", f"{total_import_russia} TWh/a")
+        total_pl_import_russia = 1752
+        st.metric("Erdgasimport aus Russland²", f"{total_pl_import_russia} TWh/a")
 
         total_production = 608
         st.metric("Inländische Erdgasproduktion²", f"{total_production} TWh/a")
 
-        st.metric("LNG Import³", f"{lng_base_import} TWh/a")
+        st.metric("LNG Import³", f"{base_lng_import} TWh/a")
 
         st.text("")
 
@@ -287,7 +293,7 @@ yempty = [0, 0]
 ## Importlücke
 ypos = 0
 yvals = yempty.copy()
-yvals[ypos] = total_import_russia * pl_reduction
+yvals[ypos] = total_pl_import_russia * pl_reduction
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -359,17 +365,29 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = lng_add_import
+yvals[ypos] = add_lng_import
 fig.add_trace(
     go.Bar(
         x=xval,
         y=yvals,
-        legendgroup="Kompensation",
+        legendgroup="Kapazitätserhöhung",
         legendgrouptitle_text=f"Kapazitätserhöhung",
         name="LNG",
         marker=dict(color=FZJcolor.get("yellow3")),
     )
 )
+
+yvals[ypos] = add_pl_import
+fig.add_trace(
+    go.Bar(
+        x=xval,
+        y=yvals,
+        legendgroup="Kapazitätserhöhung",
+        name="Pipeline",
+        marker=dict(color=FZJcolor.get("orange")),
+    )
+)
+
 
 fig.update_layout(
     title="Embargo und Kompensation",
@@ -463,7 +481,7 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = lng_base_import
+yvals[ypos] = base_lng_import
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -475,7 +493,7 @@ fig.add_trace(
 )
 
 
-yvals[ypos] = total_import - total_import_russia - lng_base_import
+yvals[ypos] = total_pl_import - total_pl_import_russia - base_lng_import
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -486,7 +504,7 @@ fig.add_trace(
     )
 )
 
-yvals[ypos] = total_import_russia
+yvals[ypos] = total_pl_import_russia
 fig.add_trace(
     go.Bar(
         x=xval,
@@ -511,7 +529,8 @@ cols[1].plotly_chart(fig, use_container_width=True)
 
 
 compensation = (
-    lng_add_import
+    add_lng_import
+    + add_pl_import
     + total_exports_and_other * red_exp_dem
     + total_electricity_demand * red_elec_dem
     + total_industry_demand * red_ind_dem
@@ -520,7 +539,7 @@ compensation = (
 )
 compensation = int(round(compensation, 0))
 
-omitted = int(round(total_import_russia * pl_reduction, 0))
+omitted = int(round(total_pl_import_russia * pl_reduction, 0))
 delta = omitted - compensation
 
 if delta > 0:
@@ -661,7 +680,7 @@ def plot_optimization_results(df):
             line=dict(color=FZJcolor.get("yellow3"), width=3.5),
             legendgroup="import",
             legendgrouptitle_text="Erdgasimport",
-            name="LNG Import",
+            name="LNG",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -673,7 +692,7 @@ def plot_optimization_results(df):
             # stackgroup="two",
             line=dict(color=FZJcolor.get("orange"), width=3.5),
             legendgroup="import",
-            name="Pipeline Import",
+            name="Pipeline",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -685,7 +704,7 @@ def plot_optimization_results(df):
             # stackgroup="two",
             line=dict(color=FZJcolor.get("black1"), width=3.5),
             legendgroup="import",
-            name="Gesamt Import",
+            name="Gesamt",
             fillcolor="rgba(0, 0, 0, 0)",
         )
     )
@@ -852,9 +871,9 @@ def get_scen_code(val_list):
 
 scen_code = get_scen_code(
     [
-        total_import,
+        total_pl_import,
         total_production,
-        total_import_russia,
+        total_pl_import_russia,
         total_domestic_demand,
         total_ghd_demand,
         total_electricity_demand,
@@ -869,7 +888,9 @@ scen_code = get_scen_code(
         demand_reduction_date,
         lng_increase_date,
         russ_share,
-        lng_add_import,
+        base_lng_import,
+        add_lng_import,
+        add_pl_import,
         use_soc_slack,
     ]
 )
@@ -889,9 +910,9 @@ if start_opti:
     ):
         try:
             df, input_data = opti.run_scenario(
-                total_import=total_import,
+                total_pl_import=total_pl_import,
                 total_production=total_production,
-                total_import_russia=total_import_russia,
+                total_pl_import_russia=total_pl_import_russia,
                 total_domestic_demand=total_domestic_demand,
                 total_ghd_demand=total_ghd_demand,
                 total_electricity_demand=total_electricity_demand,
@@ -906,7 +927,9 @@ if start_opti:
                 demand_reduction_date=demand_reduction_date,
                 lng_increase_date=lng_increase_date,
                 russ_share=russ_share,
-                lng_add_import=lng_add_import,
+                base_lng_import=base_lng_import,
+                add_lng_import=add_lng_import,
+                add_pl_import=add_pl_import,
                 use_soc_slack=use_soc_slack,
             )
             plot_optimization_results(df)
