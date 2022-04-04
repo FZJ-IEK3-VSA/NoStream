@@ -14,6 +14,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8501 
+EXPOSE 8501, 8502
 
 CMD streamlit run ./streamlit/streamlit_app.py --server.enableCORS false --server.enableXsrfProtection false --server.enableWebsocketCompression=false
