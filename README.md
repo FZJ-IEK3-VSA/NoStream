@@ -44,6 +44,17 @@ FINE - self explaining
 How curtailment and their merit order is considered
 
 
-### Data
 
-Short data decsription: Source
+### Change log
+
+
+#### 0.2 - 04.04.2022
+
+* Add the possibility to add additional pipeline imports, e.g., from Norway
+* Reduce also LNG imports from Russia with a starting embargo
+* Change the merit order of curtailemt, with the industry first and export last
+
+
+#### 0.1 - 30.03.2022
+
+* First publice release
