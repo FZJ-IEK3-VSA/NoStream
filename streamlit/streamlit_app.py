@@ -102,9 +102,9 @@ with st.sidebar:
     # Demand
     se.setting_statusQuo_demand()
 
-    st.text("")
+    st.text("NoStream 0.2")
     st.markdown(
-        "⛲ [Quellcode der Optimierung](https://github.com/FZJ-IEK3-VSA/NoStream/blob/develop/streamlit/optimization.py)"
+        "⛲ [Dokumentation und Quellcode](https://github.com/FZJ-IEK3-VSA/NoStream)"
     )
 
     st.markdown(
@@ -113,6 +113,10 @@ with st.sidebar:
 
     st.markdown(
         "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
+    )
+
+    st.markdown(
+        "💡 [Verbesserungsvorschläge?](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
     )
 
 
