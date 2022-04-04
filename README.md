@@ -29,23 +29,7 @@ streamlit run ./streamlit/streamlit_app.py
 
 
 
-## Collaborate
-
-Make yourself an own branch - either named by feature, or named with your name <develop-max>.
-
-When you are finished, make a pull request to the develop branch. Please make proper commit messages!
-
-## Documentation
-
-### Tool and modeling
-
-FINE - self explaining
-
-How curtailment and their merit order is considered
-
-
-
-### Change log
+## Change log
 
 
 #### 0.2 - 04.04.2022
