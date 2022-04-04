@@ -786,50 +786,8 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         )
 
 
-def setting_compensation_import(streamlit_object=None, expanded=False, compact=False):
-    def _content():
-        lng_increase_date = datetime.date(2022, 5, 1)
-        if not compact:
-            lng_increase_date = st.date_input(
-                "Importerhöhung ab",
-                value=lng_increase_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 30),
-            )
-        lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
-
-        add_lng_import = st.slider(
-            "Zusätzliche LNG Kapazität¹ [TWh/a]",
-            min_value=0,
-            max_value=2025 - total_lng_import,
-            value=int(0.9 * 2025 - total_lng_import),
-        )
-
-        add_pl_import = 0
-        if not compact:
-            add_pl_import = st.slider(
-                "Zusätzliche Pipeline Importe [TWh/a]",
-                min_value=0,
-                max_value=1000,
-                value=add_pl_import,
-            )
-        st.markdown(
-            f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
-        )
-        return add_lng_import, lng_increase_date, add_pl_import
-
-    if streamlit_object is None:
-        with st.expander("Kompensation - Importerhöhung", expanded=expanded):
-            return _content()
-    else:
-        with streamlit_object.expander(
-            "Kompensation - Importerhöhung", expanded=expanded
-        ):
-            return _content()
-
-
 def setting_embargo(streamlit_object=None, expanded=False, compact=False):
-    def _content():
+    with streamlit_object.expander("Embargo", expanded=expanded):
         import_stop_date = datetime.date(2022, 4, 16)
         reduction_import_russia = 100
         if not compact:
@@ -853,25 +811,11 @@ def setting_embargo(streamlit_object=None, expanded=False, compact=False):
 
         return import_stop_date, reduction_import_russia
 
-    if streamlit_object is None:
-        with st.expander("Embargo", expanded=expanded):
-            return _content()
-    else:
-        with streamlit_object.expander("Embargo", expanded=expanded):
-            return _content()
-
 
 def setting_statusQuo_supply(
-    # total_ng_import,
-    # total_pl_import_russia,
-    # total_lng_import,
-    # total_lng_import_russia,
-    # total_ng_production,
-    streamlit_object=None,
-    expanded=False,
-    compact=False,
+    streamlit_object=None, expanded=False, compact=False,
 ):
-    def _content():
+    with streamlit_object.expander("Versorgung", expanded=expanded):
         st.metric("Erdgasimport gesamt (inkl. LNG)⁴", f"{total_ng_import} TWh/a")
         st.metric("Erdgasimport aus Russland²", f"{total_pl_import_russia} TWh/a")
         st.metric("LNG Import gesamt²", f"{total_lng_import} TWh/a")
@@ -890,25 +834,11 @@ def setting_statusQuo_supply(
         #     "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         # )
 
-    if streamlit_object is None:
-        with st.expander("Versorgung", expanded=expanded):
-            _content()
-    else:
-        with streamlit_object.expander("Versorgung", expanded=expanded):
-            _content()
-
 
 def setting_statusQuo_demand(
-    # total_industry_demand,
-    # total_electricity_demand,
-    # total_ghd_demand,
-    # total_domestic_demand,
-    # total_exports_and_other,
-    streamlit_object=None,
-    expanded=False,
-    compact=False,
+    streamlit_object=None, expanded=False, compact=False,
 ):
-    def _content():
+    with streamlit_object.expander("Bedarfe", expanded=expanded):
         st.metric("Nachfrage Industrie⁴", f"{total_industry_demand} TWh/a")
         st.metric("Nachfrage Kraftwerke⁴", f"{total_electricity_demand} TWh/a")
         st.metric("Nachfrage Handel/Dienstleistung⁴", f"{total_ghd_demand} TWh/a")
@@ -920,13 +850,6 @@ def setting_statusQuo_demand(
         st.markdown(
             "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
-
-    if streamlit_object is None:
-        with st.expander("Bedarfe", expanded=expanded):
-            _content()
-    else:
-        with streamlit_object.expander("Bedarfe", expanded=expanded):
-            _content()
 
 
 def message_embargo_compensation(
