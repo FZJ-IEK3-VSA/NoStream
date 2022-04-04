@@ -21,3 +21,14 @@ services:
     restart: always
     ports:
       - 8501:8501
+
+
+  streamlit_compact:
+    container_name: "streamlit_compact"
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
+    restart: always
+    ports:
+      - 8502:8502
+    command: streamlit run ./streamlit/streamlit_app_compact.py --server.enableCORS false --server.enableXsrfProtection false --server.enableWebsocketCompression=false --server.port 8502
