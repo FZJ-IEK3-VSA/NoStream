@@ -67,6 +67,10 @@ with st.sidebar:
 
 # Energiebilanz
 
+
+slot_figure = st.empty()
+# Appends an empty slot to the app. We'll use this later.
+
 # Embarge und Kompensation
 import_stop_date, reduction_import_russia = se.setting_embargo(
     compact=compact, expanded=True,
@@ -97,7 +101,7 @@ se.plot_import_gap(
     add_lng_import,
     add_pl_import,
     font_dict=font_dict,
-    # streamlit_object=cols[0],
+    streamlit_object=slot_figure,
 )
 
 se.message_embargo_compensation(
