@@ -27,7 +27,7 @@ total_ng_production = 608
 def centered_fzj_logo():
     svg_image = (
         r'<center><a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">'
-        + ut.render_svg("static/FJZ IEK-3.svg")
+        + ut.render_svg("./static/FJZ_IEK-3.svg")
         + r"</a> </center>"
     )
     st.write(svg_image, unsafe_allow_html=True)
