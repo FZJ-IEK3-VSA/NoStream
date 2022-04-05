@@ -10,14 +10,7 @@ import base64
 import os
 import streamlit_elements as se
 
-
-FZJcolor = ut.get_fzjColor()
-legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
-
-font_dict = dict(size=16)
-
 compact = True  # Use compact version of the app
-
 
 ### Streamlit App
 st.set_page_config(
@@ -39,37 +32,19 @@ st.markdown("# No Stream: Erdgas Energy Dashboard")
 
 
 with st.sidebar:
-    cols = st.columns([2, 6])
-    svg_image = (
-        r'<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">'
-        + ut.render_svg("static/FJZ IEK-3.svg")
-        + r"</a>"
-    )
-    cols[0].write(svg_image, unsafe_allow_html=True)
+    # Logo
+    se.centered_fzj_logo()
+
     st.text("")
 
-    st.text("NoStream 0.2")
-    st.markdown(
-        "⛲ [Dokumentation und Quellcode](https://github.com/FZJ-IEK3-VSA/NoStream)"
-    )
+    # Further links and information
+    st.text("")
+    se.sidebar_further_info()
 
-    st.markdown(
-        "🌎 [Zur Institutsseite (IEK-3)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
-    )
-
-    st.markdown(
-        "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
-    )
-
-    st.markdown(
-        "💡 [Verbesserungsvorschläge?](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
-    )
 
 # Energiebilanz
-
-
 slot_figure = st.empty()
-# Appends an empty slot to the app. We'll use this later.
+slot_settings = st.empty()
 
 # Embarge und Kompensation
 import_stop_date, reduction_import_russia = se.setting_embargo(
@@ -87,7 +62,9 @@ import_stop_date, reduction_import_russia = se.setting_embargo(
     add_lng_import,
     lng_increase_date,
     add_pl_import,
-) = se.setting_compensation(compact=compact, expanded=True)
+) = se.setting_compensation(
+    streamlit_object=slot_settings, compact=compact, expanded=True
+)
 
 
 ## Importlücke Plot
@@ -100,8 +77,8 @@ se.plot_import_gap(
     red_ind_dem,
     add_lng_import,
     add_pl_import,
-    font_dict=font_dict,
     streamlit_object=slot_figure,
+    compact=compact,
 )
 
 se.message_embargo_compensation(
@@ -115,3 +92,12 @@ se.message_embargo_compensation(
     red_dom_dem,
 )
 
+st.text("")
+se.centered_fzj_logo()
+st.text("")
+
+st.markdown(
+    "<center> 👉  <a href='https://no-stream.fz-juelich.de/'> Zum vollständigen Tool </a> </center>",
+    unsafe_allow_html=True,
+)
+st.text("")
