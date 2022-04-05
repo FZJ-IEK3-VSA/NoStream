@@ -8,7 +8,7 @@
 # Wie sicher ist die Energieversorgung ohne russisches Erdgas?
 Mit dem Krieg in der Ukraine steht ein Stopp der Erdgaslieferungen aus Russland im Raum. Eine neue Web-Applikation (https://no-stream.fz-juelich.de/) des Forschungszentrums Jülich macht es nun möglich, die Folgen eines solchen – kompletten oder teilweisen – Embargos auf die deutschen Erdgasvorräte zu ermitteln.
 
-[![NoStream app](static/NoStream_interface.png)](https://no-stream.fz-juelich.de/)
+[![NoStream app](./static/NoStream_interface.PNG)](https://no-stream.fz-juelich.de/)
 
 
 ## Setup and develop
