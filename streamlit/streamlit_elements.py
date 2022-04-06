@@ -12,6 +12,7 @@ FZJcolor = ut.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 font_dict = dict(size=16)
 
+# Energy demands
 total_lng_import = 914
 total_industry_demand = 1110
 total_exports_and_other = 988
@@ -19,9 +20,25 @@ total_domestic_demand = 926
 total_ghd_demand = 421
 total_electricity_demand = 1515
 total_ng_import = 4190
-total_pl_import_russia = 1752
+total_ng_import_russia = 1752
 total_lng_import_russia = 160
+total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
+
+# Dates
+if "demand_reduction_date" not in st.session_state:
+    st.session_state.demand_reduction_date = datetime.date(2022, 3, 16)
+
+if "lng_increase_date" not in st.session_state:
+    st.session_state.lng_increase_date = datetime.date(2022, 5, 1)
+
+if "import_stop_date" not in st.session_state:
+    st.session_state.import_stop_date = datetime.date(2022, 4, 16)
+
+# Formats
+format_date = "DD.MM.YYYY"
+format_percent = "%g %%"
+format_ng = "%g TWh/a"
 
 
 def centered_fzj_logo():
@@ -35,7 +52,7 @@ def centered_fzj_logo():
 
 def sidebar_further_info():
     st.markdown(
-        "⛲ [Dokumentation und Quellcode](https://github.com/FZJ-IEK3-VSA/NoStream)"
+        "⛲ [Quellcode und Dokumentation](https://github.com/FZJ-IEK3-VSA/NoStream)"
     )
 
     st.markdown(
@@ -47,7 +64,7 @@ def sidebar_further_info():
     )
 
     st.markdown(
-        "💡 [Verbesserungsvorschläge?](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
+        "💡 [Verbesserungsvorschläge](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
     )
 
     st.markdown("`NoStream 0.2`")
@@ -751,68 +768,64 @@ def plot_optimization_results(df, streamlit_object=st):
 def setting_compensation(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Kompensation", expanded=expanded):
         st.markdown("### Nachfragereduktion")
-        demand_reduction_date = datetime.date(2022, 3, 16)
-        if not compact:
-            demand_reduction_date = st.date_input(
-                "Nachfragereduktion ab",
-                value=demand_reduction_date,
-                min_value=datetime.date(2022, 3, 15),
-                max_value=datetime.date(2023, 12, 31),
-            )
-        demand_reduction_date = datetime.datetime.fromordinal(
-            demand_reduction_date.toordinal()
-        )
-
         cols = st.columns(2)
-        so = cols[0] if compact else st
+        # so = cols[0] if compact else st
+        so = cols[0]
         red_ind_dem = (
             so.slider(
-                "Nachfragereduktion Industrie um [%]",
+                "Industrie",  # Nachfragereduktion Industrie um
                 key="red_ind_dem",
                 min_value=0,
                 max_value=100,
                 value=8,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
-        so = cols[1] if compact else st
+        # so = cols[1] if compact else st
+        so = cols[1]
         red_elec_dem = (
             so.slider(
-                "Nachfragereduktion Kraftwerke um [%]",
+                "Kraftwerke",  # Nachfragereduktion Kraftwerke um
                 key="red_elec_dem",
                 min_value=0,
                 max_value=100,
                 value=20,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
         cols = st.columns(2)
-        so = cols[0] if compact else st
+        # so = cols[0] if compact else st
+        so = cols[0]
         red_ghd_dem = (
             so.slider(
-                "Nachfragereduktion Handel um [%]",
+                "Handel",  # Nachfragereduktion Handel um
                 key="red_ghd_dem",
                 min_value=0,
                 max_value=100,
                 value=8,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
-        so = cols[1] if compact else st
+        # so = cols[1] if compact else st
+        so = cols[1]
         red_dom_dem = (
             so.slider(
-                "Nachfragereduktion Haushalte um [%]",
+                "Haushalte",  # Nachfragereduktion Haushalte um
                 key="red_dom_dem",
                 min_value=0,
                 max_value=100,
                 value=13,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
@@ -833,85 +846,148 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             )
             red_exp_dem = int(round(100 * red_exp_dem, 0))
 
-            red_exp_dem = st.slider(
-                "Reduktion der Exporte um [%]",
+            # cols = st.columns([1, 2, 1])
+            cols = st.columns(2)
+            so = cols[0]
+            red_exp_dem = so.slider(
+                "Exporte etc.",
                 key="red_exp_dem",
                 min_value=0,
                 max_value=100,
                 value=red_exp_dem,
                 step=1,
+                format=format_percent,
             )
         red_exp_dem /= 100
 
+        if not compact:
+            date_input_red = st.empty()
+            start_now_red = st.button("Ab sofort", key="start_now_red")
+            if start_now_red:
+                st.session_state.demand_reduction_date = datetime.date.today()
+            st.session_state.demand_reduction_date = date_input_red.date_input(
+                "Startdatum:",
+                key="demand_reduction_date_key",
+                value=st.session_state.demand_reduction_date,
+                min_value=datetime.date(2022, 3, 15),
+                max_value=datetime.date(2023, 12, 31),
+                # format=format_date,
+            )
+            # demand_reduction_date = st.slider(
+            #     "Nachfragereduktion ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=demand_reduction_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+        st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
+            st.session_state.demand_reduction_date.toordinal()
+        )
+        if not compact:
+            st.markdown("---")
+
         # Importerhöhung
         st.markdown("### Importerhöhung")
-        lng_increase_date = datetime.date(2022, 5, 1)
-        if not compact:
-            lng_increase_date = st.date_input(
-                "Importerhöhung ab",
-                value=lng_increase_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 30),
-            )
-        lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
 
-        add_lng_import = st.slider(
-            "Zusätzliche LNG Kapazität¹ [TWh/a]",
+        cols = st.columns(2)
+        so = cols[0] if not compact else st
+        add_lng_import = so.slider(
+            "LNG [TWh/a]¹",  # Zusätzliche LNG Kapazität
             min_value=0,
             max_value=2025 - total_lng_import,
             value=int(0.9 * 2025 - total_lng_import),
+            # format=format_ng,
         )
 
+        so = cols[1]
         add_pl_import = 0
         if not compact:
-            add_pl_import = st.slider(
-                "Zusätzliche Pipeline Importe [TWh/a]",
+            add_pl_import = so.slider(
+                "Pipeline [TWh/a]",
                 min_value=0,
                 max_value=1000,
                 value=add_pl_import,
+                # format=format_ng,
             )
         st.markdown(
             f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
-        # return add_lng_import, lng_increase_date, add_pl_import
+
+        if not compact:
+            date_input_incr = st.empty()
+            start_now_incr = st.button("Ab sofort", key="start_now_incr")
+            if start_now_incr:
+                st.session_state.lng_increase_date = datetime.date.today()
+            st.session_state.lng_increase_date = date_input_incr.date_input(
+                "Startdatum:",
+                key="lng_increase_date_key",
+                value=st.session_state.lng_increase_date,
+                min_value=datetime.date(2022, 1, 1),
+                max_value=datetime.date(2023, 12, 30),
+            )
+            # lng_increase_date = st.slider(
+            #     "Importerhöhung ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=lng_increase_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+        st.session_state.lng_increase_date = datetime.datetime.fromordinal(
+            st.session_state.lng_increase_date.toordinal()
+        )
 
         return (
-            demand_reduction_date,
+            st.session_state.demand_reduction_date,
             red_ind_dem,
             red_elec_dem,
             red_ghd_dem,
             red_dom_dem,
             red_exp_dem,
             add_lng_import,
-            lng_increase_date,
+            st.session_state.lng_increase_date,
             add_pl_import,
         )
 
 
 def setting_embargo(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Embargo", expanded=expanded):
-        import_stop_date = datetime.date(2022, 4, 16)
+
         reduction_import_russia = 100
         if not compact:
-            import_stop_date = st.date_input(
-                "Reduktion russischer Erdgasimporte ab",
-                value=import_stop_date,
-                min_value=datetime.date(2022, 3, 15),
-                max_value=datetime.date(2023, 12, 31),
-            )
-        import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
-
-        if not compact:
             reduction_import_russia = st.slider(
-                "Reduktion russischer Erdgasimporte um [%]",
+                "Reduktion russischer Erdgasimporte um",
                 min_value=100,
                 max_value=0,
                 value=reduction_import_russia,
+                format=format_percent,
                 step=1,
             )
         reduction_import_russia /= 100
 
-        return import_stop_date, reduction_import_russia
+        if not compact:
+            date_input_embargo = st.empty()
+            start_now_embargo = st.button("Ab sofort", key="start_now_embargo")
+            if start_now_embargo:
+                st.session_state.import_stop_date = datetime.date.today()
+            st.session_state.import_stop_date = date_input_embargo.date_input(
+                "Startdatum:",
+                key="import_stop_date_key",
+                value=st.session_state.import_stop_date,
+                min_value=datetime.date(2022, 3, 15),
+                max_value=datetime.date(2023, 12, 31),
+            )
+            # import_stop_date = st.slider(
+            #     "Reduktion russischer Erdgasimporte ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=import_stop_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+        st.session_state.import_stop_date = datetime.datetime.fromordinal(
+            st.session_state.import_stop_date.toordinal()
+        )
+
+        return st.session_state.import_stop_date, reduction_import_russia
 
 
 def setting_statusQuo_supply(
@@ -919,7 +995,9 @@ def setting_statusQuo_supply(
 ):
     with streamlit_object.expander("Versorgung", expanded=expanded):
         st.metric("Erdgasimport gesamt (inkl. LNG)³", f"{total_ng_import} TWh/a")
-        st.metric("Erdgasimport aus Russland²", f"{total_pl_import_russia} TWh/a")
+        st.metric(
+            "Erdgasimport aus Russland (inkl. LNG)²", f"{total_ng_import_russia} TWh/a"
+        )
         st.metric("LNG Import gesamt²", f"{total_lng_import} TWh/a")
         st.metric("LNG Import aus Russland²", f"{total_lng_import_russia} TWh/a")
         st.metric("Inländische Erdgasproduktion²", f"{total_ng_production} TWh/a")
