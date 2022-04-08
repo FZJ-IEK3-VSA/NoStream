@@ -518,7 +518,7 @@ def run_scenario(
     df.fillna(0, inplace=True)
 
     print("saving...")
-    df.to_csv(f"default_results.csv")
+    # df.to_csv(f"default_results.csv")
 
     value_col = "value"
     input_data = pd.DataFrame(columns=["value"])
@@ -544,7 +544,7 @@ def run_scenario(
     input_data.loc["reduction_import_russia", value_col] = reduction_import_russia
     input_data.loc["storCap", value_col] = storCap
     print("saving...")
-    input_data.to_csv(f"default_inputs.csv")
+    # input_data.to_csv(f"default_inputs.csv")
 
     print("Done!")
     return df, input_data
