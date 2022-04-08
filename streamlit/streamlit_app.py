@@ -52,6 +52,7 @@ st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte
 with st.sidebar:
     # Logo
     se.centered_fzj_logo()
+    st.text("")
 
     st.markdown("### Einstellungen")
 
@@ -191,21 +192,20 @@ else:
 if show_results:
     se.plot_optimization_results(st.session_state.df)
     short_hash = int(abs(hash(scen_code)))
-
-    ut.download_df(
-        st.session_state.df,
-        f"Optimierungsergebnisse_{short_hash}.csv",
-        "💾 Optimierungsergebnisse speichern",
-    )
-    ut.download_df(
-        st.session_state.input_data,
-        f"Input_Daten_{short_hash}.csv",
-        "💾 Input-Daten speichern",
+    st.download_button(
+        "💾 Optimierungsergebnisse herunterladen",
+        st.session_state.df.to_csv(),
+        file_name=f"Optimierungsergebnisse_{short_hash}.csv",
+        mime="text/csv",
     )
 
+    st.download_button(
+        "💾 Input-Daten herunterladen",
+        st.session_state.input_data.to_csv(),
+        file_name=f"Input_Daten_{short_hash}.csv",
+        mime="text/csv",
+    )
 st.text("")
-
-st.markdown("## Analyse: Energieversorgung ohne russisches Erdgas")
-st.markdown(
-    "🖨️ [Vollständige Analyse herunterladen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)"
-)
+st.text("")
+se.centered_fzj_logo()
+st.text("")

@@ -75,6 +75,7 @@ def download_pdf(object_to_download, download_filename, download_link_text):
     link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
     st.markdown(link, unsafe_allow_html=True)
 
+
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path
     with open(file, "rb") as f:

@@ -52,7 +52,11 @@ def centered_fzj_logo():
 
 def sidebar_further_info():
     st.markdown(
-        "⛲ [Quellcode und Dokumentation](https://github.com/FZJ-IEK3-VSA/NoStream)"
+        "⛲ [Quellcode & Dokumentation](https://github.com/FZJ-IEK3-VSA/NoStream)"
+    )
+
+    st.markdown(
+        "📖 [Analyse & Hintergrundinformationen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)"
     )
 
     st.markdown(
