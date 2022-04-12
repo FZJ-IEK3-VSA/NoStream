@@ -13,6 +13,7 @@ import datetime
 
 
 # Storage
+@st.experimental_memo(show_spinner=False)
 def get_storage_capacity():
 
     # Maximum storage capacity [TWh]
@@ -37,6 +38,7 @@ def get_storage_capacity():
     return storCap, soc_max_hour
 
 
+@st.experimental_memo(show_spinner=False)
 def run_scenario(
     total_ng_import=4190,
     total_pl_import_russia=1752,

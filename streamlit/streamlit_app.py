@@ -22,6 +22,17 @@ total_pl_import_russia = 1752
 total_lng_import_russia = 160
 total_ng_production = 608
 
+# Default Dates
+if "demand_reduction_date" not in st.session_state:
+    st.session_state.demand_reduction_date = datetime.date(2022, 3, 16)
+
+if "lng_increase_date" not in st.session_state:
+    st.session_state.lng_increase_date = datetime.date(2022, 5, 1)
+
+if "import_stop_date" not in st.session_state:
+    st.session_state.import_stop_date = datetime.date(2022, 4, 16)
+
+# Default inputs
 if "df" not in st.session_state:
     st.session_state.df = pd.read_csv("static/results/default_results.csv", index_col=0)
 if "input_data" not in st.session_state:
@@ -57,18 +68,16 @@ with st.sidebar:
     st.markdown("### Einstellungen")
 
     # Embargo
-    import_stop_date, reduction_import_russia = se.setting_embargo()
+    reduction_import_russia = se.setting_embargo()  # import_stop_date
 
     # Compensation - Demand reduction
     (
-        demand_reduction_date,
         red_ind_dem,
         red_elec_dem,
         red_ghd_dem,
         red_dom_dem,
         red_exp_dem,
         add_lng_import,
-        lng_increase_date,
         add_pl_import,
     ) = se.setting_compensation()
 
@@ -117,46 +126,29 @@ se.message_embargo_compensation(
     red_dom_dem,
 )
 
-
-def get_scen_code(val_list):
-    res = ""
-    for s in val_list:
-        try:
-            s = int(100 * s)
-        except:
-            pass
-        s = str(s)
-        rep_list = [":", "-", ".", " "]
-        for rep in rep_list:
-            s = s.replace(rep, "")
-        res += s
-    return res
-
-
-scen_code = get_scen_code(
-    [
-        total_ng_import,
-        total_ng_production,
-        total_pl_import_russia,
-        total_domestic_demand,
-        total_ghd_demand,
-        total_electricity_demand,
-        total_industry_demand,
-        total_exports_and_other,
-        red_dom_dem,
-        red_elec_dem,
-        red_ghd_dem,
-        red_ind_dem,
-        red_exp_dem,
-        import_stop_date,
-        demand_reduction_date,
-        lng_increase_date,
-        reduction_import_russia,
-        total_lng_import,
-        add_lng_import,
-        add_pl_import,
-    ]
+scen_code = ut.get_scen_code(
+    total_ng_import,
+    total_ng_production,
+    total_pl_import_russia,
+    total_domestic_demand,
+    total_ghd_demand,
+    total_electricity_demand,
+    total_industry_demand,
+    total_exports_and_other,
+    red_dom_dem,
+    red_elec_dem,
+    red_ghd_dem,
+    red_ind_dem,
+    red_exp_dem,
+    st.session_state.import_stop_date,
+    st.session_state.demand_reduction_date,
+    st.session_state.lng_increase_date,
+    reduction_import_russia,
+    total_lng_import,
+    add_lng_import,
+    add_pl_import,
 )
+
 default_scen_code = "419000608001752009260042100151500111000988001320881420220416000000202203160000002022050100000010091400908000"
 # st.write(scen_code)
 
@@ -170,9 +162,6 @@ show_results = True
 if start_opti:
     # Start new calculation
     st.session_state.df, st.session_state.input_data = se.start_optimization(
-        demand_reduction_date,
-        import_stop_date,
-        lng_increase_date,
         add_lng_import,
         add_pl_import,
         red_ind_dem,

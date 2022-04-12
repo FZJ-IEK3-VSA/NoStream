@@ -47,20 +47,16 @@ slot_figure = st.empty()
 slot_settings = st.empty()
 
 # Embarge und Kompensation
-import_stop_date, reduction_import_russia = se.setting_embargo(
-    compact=compact, expanded=True,
-)
+reduction_import_russia = se.setting_embargo(compact=compact, expanded=True,)
 
 # Compensation
 (
-    demand_reduction_date,
     red_ind_dem,
     red_elec_dem,
     red_ghd_dem,
     red_dom_dem,
     red_exp_dem,
     add_lng_import,
-    lng_increase_date,
     add_pl_import,
 ) = se.setting_compensation(
     streamlit_object=slot_settings, compact=compact, expanded=True

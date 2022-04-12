@@ -1,12 +1,15 @@
-import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import datetime
 import utils as ut
 import optimization as opti
-import base64
-import os
+import requests
+
+try:
+    from streamlit_lottie import st_lottie_spinner
+except:
+    print("Failed to load streamlit_lottie")
 
 FZJcolor = ut.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
@@ -25,20 +28,18 @@ total_lng_import_russia = 160
 total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
 
-# Dates
-if "demand_reduction_date" not in st.session_state:
-    st.session_state.demand_reduction_date = datetime.date(2022, 3, 16)
-
-if "lng_increase_date" not in st.session_state:
-    st.session_state.lng_increase_date = datetime.date(2022, 5, 1)
-
-if "import_stop_date" not in st.session_state:
-    st.session_state.import_stop_date = datetime.date(2022, 4, 16)
 
 # Formats
 format_date = "DD.MM.YYYY"
 format_percent = "%g %%"
 format_ng = "%g TWh/a"
+
+
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
 
 def centered_fzj_logo():
@@ -74,11 +75,7 @@ def sidebar_further_info():
     st.markdown("`NoStream 0.2`")
 
 
-@st.cache(allow_output_mutation=True, show_spinner=False)
 def start_optimization(
-    demand_reduction_date,
-    import_stop_date,
-    lng_increase_date,
     add_lng_import,
     add_pl_import,
     red_ind_dem,
@@ -88,6 +85,10 @@ def start_optimization(
     red_exp_dem,
     reduction_import_russia,
 ):
+    # lottie_download = "https://assets7.lottiefiles.com/packages/lf20_mdgiw1k2.json"
+    # with st_lottie_spinner(
+    #     load_lottieurl(lottie_download), width="30%", quality="high"
+    # ):
     with st.spinner(
         text="Starte Optimierung. Rechenzeit kann einige Minuten in Anspruch nehmen ☕ ..."
     ):
@@ -108,9 +109,9 @@ def start_optimization(
                 red_ghd_dem=red_ghd_dem,
                 red_ind_dem=red_ind_dem,
                 red_exp_dem=red_exp_dem,
-                import_stop_date=import_stop_date,
-                demand_reduction_date=demand_reduction_date,
-                lng_increase_date=lng_increase_date,
+                import_stop_date=st.session_state.import_stop_date,
+                demand_reduction_date=st.session_state.demand_reduction_date,
+                lng_increase_date=st.session_state.lng_increase_date,
                 reduction_import_russia=reduction_import_russia,
                 add_lng_import=add_lng_import,
                 add_pl_import=add_pl_import,
@@ -121,7 +122,7 @@ def start_optimization(
         return df, input_data
 
 
-@st.cache(show_spinner=False)
+@st.experimental_memo(show_spinner=False)
 def getFig_import_gap(
     reduction_import_russia,
     red_exp_dem,
@@ -186,7 +187,7 @@ def getFig_import_gap(
                 x=xval,
                 y=yvals,
                 legendgroup="Kompensation",
-                name="zus. Pipeline Import",
+                name="Pipeline Import (zus.)",
                 marker=dict(color=FZJcolor.get("orange")),
             )
         )
@@ -232,7 +233,7 @@ def getFig_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Kompensation",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             marker=dict(color=FZJcolor.get("blue")),
         )
     )
@@ -286,7 +287,7 @@ def plot_import_gap(
     streamlit_object.plotly_chart(fig, use_container_width=True)
 
 
-@st.cache()
+@st.experimental_memo(show_spinner=False)
 def getFig_status_quo():
     fig = go.Figure()
     xval = ["Versorgung", "Bedarfe"]
@@ -422,7 +423,7 @@ def getFig_status_quo():
             x=xval,
             y=yvals,
             legendgroup="Bedarfe",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             marker=dict(color=FZJcolor.get("blue")),
         )
     )
@@ -455,7 +456,7 @@ def plot_status_quo(streamlit_object=st):
     streamlit_object.plotly_chart(fig, use_container_width=True)
 
 
-@st.cache(allow_output_mutation=True, show_spinner=False)
+@st.experimental_memo(show_spinner=False)
 def getFig_optimization_results(df):
     df_og = df.copy()
     # Prevent flickering at the beginning
@@ -531,7 +532,7 @@ def getFig_optimization_results(df):
             y=df.elecDem_served,
             stackgroup="one",
             legendgroup="bedarf",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             mode="none",
             fillcolor=FZJcolor.get("blue"),
         )
@@ -615,8 +616,6 @@ def getFig_optimization_results(df):
     fig_flow.update_layout(
         title=f"Erdgasbedarfe und Import", font=font_dict, yaxis_title="Erdgas [TWh/h]",
     )
-
-    # st.plotly_chart(fig, use_container_width=True)
 
     ## SOC
     fig_soc = go.Figure()
@@ -777,7 +776,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         so = cols[0]
         red_ind_dem = (
             so.slider(
-                "Industrie",  # Nachfragereduktion Industrie um
+                "Industrie",
                 key="red_ind_dem",
                 min_value=0,
                 max_value=100,
@@ -792,7 +791,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         so = cols[1]
         red_elec_dem = (
             so.slider(
-                "Kraftwerke",  # Nachfragereduktion Kraftwerke um
+                "Kraft- und Heizwerke",
                 key="red_elec_dem",
                 min_value=0,
                 max_value=100,
@@ -808,7 +807,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         so = cols[0]
         red_ghd_dem = (
             so.slider(
-                "Handel",  # Nachfragereduktion Handel um
+                "Handel/Dienstleistung",
                 key="red_ghd_dem",
                 min_value=0,
                 max_value=100,
@@ -823,7 +822,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         so = cols[1]
         red_dom_dem = (
             so.slider(
-                "Haushalte",  # Nachfragereduktion Haushalte um
+                "Haushalte",
                 key="red_dom_dem",
                 min_value=0,
                 max_value=100,
@@ -850,7 +849,6 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             )
             red_exp_dem = int(round(100 * red_exp_dem, 0))
 
-            # cols = st.columns([1, 2, 1])
             cols = st.columns(2)
             so = cols[0]
             red_exp_dem = so.slider(
@@ -862,9 +860,9 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 step=1,
                 format=format_percent,
             )
-        red_exp_dem /= 100
+            red_exp_dem /= 100
 
-        if not compact:
+            # Date for start of the reduction
             date_input_red = st.empty()
             start_now_red = st.button("Ab sofort", key="start_now_red")
             if start_now_red:
@@ -884,19 +882,19 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             #     max_value=datetime.date(2023, 6, 30),
             #     format=format_date,
             # )
-        st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
-            st.session_state.demand_reduction_date.toordinal()
-        )
-        if not compact:
+            st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
+                st.session_state.demand_reduction_date.toordinal()
+            )
             st.markdown("---")
 
         # Importerhöhung
         st.markdown("### Importerhöhung")
 
+        # Additional lng imports
         cols = st.columns(2)
         so = cols[0] if not compact else st
         add_lng_import = so.slider(
-            "LNG [TWh/a]¹",  # Zusätzliche LNG Kapazität
+            "LNG [TWh/a]¹",
             min_value=0,
             max_value=2025 - total_lng_import,
             value=int(0.9 * 2025 - total_lng_import),
@@ -906,6 +904,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         so = cols[1]
         add_pl_import = 0
         if not compact:
+            # Additional pipeline imports
             add_pl_import = so.slider(
                 "Pipeline [TWh/a]",
                 min_value=0,
@@ -918,6 +917,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         )
 
         if not compact:
+            # Date for the start of increasing the imports
             date_input_incr = st.empty()
             start_now_incr = st.button("Ab sofort", key="start_now_incr")
             if start_now_incr:
@@ -936,19 +936,17 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             #     max_value=datetime.date(2023, 6, 30),
             #     format=format_date,
             # )
-        st.session_state.lng_increase_date = datetime.datetime.fromordinal(
-            st.session_state.lng_increase_date.toordinal()
-        )
+            st.session_state.lng_increase_date = datetime.datetime.fromordinal(
+                st.session_state.lng_increase_date.toordinal()
+            )
 
         return (
-            st.session_state.demand_reduction_date,
             red_ind_dem,
             red_elec_dem,
             red_ghd_dem,
             red_dom_dem,
             red_exp_dem,
             add_lng_import,
-            st.session_state.lng_increase_date,
             add_pl_import,
         )
 
@@ -987,11 +985,11 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
             #     max_value=datetime.date(2023, 6, 30),
             #     format=format_date,
             # )
-        st.session_state.import_stop_date = datetime.datetime.fromordinal(
-            st.session_state.import_stop_date.toordinal()
-        )
+            st.session_state.import_stop_date = datetime.datetime.fromordinal(
+                st.session_state.import_stop_date.toordinal()
+            )
 
-        return st.session_state.import_stop_date, reduction_import_russia
+        return reduction_import_russia
 
 
 def setting_statusQuo_supply(
@@ -1024,7 +1022,9 @@ def setting_statusQuo_demand(
 ):
     with streamlit_object.expander("Bedarfe", expanded=expanded):
         st.metric("Nachfrage Industrie³", f"{total_industry_demand} TWh/a")
-        st.metric("Nachfrage Kraftwerke³", f"{total_electricity_demand} TWh/a")
+        st.metric(
+            "Nachfrage Kraft- und Heizwerke³", f"{total_electricity_demand} TWh/a"
+        )
         st.metric("Nachfrage Handel/Dienstleistung³", f"{total_ghd_demand} TWh/a")
         st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
         st.metric("Export und sonstige Nachfragen³", f"{total_exports_and_other} TWh/a")
@@ -1076,7 +1076,7 @@ def message_embargo_compensation(
         rel_str = "**gleich** der"
         likely = "un"
 
-    message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
+    message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen sind **{likely}wahrscheinlich**."
 
     if delta > 0:
         st.info(message)

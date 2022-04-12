@@ -6,6 +6,21 @@ import streamlit as st
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+def get_scen_code(*args):
+    scen_code = ""
+    for arg in args:
+        try:
+            arg = int(100 * arg)
+        except:
+            pass
+        arg = str(arg)
+        rep_list = [":", "-", ".", " "]
+        for rep in rep_list:
+            arg = arg.replace(rep, "")
+        scen_code += arg
+    return scen_code
+
+
 def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
     return (
         f"{int(pl_reduction*100)}_{int(lng_add_capacity)}_{reduced_demand}_{soc_slack}"
