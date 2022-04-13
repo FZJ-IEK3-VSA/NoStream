@@ -1,16 +1,21 @@
-import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 import datetime
 import utils as ut
 import optimization as opti
-import base64
-import os
+import requests
+
+try:
+    from streamlit_lottie import st_lottie_spinner
+except:
+    print("Failed to load streamlit_lottie")
 
 FZJcolor = ut.get_fzjColor()
+legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
+font_dict = dict(size=16)
 
-
+# Energy demands
 total_lng_import = 914
 total_industry_demand = 1110
 total_exports_and_other = 988
@@ -18,12 +23,107 @@ total_domestic_demand = 926
 total_ghd_demand = 421
 total_electricity_demand = 1515
 total_ng_import = 4190
-total_pl_import_russia = 1752
+total_ng_import_russia = 1752
 total_lng_import_russia = 160
+total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
 
 
-def plot_import_gap(
+# Formats
+format_date = "DD.MM.YYYY"
+format_percent = "%g %%"
+format_ng = "%g TWh/a"
+
+
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+
+def centered_fzj_logo():
+    svg_image = (
+        r'<center><a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html">'
+        + ut.render_svg("./static/FJZ_IEK-3.svg")
+        + r"</a> </center>"
+    )
+    st.write(svg_image, unsafe_allow_html=True)
+
+
+def sidebar_further_info():
+    st.markdown(
+        "⛲ [Quellcode & Dokumentation](https://github.com/FZJ-IEK3-VSA/NoStream)"
+    )
+
+    st.markdown(
+        "📖 [Analyse & Hintergrundinformationen](https://www.fz-juelich.de/iek/iek-3/DE/_Documents/Downloads/energySupplyWithoutRussianGasAnalysis.pdf?__blob=publicationFile)"
+    )
+
+    st.markdown(
+        "🌎 [Zur Institutsseite (IEK-3)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)"
+    )
+
+    st.markdown(
+        "📜 [Impressum](https://www.fz-juelich.de/portal/DE/Service/Impressum/impressum_node.html)"
+    )
+
+    st.markdown(
+        "💡 [Verbesserungsvorschläge](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
+    )
+
+    st.markdown("`NoStream 0.2`")
+
+
+def start_optimization(
+    add_lng_import,
+    add_pl_import,
+    red_ind_dem,
+    red_elec_dem,
+    red_ghd_dem,
+    red_dom_dem,
+    red_exp_dem,
+    reduction_import_russia,
+):
+    # lottie_download = "https://assets7.lottiefiles.com/packages/lf20_mdgiw1k2.json"
+    # with st_lottie_spinner(
+    #     load_lottieurl(lottie_download), width="30%", quality="high"
+    # ):
+    with st.spinner(
+        text="Starte Optimierung. Rechenzeit kann einige Minuten in Anspruch nehmen ☕ ..."
+    ):
+        try:
+            df, input_data = opti.run_scenario(
+                total_ng_import=total_ng_import,
+                total_pl_import_russia=total_pl_import_russia,
+                total_ng_production=total_ng_production,
+                total_lng_import=total_lng_import,
+                total_lng_import_russia=total_lng_import_russia,
+                total_domestic_demand=total_domestic_demand,
+                total_ghd_demand=total_ghd_demand,
+                total_electricity_demand=total_electricity_demand,
+                total_industry_demand=total_industry_demand,
+                total_exports_and_other=total_exports_and_other,
+                red_dom_dem=red_dom_dem,
+                red_elec_dem=red_elec_dem,
+                red_ghd_dem=red_ghd_dem,
+                red_ind_dem=red_ind_dem,
+                red_exp_dem=red_exp_dem,
+                import_stop_date=st.session_state.import_stop_date,
+                demand_reduction_date=st.session_state.demand_reduction_date,
+                lng_increase_date=st.session_state.lng_increase_date,
+                reduction_import_russia=reduction_import_russia,
+                add_lng_import=add_lng_import,
+                add_pl_import=add_pl_import,
+            )
+        except Exception as e:
+            pass
+            # st.write(e)
+        return df, input_data
+
+
+@st.experimental_memo(show_spinner=False)
+def getFig_import_gap(
     reduction_import_russia,
     red_exp_dem,
     red_dom_dem,
@@ -32,15 +132,13 @@ def plot_import_gap(
     red_ind_dem,
     add_lng_import,
     add_pl_import,
-    font_dict=None,
-    streamlit_object=None,
+    compact=False,
 ):
     fig = go.Figure()
     xval = ["Embargo", "Kompensation"]
     yempty = [0, 0]
 
-    ## Importlücke
-    # marker_pattern_shape = "/"
+    ## Import gap
     ypos = 0
     yvals = yempty.copy()
     yvals[ypos] = total_lng_import_russia * reduction_import_russia
@@ -49,10 +147,9 @@ def plot_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Embargo",
-            legendgrouptitle_text="Embargo",  # ({omitted} TWh/a)",
+            legendgrouptitle_text="Embargo",
             name="LNG Import RU",
             marker=dict(color=FZJcolor.get("red2")),
-            # marker_pattern_shape=marker_pattern_shape,
         )
     )
 
@@ -64,11 +161,10 @@ def plot_import_gap(
             legendgroup="Embargo",
             name="Pipeline Import RU",
             marker=dict(color=FZJcolor.get("red")),
-            # marker_pattern_shape=marker_pattern_shape,
         )
     )
 
-    ## Kompensation
+    ## Compensation
     ypos = 1
     yvals = yempty.copy()
 
@@ -79,8 +175,6 @@ def plot_import_gap(
             y=yvals,
             legendgroup="Kompensation",
             legendgrouptitle_text="Kompensation",
-            # legendgroup="Importerhöhung",
-            # legendgrouptitle_text="Importerhöhung",
             name="LNG Import (zus.)",
             marker=dict(color=FZJcolor.get("orange2")),
         )
@@ -93,23 +187,22 @@ def plot_import_gap(
                 x=xval,
                 y=yvals,
                 legendgroup="Kompensation",
-                # legendgroup="Importerhöhung",
-                name="zus. Pipeline Import",
+                name="Pipeline Import (zus.)",
                 marker=dict(color=FZJcolor.get("orange")),
             )
         )
 
-    yvals[ypos] = total_exports_and_other * red_exp_dem
-    fig.add_trace(
-        go.Bar(
-            x=xval,
-            y=yvals,
-            legendgroup="Kompensation",
-            # legendgroup="Nachfragereduktion",
-            name="Export etc.",
-            marker=dict(color=FZJcolor.get("blue2")),
+    if red_exp_dem > 0:
+        yvals[ypos] = total_exports_and_other * red_exp_dem
+        fig.add_trace(
+            go.Bar(
+                x=xval,
+                y=yvals,
+                legendgroup="Kompensation",
+                name="Export etc.",
+                marker=dict(color=FZJcolor.get("blue2")),
+            )
         )
-    )
 
     yvals[ypos] = total_domestic_demand * red_dom_dem
     fig.add_trace(
@@ -117,8 +210,7 @@ def plot_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Kompensation",
-            # legendgroup="Nachfragereduktion",
-            legendgrouptitle_text=f"Nachfragereduktion",
+            legendgrouptitle_text="Nachfragereduktion",
             name="Haushalte",
             marker=dict(color=FZJcolor.get("green")),
         )
@@ -130,7 +222,6 @@ def plot_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Kompensation",
-            # legendgroup="Nachfragereduktion",
             name="Handel/Dienstleistung",
             marker=dict(color=FZJcolor.get("purple2")),
         )
@@ -142,8 +233,7 @@ def plot_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Kompensation",
-            # legendgroup="Nachfragereduktion",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             marker=dict(color=FZJcolor.get("blue")),
         )
     )
@@ -154,32 +244,56 @@ def plot_import_gap(
             x=xval,
             y=yvals,
             legendgroup="Kompensation",
-            # legendgroup="Nachfragereduktion",
             name="Industrie",
             marker=dict(color=FZJcolor.get("grey2")),
         )
     )
 
+    if not compact:
+        fig.update_layout(title="Embargo und Kompensation")
     fig.update_layout(
-        title="Embargo und Kompensation",
         yaxis_title="Erdgas [TWh/a]",
         barmode="stack",
         font=font_dict,
         # legend=legend_dict,
     )
-    # fig.update_layout(showlegend=False)
 
-    if streamlit_object is None:
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        streamlit_object.plotly_chart(fig, use_container_width=True)
+    return fig
 
 
-def plot_status_quo(font_dict=None, streamlit_object=None):
+def plot_import_gap(
+    reduction_import_russia,
+    red_exp_dem,
+    red_dom_dem,
+    red_elec_dem,
+    red_ghd_dem,
+    red_ind_dem,
+    add_lng_import,
+    add_pl_import,
+    streamlit_object=st,
+    compact=False,
+):
+    fig = getFig_import_gap(
+        reduction_import_russia,
+        red_exp_dem,
+        red_dom_dem,
+        red_elec_dem,
+        red_ghd_dem,
+        red_ind_dem,
+        add_lng_import,
+        add_pl_import,
+        compact=compact,
+    )
+    streamlit_object.plotly_chart(fig, use_container_width=True)
+
+
+@st.experimental_memo(show_spinner=False)
+def getFig_status_quo():
     fig = go.Figure()
     xval = ["Versorgung", "Bedarfe"]
     yempty = [0, 0]
     marker_pattern_shape = "/"
+
     ## Versorgung
     ypos = 0
     yvals = yempty.copy()
@@ -309,7 +423,7 @@ def plot_status_quo(font_dict=None, streamlit_object=None):
             x=xval,
             y=yvals,
             legendgroup="Bedarfe",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             marker=dict(color=FZJcolor.get("blue")),
         )
     )
@@ -334,13 +448,16 @@ def plot_status_quo(font_dict=None, streamlit_object=None):
     )
     # fig.update_layout(showlegend=False)
 
-    if streamlit_object is None:
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        streamlit_object.plotly_chart(fig, use_container_width=True)
+    return fig
 
 
-def plot_optimization_results(df, legend_dict=None, font_dict=None):
+def plot_status_quo(streamlit_object=st):
+    fig = getFig_status_quo()
+    streamlit_object.plotly_chart(fig, use_container_width=True)
+
+
+@st.experimental_memo(show_spinner=False)
+def getFig_optimization_results(df):
     df_og = df.copy()
     # Prevent flickering at the beginning
     df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
@@ -369,10 +486,10 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
     unserved_demand = total_demand - total_demand_served
     unserved_demand = [x if x > threshold else 0 for x in unserved_demand]
 
-    fig = go.Figure()
+    fig_flow = go.Figure()
     xvals = df.time
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.exp_n_oth_served,
@@ -384,7 +501,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.domDem_served,
@@ -397,7 +514,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.ghdDem_served,
@@ -409,19 +526,19 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.elecDem_served,
             stackgroup="one",
             legendgroup="bedarf",
-            name="Kraftwerke",
+            name="Kraft- und Heizwerke",
             mode="none",
             fillcolor=FZJcolor.get("blue"),
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.indDem_served,
@@ -435,7 +552,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
     )
 
     if sum(unserved_demand) > threshold:
-        fig.add_trace(
+        fig_flow.add_trace(
             go.Scatter(
                 x=xvals,
                 y=total_demand - total_demand_served,
@@ -447,7 +564,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
             )
         )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.domProd_served,
@@ -460,7 +577,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.lngImp_served,
@@ -472,7 +589,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.plImp_served,
@@ -484,7 +601,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_flow.add_trace(
         go.Scatter(
             x=xvals,
             y=df.plImp_served + df.lngImp_served + df.domProd_served,
@@ -496,17 +613,14 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.update_layout(
+    fig_flow.update_layout(
         title=f"Erdgasbedarfe und Import", font=font_dict, yaxis_title="Erdgas [TWh/h]",
     )
-    # fig.update_layout(showlegend=False)
-
-    st.plotly_chart(fig, use_container_width=True)
 
     ## SOC
-    fig = go.Figure()
+    fig_soc = go.Figure()
 
-    fig.add_trace(
+    fig_soc.add_trace(
         go.Scatter(
             x=xvals,
             y=df.soc,
@@ -517,7 +631,7 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.add_trace(
+    fig_soc.add_trace(
         go.Scatter(
             x=xvals,
             y=np.ones(len(xvals)) * 1100,
@@ -527,190 +641,194 @@ def plot_optimization_results(df, legend_dict=None, font_dict=None):
         )
     )
 
-    fig.update_layout(
+    fig_soc.update_layout(
         title=f"Speicherfüllstand",
         font=font_dict,
         yaxis_title="Erdgas [TWh]",
-        legend=legend_dict,
+        # legend=legend_dict,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    # st.plotly_chart(fig, use_container_width=True)
 
-    ##  Pipeline Import
-    fig = go.Figure()
+    # ##  Pipeline Import
+    # fig = go.Figure()
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=df.plImp_served,
-            stackgroup="one",
-            name="Pipeline Import",
-            mode="none",
-            fillcolor=FZJcolor.get("orange"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=df.plImp_served,
+    #         stackgroup="one",
+    #         name="Pipeline Import",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("orange"),
+    #     )
+    # )
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=df.lngImp_served,
-            stackgroup="one",
-            name="LNG Import",
-            mode="none",
-            fillcolor=FZJcolor.get("orange2"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=df.lngImp_served,
+    #         stackgroup="one",
+    #         name="LNG Import",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("orange2"),
+    #     )
+    # )
 
-    fig.update_layout(
-        title=f"Erdgasimporte", yaxis_title="Erdgas [TWh/h]", font=font_dict,
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # fig.update_layout(
+    #     title=f"Erdgasimporte", yaxis_title="Erdgas [TWh/h]", font=font_dict,
+    # )
+    # st.plotly_chart(fig, use_container_width=True)
 
-    ## Storage Charge and discharge
-    df = df_og.copy()
-    storage_operation = (
-        df.lngImp_served + df.plImp_served + df.domProd_served - total_demand_served
-    )
-    storage_discharge = [min(0, x) for x in storage_operation]
-    storage_charge = np.array([max(0, x) for x in storage_operation])
+    # ## Storage Charge and discharge
+    # df = df_og.copy()
+    # storage_operation = (
+    #     df.lngImp_served + df.plImp_served + df.domProd_served - total_demand_served
+    # )
+    # storage_discharge = [min(0, x) for x in storage_operation]
+    # storage_charge = np.array([max(0, x) for x in storage_operation])
 
-    storage_operation_prod = df.domProd_served - total_demand_served
-    storage_charge_prod = np.array([max(0, x) for x in storage_operation_prod])
-    rem_demand_prod = np.array([abs(min(0, x)) for x in storage_operation_prod])
+    # storage_operation_prod = df.domProd_served - total_demand_served
+    # storage_charge_prod = np.array([max(0, x) for x in storage_operation_prod])
+    # rem_demand_prod = np.array([abs(min(0, x)) for x in storage_operation_prod])
 
-    storage_operation_pl = df.plImp_served - rem_demand_prod
-    storage_charge_pl = np.array([max(0, x) for x in storage_operation_pl])
-    rem_demand_pl = np.array([abs(min(0, x)) for x in storage_operation_pl])
+    # storage_operation_pl = df.plImp_served - rem_demand_prod
+    # storage_charge_pl = np.array([max(0, x) for x in storage_operation_pl])
+    # rem_demand_pl = np.array([abs(min(0, x)) for x in storage_operation_pl])
 
-    storage_operation_lng = df.lngImp_served - rem_demand_pl
-    storage_charge_lng = np.array([max(0, x) for x in storage_operation_lng])
-    rem_demand_lng = np.array([abs(min(0, x)) for x in storage_operation_lng])
+    # storage_operation_lng = df.lngImp_served - rem_demand_pl
+    # storage_charge_lng = np.array([max(0, x) for x in storage_operation_lng])
+    # rem_demand_lng = np.array([abs(min(0, x)) for x in storage_operation_lng])
 
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=storage_discharge,
-            stackgroup="two",
-            legendgroup="Ausspeicherung",
-            legendgrouptitle_text="Ausspeicherung",
-            name="Ausspeicherung",
-            mode="none",
-            fillcolor=FZJcolor.get("red"),
-        )
-    )
+    # fig = go.Figure()
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=storage_discharge,
+    #         stackgroup="two",
+    #         legendgroup="Ausspeicherung",
+    #         legendgrouptitle_text="Ausspeicherung",
+    #         name="Ausspeicherung",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("red"),
+    #     )
+    # )
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=storage_charge_prod,
-            stackgroup="one",
-            legendgroup="Einspeicherung",
-            legendgrouptitle_text="Einspeicherung",
-            name="Produktion Inland",
-            mode="none",
-            fillcolor=FZJcolor.get("green2"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=storage_charge_prod,
+    #         stackgroup="one",
+    #         legendgroup="Einspeicherung",
+    #         legendgrouptitle_text="Einspeicherung",
+    #         name="Produktion Inland",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("green2"),
+    #     )
+    # )
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=storage_charge_pl,
-            stackgroup="one",
-            legendgroup="Einspeicherung",
-            name="Pipeline Import",
-            mode="none",
-            fillcolor=FZJcolor.get("orange"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=storage_charge_pl,
+    #         stackgroup="one",
+    #         legendgroup="Einspeicherung",
+    #         name="Pipeline Import",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("orange"),
+    #     )
+    # )
 
-    fig.add_trace(
-        go.Scatter(
-            x=xvals,
-            y=storage_charge_lng,
-            stackgroup="one",
-            legendgroup="Einspeicherung",
-            name="LNG Import",
-            mode="none",
-            fillcolor=FZJcolor.get("orange2"),
-        )
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=xvals,
+    #         y=storage_charge_lng,
+    #         stackgroup="one",
+    #         legendgroup="Einspeicherung",
+    #         name="LNG Import",
+    #         mode="none",
+    #         fillcolor=FZJcolor.get("orange2"),
+    #     )
+    # )
 
-    fig.update_layout(
-        title=f"Ein- und Ausspeicherung Gasspeicher",
-        yaxis_title="Erdgas [TWh/h]",
-        font=font_dict,
-    )
+    # fig.update_layout(
+    #     title=f"Ein- und Ausspeicherung Gasspeicher",
+    #     yaxis_title="Erdgas [TWh/h]",
+    #     font=font_dict,
+    # )
 
-    st.plotly_chart(fig, use_container_width=True)
+    # st.plotly_chart(fig, use_container_width=True)
+
+    return fig_flow, fig_soc
+
+
+def plot_optimization_results(df, streamlit_object=st):
+    fig_flow, fig_soc = getFig_optimization_results(df)
+    streamlit_object.plotly_chart(fig_flow, use_container_width=True)
+    streamlit_object.plotly_chart(fig_soc, use_container_width=True)
 
 
 def setting_compensation(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Kompensation", expanded=expanded):
         st.markdown("### Nachfragereduktion")
-        demand_reduction_date = datetime.date(2022, 3, 16)
-        if not compact:
-            demand_reduction_date = st.date_input(
-                "Nachfragereduktion ab",
-                value=demand_reduction_date,
-                min_value=datetime.date(2022, 3, 15),
-                max_value=datetime.date(2023, 12, 31),
-            )
-        demand_reduction_date = datetime.datetime.fromordinal(
-            demand_reduction_date.toordinal()
-        )
-
         cols = st.columns(2)
-        so = cols[0] if compact else st
+        # so = cols[0] if compact else st
+        so = cols[0]
         red_ind_dem = (
             so.slider(
-                "Nachfragereduktion Industrie um [%]",
+                "Industrie",
                 key="red_ind_dem",
                 min_value=0,
                 max_value=100,
                 value=8,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
-        so = cols[1] if compact else st
+        # so = cols[1] if compact else st
+        so = cols[1]
         red_elec_dem = (
             so.slider(
-                "Nachfragereduktion Kraftwerke um [%]",
+                "Kraft- und Heizwerke",
                 key="red_elec_dem",
                 min_value=0,
                 max_value=100,
                 value=20,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
         cols = st.columns(2)
-        so = cols[0] if compact else st
+        # so = cols[0] if compact else st
+        so = cols[0]
         red_ghd_dem = (
             so.slider(
-                "Nachfragereduktion Handel um [%]",
+                "Handel/Dienstleistung",
                 key="red_ghd_dem",
                 min_value=0,
                 max_value=100,
                 value=8,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
 
-        so = cols[1] if compact else st
+        # so = cols[1] if compact else st
+        so = cols[1]
         red_dom_dem = (
             so.slider(
-                "Nachfragereduktion Haushalte um [%]",
+                "Haushalte",
                 key="red_dom_dem",
                 min_value=0,
                 max_value=100,
                 value=13,
                 step=1,
+                format=format_percent,
             )
             / 100
         )
@@ -731,149 +849,157 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             )
             red_exp_dem = int(round(100 * red_exp_dem, 0))
 
-            red_exp_dem = st.slider(
-                "Reduktion der Exporte um [%]",
+            cols = st.columns(2)
+            so = cols[0]
+            red_exp_dem = so.slider(
+                "Exporte etc.",
                 key="red_exp_dem",
                 min_value=0,
                 max_value=100,
                 value=red_exp_dem,
                 step=1,
+                format=format_percent,
             )
-        red_exp_dem /= 100
+            red_exp_dem /= 100
+
+            # Date for start of the reduction
+            date_input_red = st.empty()
+            start_now_red = st.button("Ab sofort", key="start_now_red")
+            if start_now_red:
+                st.session_state.demand_reduction_date = datetime.date.today()
+            st.session_state.demand_reduction_date = date_input_red.date_input(
+                "Startdatum:",
+                key="demand_reduction_date_key",
+                value=st.session_state.demand_reduction_date,
+                min_value=datetime.date(2022, 3, 15),
+                max_value=datetime.date(2023, 12, 31),
+                # format=format_date,
+            )
+            # demand_reduction_date = st.slider(
+            #     "Nachfragereduktion ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=demand_reduction_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+            st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
+                st.session_state.demand_reduction_date.toordinal()
+            )
+            st.markdown("---")
 
         # Importerhöhung
         st.markdown("### Importerhöhung")
-        lng_increase_date = datetime.date(2022, 5, 1)
-        if not compact:
-            lng_increase_date = st.date_input(
-                "Importerhöhung ab",
-                value=lng_increase_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 30),
-            )
-        lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
 
-        add_lng_import = st.slider(
-            "Zusätzliche LNG Kapazität¹ [TWh/a]",
+        # Additional lng imports
+        cols = st.columns(2)
+        so = cols[0] if not compact else st
+        add_lng_import = so.slider(
+            "LNG [TWh/a]¹",
             min_value=0,
             max_value=2025 - total_lng_import,
             value=int(0.9 * 2025 - total_lng_import),
+            # format=format_ng,
         )
 
+        so = cols[1]
         add_pl_import = 0
         if not compact:
-            add_pl_import = st.slider(
-                "Zusätzliche Pipeline Importe [TWh/a]",
+            # Additional pipeline imports
+            add_pl_import = so.slider(
+                "Pipeline [TWh/a]",
                 min_value=0,
                 max_value=1000,
                 value=add_pl_import,
+                # format=format_ng,
             )
         st.markdown(
             f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
-        # return add_lng_import, lng_increase_date, add_pl_import
+
+        if not compact:
+            # Date for the start of increasing the imports
+            date_input_incr = st.empty()
+            start_now_incr = st.button("Ab sofort", key="start_now_incr")
+            if start_now_incr:
+                st.session_state.lng_increase_date = datetime.date.today()
+            st.session_state.lng_increase_date = date_input_incr.date_input(
+                "Startdatum:",
+                key="lng_increase_date_key",
+                value=st.session_state.lng_increase_date,
+                min_value=datetime.date(2022, 1, 1),
+                max_value=datetime.date(2023, 12, 30),
+            )
+            # lng_increase_date = st.slider(
+            #     "Importerhöhung ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=lng_increase_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+            st.session_state.lng_increase_date = datetime.datetime.fromordinal(
+                st.session_state.lng_increase_date.toordinal()
+            )
 
         return (
-            demand_reduction_date,
             red_ind_dem,
             red_elec_dem,
             red_ghd_dem,
             red_dom_dem,
             red_exp_dem,
             add_lng_import,
-            lng_increase_date,
             add_pl_import,
         )
 
 
-def setting_compensation_import(streamlit_object=None, expanded=False, compact=False):
-    def _content():
-        lng_increase_date = datetime.date(2022, 5, 1)
-        if not compact:
-            lng_increase_date = st.date_input(
-                "Importerhöhung ab",
-                value=lng_increase_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 30),
-            )
-        lng_increase_date = datetime.datetime.fromordinal(lng_increase_date.toordinal())
+def setting_embargo(streamlit_object=st, expanded=False, compact=False):
+    with streamlit_object.expander("Embargo", expanded=expanded):
 
-        add_lng_import = st.slider(
-            "Zusätzliche LNG Kapazität¹ [TWh/a]",
-            min_value=0,
-            max_value=2025 - total_lng_import,
-            value=int(0.9 * 2025 - total_lng_import),
-        )
-
-        add_pl_import = 0
-        if not compact:
-            add_pl_import = st.slider(
-                "Zusätzliche Pipeline Importe [TWh/a]",
-                min_value=0,
-                max_value=1000,
-                value=add_pl_import,
-            )
-        st.markdown(
-            f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
-        )
-        return add_lng_import, lng_increase_date, add_pl_import
-
-    if streamlit_object is None:
-        with st.expander("Kompensation - Importerhöhung", expanded=expanded):
-            return _content()
-    else:
-        with streamlit_object.expander(
-            "Kompensation - Importerhöhung", expanded=expanded
-        ):
-            return _content()
-
-
-def setting_embargo(streamlit_object=None, expanded=False, compact=False):
-    def _content():
-        import_stop_date = datetime.date(2022, 4, 16)
         reduction_import_russia = 100
         if not compact:
-            import_stop_date = st.date_input(
-                "Reduktion russischer Erdgasimporte ab",
-                value=import_stop_date,
-                min_value=datetime.date(2022, 3, 15),
-                max_value=datetime.date(2023, 12, 31),
-            )
-        import_stop_date = datetime.datetime.fromordinal(import_stop_date.toordinal())
-
-        if not compact:
             reduction_import_russia = st.slider(
-                "Reduktion russischer Erdgasimporte um [%]",
+                "Reduktion russischer Erdgasimporte um",
                 min_value=100,
                 max_value=0,
                 value=reduction_import_russia,
+                format=format_percent,
                 step=1,
             )
         reduction_import_russia /= 100
 
-        return import_stop_date, reduction_import_russia
+        if not compact:
+            date_input_embargo = st.empty()
+            start_now_embargo = st.button("Ab sofort", key="start_now_embargo")
+            if start_now_embargo:
+                st.session_state.import_stop_date = datetime.date.today()
+            st.session_state.import_stop_date = date_input_embargo.date_input(
+                "Startdatum:",
+                key="import_stop_date_key",
+                value=st.session_state.import_stop_date,
+                min_value=datetime.date(2022, 3, 15),
+                max_value=datetime.date(2023, 12, 31),
+            )
+            # import_stop_date = st.slider(
+            #     "Reduktion russischer Erdgasimporte ab",
+            #     min_value=datetime.date(2022, 1, 1),
+            #     value=import_stop_date,
+            #     max_value=datetime.date(2023, 6, 30),
+            #     format=format_date,
+            # )
+            st.session_state.import_stop_date = datetime.datetime.fromordinal(
+                st.session_state.import_stop_date.toordinal()
+            )
 
-    if streamlit_object is None:
-        with st.expander("Embargo", expanded=expanded):
-            return _content()
-    else:
-        with streamlit_object.expander("Embargo", expanded=expanded):
-            return _content()
+        return reduction_import_russia
 
 
 def setting_statusQuo_supply(
-    # total_ng_import,
-    # total_pl_import_russia,
-    # total_lng_import,
-    # total_lng_import_russia,
-    # total_ng_production,
-    streamlit_object=None,
-    expanded=False,
-    compact=False,
+    streamlit_object=st, expanded=False, compact=False,
 ):
-    def _content():
-        st.metric("Erdgasimport gesamt (inkl. LNG)⁴", f"{total_ng_import} TWh/a")
-        st.metric("Erdgasimport aus Russland²", f"{total_pl_import_russia} TWh/a")
+    with streamlit_object.expander("Versorgung", expanded=expanded):
+        st.metric("Erdgasimport gesamt (inkl. LNG)³", f"{total_ng_import} TWh/a")
+        st.metric(
+            "Erdgasimport aus Russland (inkl. LNG)²", f"{total_ng_import_russia} TWh/a"
+        )
         st.metric("LNG Import gesamt²", f"{total_lng_import} TWh/a")
         st.metric("LNG Import aus Russland²", f"{total_lng_import_russia} TWh/a")
         st.metric("Inländische Erdgasproduktion²", f"{total_ng_production} TWh/a")
@@ -884,49 +1010,30 @@ def setting_statusQuo_supply(
             "² Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         )
         st.markdown(
-            "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
+            "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
         # st.markdown(
         #     "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
         # )
 
-    if streamlit_object is None:
-        with st.expander("Versorgung", expanded=expanded):
-            _content()
-    else:
-        with streamlit_object.expander("Versorgung", expanded=expanded):
-            _content()
-
 
 def setting_statusQuo_demand(
-    # total_industry_demand,
-    # total_electricity_demand,
-    # total_ghd_demand,
-    # total_domestic_demand,
-    # total_exports_and_other,
-    streamlit_object=None,
-    expanded=False,
-    compact=False,
+    streamlit_object=st, expanded=False, compact=False,
 ):
-    def _content():
-        st.metric("Nachfrage Industrie⁴", f"{total_industry_demand} TWh/a")
-        st.metric("Nachfrage Kraftwerke⁴", f"{total_electricity_demand} TWh/a")
-        st.metric("Nachfrage Handel/Dienstleistung⁴", f"{total_ghd_demand} TWh/a")
-        st.metric("Nachfrage Haushalte⁴", f"{total_domestic_demand} TWh/a")
-        st.metric("Export und sonstige Nachfragen⁴", f"{total_exports_and_other} TWh/a")
+    with streamlit_object.expander("Bedarfe", expanded=expanded):
+        st.metric("Nachfrage Industrie³", f"{total_industry_demand} TWh/a")
+        st.metric(
+            "Nachfrage Kraft- und Heizwerke³", f"{total_electricity_demand} TWh/a"
+        )
+        st.metric("Nachfrage Handel/Dienstleistung³", f"{total_ghd_demand} TWh/a")
+        st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
+        st.metric("Export und sonstige Nachfragen³", f"{total_exports_and_other} TWh/a")
 
         st.text("")
 
         st.markdown(
-            "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
+            "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
-
-    if streamlit_object is None:
-        with st.expander("Bedarfe", expanded=expanded):
-            _content()
-    else:
-        with streamlit_object.expander("Bedarfe", expanded=expanded):
-            _content()
 
 
 def message_embargo_compensation(
@@ -969,7 +1076,7 @@ def message_embargo_compensation(
         rel_str = "**gleich** der"
         likely = "un"
 
-    message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen in der Optimierung sind **{likely}wahrscheinlich**."
+    message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen sind **{likely}wahrscheinlich**."
 
     if delta > 0:
         st.info(message)

@@ -6,6 +6,21 @@ import streamlit as st
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+def get_scen_code(*args):
+    scen_code = ""
+    for arg in args:
+        try:
+            arg = int(100 * arg)
+        except:
+            pass
+        arg = str(arg)
+        rep_list = [":", "-", ".", " "]
+        for rep in rep_list:
+            arg = arg.replace(rep, "")
+        scen_code += arg
+    return scen_code
+
+
 def get_scenario_name(pl_reduction, lng_add_capacity, reduced_demand, soc_slack):
     return (
         f"{int(pl_reduction*100)}_{int(lng_add_capacity)}_{reduced_demand}_{soc_slack}"
@@ -74,6 +89,7 @@ def download_pdf(object_to_download, download_filename, download_link_text):
 
     link = f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
     st.markdown(link, unsafe_allow_html=True)
+
 
 def displayPDF(file, width=700, height=1000):
     # Opening file from file path

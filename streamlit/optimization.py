@@ -13,6 +13,7 @@ import datetime
 
 
 # Storage
+@st.experimental_memo(show_spinner=False)
 def get_storage_capacity():
 
     # Maximum storage capacity [TWh]
@@ -37,6 +38,7 @@ def get_storage_capacity():
     return storCap, soc_max_hour
 
 
+@st.experimental_memo(show_spinner=False)
 def run_scenario(
     total_ng_import=4190,
     total_pl_import_russia=1752,
@@ -214,11 +216,18 @@ def run_scenario(
     lngImp = pd.Series(ts_const * total_lng_import, index=time_index)
 
     lngImp_red = pd.Series(
-        ts_const * (total_lng_import - total_lng_import_russia), index=time_index,
+        ts_const
+        * (total_lng_import - reduction_import_russia * total_lng_import_russia),
+        index=time_index,
     )
 
     lngImp_increased = pd.Series(
-        ts_const * (total_lng_import - total_lng_import_russia + add_lng_import),
+        ts_const
+        * (
+            total_lng_import
+            - reduction_import_russia * total_lng_import_russia
+            + add_lng_import
+        ),
         index=time_index,
     )
 
