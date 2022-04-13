@@ -216,11 +216,18 @@ def run_scenario(
     lngImp = pd.Series(ts_const * total_lng_import, index=time_index)
 
     lngImp_red = pd.Series(
-        ts_const * (total_lng_import - total_lng_import_russia), index=time_index,
+        ts_const
+        * (total_lng_import - reduction_import_russia * total_lng_import_russia),
+        index=time_index,
     )
 
     lngImp_increased = pd.Series(
-        ts_const * (total_lng_import - total_lng_import_russia + add_lng_import),
+        ts_const
+        * (
+            total_lng_import
+            - reduction_import_russia * total_lng_import_russia
+            + add_lng_import
+        ),
         index=time_index,
     )
 
