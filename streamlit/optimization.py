@@ -58,6 +58,8 @@ def run_scenario(
     add_pl_import=0,
     reduction_import_russia=1,
     consider_gas_reserve=False,
+    reserve_dates=None,
+    reserve_soc_val=None,
 ):
     """Solves a MILP storage model given imports,exports, demands, and production.
 
@@ -96,6 +98,7 @@ def run_scenario(
 
     # Start date of the observation period
     start_date = "2022-01-01"
+    datetime_start = datetime.datetime(2022, 1, 1, 0, 0)
     periods_per_year = 8760  # [h/a]
     number_periods = periods_per_year * 1.5
 
@@ -386,22 +389,33 @@ def run_scenario(
 
     # Gas reserve
     if consider_gas_reserve:
+        # reserve_soc_val = reserve_dates
+        reserve_dates = [x - datetime_start for x in reserve_dates]
+        reserve_dates = [x.days for x in reserve_dates]
+        reserve_dates = [timeSteps[(x) * 24] for x in reserve_dates]
+        reserve_soc_dict = dict(zip(reserve_dates, reserve_soc_val))
 
         def Constr_Reserve_rule(pyM, t):
-            # 01. August: 60 %
-            if t == timeSteps[(213 - 1) * 24]:
-                return pyM.Soc[t] >= storCap * 0.65
-            # 01. October: 680 %
-            elif t == timeSteps[(274 - 1) * 24]:
-                return pyM.Soc[t] >= storCap * 0.80
-            # 01. December: 90 %
-            elif t == timeSteps[(335 - 1) * 24]:
-                return pyM.Soc[t] >= storCap * 0.90
-            # 01. February: 40 %
-            elif t == timeSteps[((365 + 32) - 1) * 24]:
-                return pyM.Soc[t] >= storCap * 0.40
+            if t in reserve_dates:
+                return pyM.Soc[t] >= reserve_soc_dict.get(t)
             else:
                 return pyomo.Constraint.Skip
+
+        # def Constr_Reserve_rule(pyM, t):
+        #     # 01. August: 60 %
+        #     if t == timeSteps[(213 - 1) * 24]:
+        #         return pyM.Soc[t] >= storCap * 0.65
+        #     # 01. October: 680 %
+        #     elif t == timeSteps[(274 - 1) * 24]:
+        #         return pyM.Soc[t] >= storCap * 0.80
+        #     # 01. December: 90 %
+        #     elif t == timeSteps[(335 - 1) * 24]:
+        #         return pyM.Soc[t] >= storCap * 0.90
+        #     # 01. February: 40 %
+        #     elif t == timeSteps[((365 + 32) - 1) * 24]:
+        #         return pyM.Soc[t] >= storCap * 0.40
+        # else:
+        #     return pyomo.Constraint.Skip
 
         pyM.Constr_Reserve = pyomo.Constraint(pyM.TimeSet, rule=Constr_Reserve_rule)
         pass

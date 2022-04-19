@@ -29,6 +29,20 @@ total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
 
 
+reserve_dates = [
+    datetime.datetime(2022, 8, 1, 0, 0),
+    datetime.datetime(2022, 9, 1, 0, 0),
+    datetime.datetime(2022, 10, 1, 0, 0),
+    datetime.datetime(2022, 11, 1, 0, 0),
+    datetime.datetime(2023, 2, 1, 0, 0),
+    datetime.datetime(2023, 5, 1, 0, 0),
+    datetime.datetime(2023, 7, 1, 0, 0),
+]
+reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+storage_cap = 1100
+reserve_soc_val = [x * storage_cap for x in reserve_soc_val]
+
+
 # Formats
 format_date = "DD.MM.YYYY"
 format_percent = "%g %%"
@@ -117,6 +131,8 @@ def start_optimization(
                 add_lng_import=add_lng_import,
                 add_pl_import=add_pl_import,
                 consider_gas_reserve=consider_gas_reserve,
+                reserve_dates=reserve_dates,
+                reserve_soc_val=reserve_soc_val,
             )
             return df, input_data
         except Exception as e:
@@ -621,26 +637,6 @@ def getFig_optimization_results(df, consider_gas_reserve):
 
     ## SOC
     fig_soc = go.Figure()
-    if consider_gas_reserve:
-        datetime.datetime(2022, 5, 1, 0, 0),
-        xvals_reserve = [
-            datetime.datetime(2022, 8, 1, 0, 0),
-            datetime.datetime(2022, 10, 1, 0, 0),
-            datetime.datetime(2022, 12, 1, 0, 0),
-            datetime.datetime(2023, 2, 1, 0, 0),
-        ]
-        yvals_reserve = [0.65, 0.80, 0.90, 0.40]
-        storage_cap = 1100
-        yvals_reserve = [x * storage_cap for x in yvals_reserve]
-        fig_soc.add_trace(
-            go.Scatter(
-                mode="markers",
-                x=xvals_reserve,
-                y=yvals_reserve,
-                name="Füllstandvorgabe",
-                marker=dict(size=10, color=FZJcolor.get("blue")),
-            )
-        )
 
     fig_soc.add_trace(
         go.Scatter(
@@ -668,6 +664,17 @@ def getFig_optimization_results(df, consider_gas_reserve):
         font=font_dict,
         yaxis_title="Erdgas [TWh]",
         # legend=legend_dict,
+    )
+
+    # if consider_gas_reserve:
+    fig_soc.add_trace(
+        go.Scatter(
+            mode="markers",
+            x=reserve_dates,
+            y=reserve_soc_val,
+            name="Füllstandvorgabe",
+            marker=dict(size=10, color=FZJcolor.get("blue")),
+        )
     )
 
     # st.plotly_chart(fig, use_container_width=True)
@@ -963,11 +970,11 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             )
             streamlit_object.markdown("---")
 
-        # Füllstandsvorgaben
+        # Füllstandvorgaben
         if not compact:
-            st.markdown("### Erdgasspeicher Füllstandsvorgabe")
+            st.markdown("### Erdgasspeicher Füllstandvorgabe")
             consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandsvorgabe beachten²", value=False
+                "Füllstandvorgabe beachten²", value=False
             )
             streamlit_object.markdown(
                 "² August: 65%, Oktober: 80%, Dezember: 90%, Februar: 40 % (Füllstand jeweils zum Monatsersten)"
