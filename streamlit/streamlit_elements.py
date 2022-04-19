@@ -84,6 +84,7 @@ def start_optimization(
     red_dom_dem,
     red_exp_dem,
     reduction_import_russia,
+    consider_gas_reserve,
 ):
     # lottie_download = "https://assets7.lottiefiles.com/packages/lf20_mdgiw1k2.json"
     # with st_lottie_spinner(
@@ -115,11 +116,12 @@ def start_optimization(
                 reduction_import_russia=reduction_import_russia,
                 add_lng_import=add_lng_import,
                 add_pl_import=add_pl_import,
+                consider_gas_reserve=consider_gas_reserve,
             )
+            return df, input_data
         except Exception as e:
-            pass
-            # st.write(e)
-        return df, input_data
+            # pass
+            st.write(e)
 
 
 @st.experimental_memo(show_spinner=False)
@@ -457,8 +459,8 @@ def plot_status_quo(streamlit_object=st):
 
 
 @st.experimental_memo(show_spinner=False)
-def getFig_optimization_results(df):
-    df_og = df.copy()
+def getFig_optimization_results(df, consider_gas_reserve):
+    # df_og = df.copy()
     # Prevent flickering at the beginning
     df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
     df.loc[0:1080, "plImp_served"] = df.loc[0:1080, "plImp"]
@@ -619,6 +621,26 @@ def getFig_optimization_results(df):
 
     ## SOC
     fig_soc = go.Figure()
+    if consider_gas_reserve:
+        datetime.datetime(2022, 5, 1, 0, 0),
+        xvals_reserve = [
+            datetime.datetime(2022, 8, 1, 0, 0),
+            datetime.datetime(2022, 10, 1, 0, 0),
+            datetime.datetime(2022, 12, 1, 0, 0),
+            datetime.datetime(2023, 2, 1, 0, 0),
+        ]
+        yvals_reserve = [0.65, 0.80, 0.90, 0.40]
+        storage_cap = 1100
+        yvals_reserve = [x * storage_cap for x in yvals_reserve]
+        fig_soc.add_trace(
+            go.Scatter(
+                mode="markers",
+                x=xvals_reserve,
+                y=yvals_reserve,
+                name="Füllstandvorgabe",
+                marker=dict(size=10, color=FZJcolor.get("blue")),
+            )
+        )
 
     fig_soc.add_trace(
         go.Scatter(
@@ -762,16 +784,16 @@ def getFig_optimization_results(df):
     return fig_flow, fig_soc
 
 
-def plot_optimization_results(df, streamlit_object=st):
-    fig_flow, fig_soc = getFig_optimization_results(df)
+def plot_optimization_results(df, consider_gas_reserve, streamlit_object=st):
+    fig_flow, fig_soc = getFig_optimization_results(df, consider_gas_reserve)
     streamlit_object.plotly_chart(fig_flow, use_container_width=True)
     streamlit_object.plotly_chart(fig_soc, use_container_width=True)
 
 
 def setting_compensation(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Kompensation", expanded=expanded):
-        st.markdown("### Nachfragereduktion")
-        cols = st.columns(2)
+        streamlit_object.markdown("### Nachfragereduktion")
+        cols = streamlit_object.columns(2)
         # so = cols[0] if compact else st
         so = cols[0]
         red_ind_dem = (
@@ -863,8 +885,8 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             red_exp_dem /= 100
 
             # Date for start of the reduction
-            date_input_red = st.empty()
-            start_now_red = st.button("Ab sofort", key="start_now_red")
+            date_input_red = streamlit_object.empty()
+            start_now_red = streamlit_object.button("Ab sofort", key="start_now_red")
             if start_now_red:
                 st.session_state.demand_reduction_date = datetime.date.today()
             st.session_state.demand_reduction_date = date_input_red.date_input(
@@ -885,13 +907,13 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
                 st.session_state.demand_reduction_date.toordinal()
             )
-            st.markdown("---")
+            streamlit_object.markdown("---")
 
         # Importerhöhung
-        st.markdown("### Importerhöhung")
+        streamlit_object.markdown("### Importerhöhung")
 
         # Additional lng imports
-        cols = st.columns(2)
+        cols = streamlit_object.columns(2)
         so = cols[0] if not compact else st
         add_lng_import = so.slider(
             "LNG [TWh/a]¹",
@@ -912,14 +934,14 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 value=add_pl_import,
                 # format=format_ng,
             )
-        st.markdown(
+        streamlit_object.markdown(
             f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
         )
 
         if not compact:
             # Date for the start of increasing the imports
-            date_input_incr = st.empty()
-            start_now_incr = st.button("Ab sofort", key="start_now_incr")
+            date_input_incr = streamlit_object.empty()
+            start_now_incr = streamlit_object.button("Ab sofort", key="start_now_incr")
             if start_now_incr:
                 st.session_state.lng_increase_date = datetime.date.today()
             st.session_state.lng_increase_date = date_input_incr.date_input(
@@ -939,6 +961,17 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             st.session_state.lng_increase_date = datetime.datetime.fromordinal(
                 st.session_state.lng_increase_date.toordinal()
             )
+            streamlit_object.markdown("---")
+
+        # Füllstandsvorgaben
+        if not compact:
+            st.markdown("### Erdgasspeicher Füllstandsvorgabe")
+            consider_gas_reserve = streamlit_object.checkbox(
+                "Füllstandsvorgabe beachten²", value=False
+            )
+            streamlit_object.markdown(
+                "² August: 65%, Oktober: 80%, Dezember: 90%, Februar: 40 % (Füllstand jeweils zum Monatsersten)"
+            )
 
         return (
             red_ind_dem,
@@ -948,6 +981,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             red_exp_dem,
             add_lng_import,
             add_pl_import,
+            consider_gas_reserve,
         )
 
 
@@ -998,23 +1032,20 @@ def setting_statusQuo_supply(
     with streamlit_object.expander("Versorgung", expanded=expanded):
         st.metric("Erdgasimport gesamt (inkl. LNG)³", f"{total_ng_import} TWh/a")
         st.metric(
-            "Erdgasimport aus Russland (inkl. LNG)²", f"{total_ng_import_russia} TWh/a"
+            "Erdgasimport aus Russland (inkl. LNG)⁴", f"{total_ng_import_russia} TWh/a"
         )
-        st.metric("LNG Import gesamt²", f"{total_lng_import} TWh/a")
-        st.metric("LNG Import aus Russland²", f"{total_lng_import_russia} TWh/a")
-        st.metric("Inländische Erdgasproduktion²", f"{total_ng_production} TWh/a")
+        st.metric("LNG Import gesamt⁴", f"{total_lng_import} TWh/a")
+        st.metric("LNG Import aus Russland⁴", f"{total_lng_import_russia} TWh/a")
+        st.metric("Inländische Erdgasproduktion⁴", f"{total_ng_production} TWh/a")
 
         st.text("")
 
         st.markdown(
-            "² Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
-        )
-        st.markdown(
             "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
-        # st.markdown(
-        #     "³ LNG Import EU27, 2021. (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022)"
-        # )
+        st.markdown(
+            "⁴ Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+        )
 
 
 def setting_statusQuo_demand(

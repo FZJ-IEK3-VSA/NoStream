@@ -1,12 +1,8 @@
 # %%
 import pandas as pd
 import numpy as np
-import math
 import pyomo.environ as pyomo
 import pyomo.opt as opt
-import time
-import warnings
-import copy
 import streamlit as st
 import utils as ut
 import datetime
@@ -61,6 +57,7 @@ def run_scenario(
     add_lng_import=965,
     add_pl_import=0,
     reduction_import_russia=1,
+    consider_gas_reserve=False,
 ):
     """Solves a MILP storage model given imports,exports, demands, and production.
 
@@ -124,6 +121,11 @@ def run_scenario(
         freq="H",
     )
 
+    # Time index uncurtailed demand
+    time_index_uncurtailed_demand = pd.date_range(
+        start="2022-01-01 00:00:00", end=datetime.datetime.now(), freq="H",
+    )
+
     # Time index increased lng
     time_index_lng_increased = pd.date_range(
         start=lng_increase_date + datetime.timedelta(hours=1),
@@ -183,11 +185,12 @@ def run_scenario(
     indDem_red = red_func(indDem, red_ind_dem)
     indDem[time_index_demand_red] = indDem_red[time_index_demand_red]
 
-    # Pipeline Supply
-    # Non russian pipeline imports [TWh/a]
-    # non_russian_pipeline_import_and_domestic_production = (
-    #     total_pl_import + total_ng_production - total_pl_import_russia - total_lng_import
-    # )
+    # Minimum served demand for timesteps in the past
+    totalDem_uncurtailed = pd.Series(ts_const * 0, index=time_index)
+    totalDem = domDem + ghdDem + exp_n_oth + elecDem + indDem
+    totalDem_uncurtailed[time_index_uncurtailed_demand] = totalDem[
+        time_index_uncurtailed_demand
+    ]
 
     # Pipeline Supply
     total_pl_import = total_ng_import - total_lng_import
@@ -381,6 +384,31 @@ def run_scenario(
     print("max storage capacity constraint created.")
     print(80 * "=")
 
+    # Gas reserve
+    if consider_gas_reserve:
+
+        def Constr_Reserve_rule(pyM, t):
+            # 01. August: 60 %
+            if t == timeSteps[(213 - 1) * 24]:
+                return pyM.Soc[t] >= storCap * 0.65
+            # 01. October: 680 %
+            elif t == timeSteps[(274 - 1) * 24]:
+                return pyM.Soc[t] >= storCap * 0.80
+            # 01. December: 90 %
+            elif t == timeSteps[(335 - 1) * 24]:
+                return pyM.Soc[t] >= storCap * 0.90
+            # 01. February: 40 %
+            elif t == timeSteps[((365 + 32) - 1) * 24]:
+                return pyM.Soc[t] >= storCap * 0.40
+            else:
+                return pyomo.Constraint.Skip
+
+        pyM.Constr_Reserve = pyomo.Constraint(pyM.TimeSet, rule=Constr_Reserve_rule)
+        pass
+        print(80 * "=")
+        print("gas reserve constraint created.")
+        print(80 * "=")
+
     # served/unserved demands must not exceed their limits
     def Constr_ExpAndOtherServed_rule(pyM, t):
         if t < timeSteps[-1]:
@@ -430,6 +458,23 @@ def run_scenario(
 
     pyM.Constr_IndDemServed = pyomo.Constraint(
         pyM.TimeSet, rule=Constr_IndDemServed_rule
+    )
+
+    # no curtailment for timesteps in the past
+    def Constr_UncurtailedDemand_rule(pyM, t):
+        if t < timeSteps[-1]:
+            return (
+                pyM.expAndOtherServed[t]
+                + pyM.domDemServed[t]
+                + pyM.ghdDemServed[t]
+                + pyM.elecDemServed[t]
+                + pyM.indDemServed[t]
+            ) >= totalDem_uncurtailed.iloc[t]
+        else:
+            return pyomo.Constraint.Skip
+
+    pyM.Constr_UncurtailedDemand = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_UncurtailedDemand_rule
     )
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)

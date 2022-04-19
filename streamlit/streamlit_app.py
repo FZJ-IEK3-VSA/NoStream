@@ -79,6 +79,7 @@ with st.sidebar:
         red_exp_dem,
         add_lng_import,
         add_pl_import,
+        consider_gas_reserve,
     ) = se.setting_compensation()
 
     st.markdown("### Status Quo")
@@ -147,6 +148,7 @@ scen_code = ut.get_scen_code(
     total_lng_import,
     add_lng_import,
     add_pl_import,
+    consider_gas_reserve,
 )
 
 default_scen_code = "419000608001752009260042100151500111000988001320881420220416000000202203160000002022050100000010091400908000"
@@ -170,6 +172,7 @@ if start_opti:
         red_dom_dem,
         red_exp_dem,
         reduction_import_russia,
+        consider_gas_reserve,
     )
 elif scen_code == default_scen_code:
     # Load default results
@@ -179,7 +182,7 @@ else:
 
 
 if show_results:
-    se.plot_optimization_results(st.session_state.df)
+    se.plot_optimization_results(st.session_state.df, consider_gas_reserve)
     short_hash = int(abs(hash(scen_code)))
     st.download_button(
         "💾 Optimierungsergebnisse herunterladen",

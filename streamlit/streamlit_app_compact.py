@@ -58,6 +58,7 @@ reduction_import_russia = se.setting_embargo(compact=compact, expanded=True,)
     red_exp_dem,
     add_lng_import,
     add_pl_import,
+    consider_gas_reserve,
 ) = se.setting_compensation(
     streamlit_object=slot_settings, compact=compact, expanded=True
 )
