@@ -1,16 +1,12 @@
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/fzj-iek3-vsa/nostream)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://no-stream.fz-juelich.de/)
 
 
-<a href="https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html"><img src="https://www.fz-juelich.de/metis-platform/EN/_Documents/Pictures/FZJ-logo_340x185.jpg?__blob=normal
-" alt="Forschungszentrum Juelich Logo" width="230px"></a> 
-
+[![Forschungszentrum Juelich Logo](./static/FJZ_IEK-3.svg)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)
 
 # Wie sicher ist die Energieversorgung ohne russisches Erdgas?
+Mit dem Krieg in der Ukraine steht ein Stopp der Erdgaslieferungen aus Russland im Raum. Eine neue Web-Applikation (https://no-stream.fz-juelich.de/) des Forschungszentrums Jülich macht es nun möglich, die Folgen eines solchen – kompletten oder teilweisen – Embargos auf die deutschen Erdgasvorräte zu ermitteln.
 
-Die europäische Energieversorgung ist in hohem Maße auf Energieimporte angewiesen. Dies gilt in besonderem Maße auch für Deutschland: Fast drei Viertel des deutschen
-Energieverbrauchs wird aktuell importiert. Insbesondere bei Erdgas ist die Importabhängigkeit mit einer Quote von ca. 94% besonders ausgeprägt. Mit einem Anteil von über 50% dominiert Russland die derzeitigen Erdgasimporte nach Deutschland.
-
-![image](https://user-images.githubusercontent.com/63047357/159122405-15384030-474a-4b83-9962-f127e15a9006.png)
+[![NoStream app](./static/NoStream_interface.PNG)](https://no-stream.fz-juelich.de/)
 
 
 ## Setup and develop
@@ -29,21 +25,16 @@ streamlit run ./streamlit/streamlit_app.py
 
 
 
-## Collaborate
-
-Make yourself an own branch - either named by feature, or named with your name <develop-max>.
-
-When you are finished, make a pull request to the develop branch. Please make proper commit messages!
-
-## Documentation
-
-### Tool and modeling
-
-FINE - self explaining
-
-How curtailment and their merit order is considered
+## Change log
 
 
-### Data
+#### 0.2 - 04.04.2022
 
-Short data decsription: Source
+* Add the possibility to add additional pipeline imports, e.g., from Norway
+* Reduce also LNG imports from Russia with a starting embargo
+* Change the merit order of curtailemt, with the industry first and export last
+
+
+#### 0.1 - 30.03.2022
+
+* First publice release
