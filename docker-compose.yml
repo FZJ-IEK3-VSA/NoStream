@@ -5,10 +5,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    image: nginx:latest
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf
-      - ~/certificates:/etc/nginx/conf.d/certificates
+    build:
+      context: /home/centos
+      dockerfile: ./NoStream/nginx/Dockerfile
     depends_on:
       - streamlit
     restart: always
@@ -21,3 +20,14 @@ services:
     restart: always
     ports:
       - 8501:8501
+    command: streamlit run ./streamlit/streamlit_app.py --server.port 8501
+
+  streamlit_compact:
+    container_name: "streamlit_compact"
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
+    restart: always
+    ports:
+      - 8502:8502
+    command: streamlit run ./streamlit/streamlit_app_compact.py --server.port 8502
