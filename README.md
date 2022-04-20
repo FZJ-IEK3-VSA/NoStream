@@ -14,7 +14,7 @@ Mit dem Krieg in der Ukraine steht ein Stopp der Erdgaslieferungen aus Russland 
 In order to locally develop the application, install anaconda and run
 
 ```bash
-conda env create -f environment.yml
+pip install -r requirements.txt
 ```
 
 afterwards activate the environment, move into the streamlit repository and start streamlit with:
