@@ -474,6 +474,44 @@ def plot_status_quo(streamlit_object=st):
     streamlit_object.plotly_chart(fig, use_container_width=True)
 
 
+def add_dates(fig):
+    fig.add_trace(
+        go.Scatter(
+            mode="markers",
+            x=[st.session_state.lng_increase_date],
+            y=[0],
+            legendgroup="Dates",
+            name="Importerhöhung",
+            marker=dict(size=12, color=FZJcolor.get("green"), symbol="arrow-down"),
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            mode="markers",
+            x=[st.session_state.import_stop_date],
+            y=[0],
+            legendgroup="Dates",
+            name="Embargo",
+            marker=dict(size=12, color=FZJcolor.get("red"), symbol="arrow-down"),
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            mode="markers",
+            x=[st.session_state.demand_reduction_date],
+            y=[0],
+            legendgroup="Dates",
+            legendgrouptitle_text="Daten",
+            name="Nachfragereduktion",
+            marker=dict(size=12, color=FZJcolor.get("grey"), symbol="arrow-down"),
+        )
+    )
+
+    return fig
+
+
 @st.experimental_memo(show_spinner=False)
 def getFig_optimization_results(df, consider_gas_reserve):
     # df_og = df.copy()
@@ -631,8 +669,14 @@ def getFig_optimization_results(df, consider_gas_reserve):
         )
     )
 
+    # Dates
+    add_dates(fig_flow)
+
     fig_flow.update_layout(
-        title=f"Erdgasbedarfe und Import", font=font_dict, yaxis_title="Erdgas [TWh/h]",
+        title=f"Erdgasbedarfe und Import",
+        font=font_dict,
+        yaxis_title="Erdgas [TWh/h]",
+        yaxis_range=[0, 1],
     )
 
     ## SOC
@@ -644,6 +688,8 @@ def getFig_optimization_results(df, consider_gas_reserve):
             y=df.soc,
             stackgroup="one",
             name="Füllstand",
+            legendgroup="Kenndaten",
+            legendgrouptitle_text="Kenndaten",
             mode="none",
             fillcolor=FZJcolor.get("orange"),
         )
@@ -654,16 +700,10 @@ def getFig_optimization_results(df, consider_gas_reserve):
             x=xvals,
             y=np.ones(len(xvals)) * 1100,
             name="Speicherkapazität",
+            legendgroup="Kenndaten",
             line=dict(color=FZJcolor.get("black"), width=2),
             fillcolor="rgba(0, 0, 0, 0)",
         )
-    )
-
-    fig_soc.update_layout(
-        title=f"Speicherfüllstand",
-        font=font_dict,
-        yaxis_title="Erdgas [TWh]",
-        # legend=legend_dict,
     )
 
     # if consider_gas_reserve:
@@ -673,8 +713,19 @@ def getFig_optimization_results(df, consider_gas_reserve):
             x=reserve_dates,
             y=reserve_soc_val,
             name="Füllstandvorgabe",
-            marker=dict(size=10, color=FZJcolor.get("blue")),
+            legendgroup="Kenndaten",
+            marker=dict(size=8, color=FZJcolor.get("blue")),
         )
+    )
+
+    # Dates
+    add_dates(fig_soc)
+
+    fig_soc.update_layout(
+        title=f"Speicherfüllstand",
+        font=font_dict,
+        yaxis_title="Erdgas [TWh]",
+        yaxis_range=[0, 1200],
     )
 
     # st.plotly_chart(fig, use_container_width=True)
