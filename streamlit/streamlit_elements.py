@@ -990,7 +990,7 @@ def setting_compensation(
                 "Pipeline [TWh/a]²", min_value=0, max_value=300, value=add_pl_import,
             )
             streamlit_object.markdown(
-                f"² Im Vergleich zum Höchstwerten von Erdgaslieferungen (im Jahr 2017) können theoretisch weitere 26,1 Mrd. m³ Erdgas (~285 TWh/a) aus Norwegen, Algerien und UK importiert werden."
+                f"² Im Vergleich zum Höchstwert von Erdgaslieferungen (im Jahr 2017) können theoretisch weitere 26,1 Mrd. m³ Erdgas (~285 TWh/a) aus Norwegen, Algerien und UK importiert werden."
             )
 
         if not compact:
