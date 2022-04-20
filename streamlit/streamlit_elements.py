@@ -28,7 +28,7 @@ total_lng_import_russia = 160
 total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
 
-
+# Storage Reserve
 reserve_dates = [
     datetime.datetime(2022, 8, 1, 0, 0),
     datetime.datetime(2022, 9, 1, 0, 0),
@@ -42,6 +42,9 @@ reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
 storage_cap = 1100
 reserve_soc_val = [x * storage_cap for x in reserve_soc_val]
 
+# Dates
+start_date = datetime.date(2022, 1, 1)
+end_date = datetime.date(2023, 7, 1)
 
 # Formats
 format_date = "DD.MM.YYYY"
@@ -677,6 +680,7 @@ def getFig_optimization_results(df, consider_gas_reserve):
         font=font_dict,
         yaxis_title="Erdgas [TWh/h]",
         yaxis_range=[0, 1],
+        xaxis_range=[start_date, end_date],
     )
 
     ## SOC
@@ -726,6 +730,7 @@ def getFig_optimization_results(df, consider_gas_reserve):
         font=font_dict,
         yaxis_title="Erdgas [TWh]",
         yaxis_range=[0, 1200],
+        xaxis_range=[start_date, end_date],
     )
 
     # st.plotly_chart(fig, use_container_width=True)
@@ -951,8 +956,8 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="demand_reduction_date_key",
                 value=st.session_state.demand_reduction_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 31),
+                min_value=datetime.datetime.now(),
+                max_value=end_date,
             )
             st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
                 st.session_state.demand_reduction_date.toordinal()
@@ -998,8 +1003,8 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="lng_increase_date_key",
                 value=st.session_state.lng_increase_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 30),
+                min_value=datetime.datetime.now(),
+                max_value=end_date,
             )
             st.session_state.lng_increase_date = datetime.datetime.fromordinal(
                 st.session_state.lng_increase_date.toordinal()
@@ -1052,8 +1057,8 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="import_stop_date_key",
                 value=st.session_state.import_stop_date,
-                min_value=datetime.date(2022, 1, 1),
-                max_value=datetime.date(2023, 12, 31),
+                min_value=datetime.datetime.now(),
+                max_value=end_date,
             )
             st.session_state.import_stop_date = datetime.datetime.fromordinal(
                 st.session_state.import_stop_date.toordinal()
