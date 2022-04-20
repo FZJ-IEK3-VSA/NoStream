@@ -900,17 +900,9 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="demand_reduction_date_key",
                 value=st.session_state.demand_reduction_date,
-                min_value=datetime.date(2022, 3, 15),
+                min_value=datetime.date(2022, 1, 1),
                 max_value=datetime.date(2023, 12, 31),
-                # format=format_date,
             )
-            # demand_reduction_date = st.slider(
-            #     "Nachfragereduktion ab",
-            #     min_value=datetime.date(2022, 1, 1),
-            #     value=demand_reduction_date,
-            #     max_value=datetime.date(2023, 6, 30),
-            #     format=format_date,
-            # )
             st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
                 st.session_state.demand_reduction_date.toordinal()
             )
@@ -958,13 +950,6 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 min_value=datetime.date(2022, 1, 1),
                 max_value=datetime.date(2023, 12, 30),
             )
-            # lng_increase_date = st.slider(
-            #     "Importerhöhung ab",
-            #     min_value=datetime.date(2022, 1, 1),
-            #     value=lng_increase_date,
-            #     max_value=datetime.date(2023, 6, 30),
-            #     format=format_date,
-            # )
             st.session_state.lng_increase_date = datetime.datetime.fromordinal(
                 st.session_state.lng_increase_date.toordinal()
             )
@@ -1016,16 +1001,9 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="import_stop_date_key",
                 value=st.session_state.import_stop_date,
-                min_value=datetime.date(2022, 3, 15),
+                min_value=datetime.date(2022, 1, 1),
                 max_value=datetime.date(2023, 12, 31),
             )
-            # import_stop_date = st.slider(
-            #     "Reduktion russischer Erdgasimporte ab",
-            #     min_value=datetime.date(2022, 1, 1),
-            #     value=import_stop_date,
-            #     max_value=datetime.date(2023, 6, 30),
-            #     format=format_date,
-            # )
             st.session_state.import_stop_date = datetime.datetime.fromordinal(
                 st.session_state.import_stop_date.toordinal()
             )

@@ -24,13 +24,18 @@ total_ng_production = 608
 
 # Default Dates
 if "demand_reduction_date" not in st.session_state:
-    st.session_state.demand_reduction_date = datetime.date(2022, 3, 16)
-
-if "lng_increase_date" not in st.session_state:
-    st.session_state.lng_increase_date = datetime.date(2022, 5, 1)
+    st.session_state.demand_reduction_date = datetime.datetime.now()
 
 if "import_stop_date" not in st.session_state:
-    st.session_state.import_stop_date = datetime.date(2022, 4, 16)
+    st.session_state.import_stop_date = datetime.datetime.now() + datetime.timedelta(
+        weeks=4
+    )
+
+if "lng_increase_date" not in st.session_state:
+    st.session_state.lng_increase_date = datetime.datetime.now() + datetime.timedelta(
+        weeks=6
+    )
+
 
 # Default inputs
 if "df" not in st.session_state:
