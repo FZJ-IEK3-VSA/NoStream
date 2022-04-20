@@ -975,23 +975,21 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
             min_value=0,
             max_value=2025 - total_lng_import,
             value=int(0.9 * 2025 - total_lng_import),
-            # format=format_ng,
+        )
+        streamlit_object.markdown(
+            f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt."
         )
 
+        # Additional pipeline imports
         so = cols[1]
         add_pl_import = 0
         if not compact:
-            # Additional pipeline imports
             add_pl_import = so.slider(
-                "Pipeline [TWh/a]",
-                min_value=0,
-                max_value=1000,
-                value=add_pl_import,
-                # format=format_ng,
+                "Pipeline [TWh/a]²", min_value=0, max_value=300, value=add_pl_import,
             )
-        streamlit_object.markdown(
-            f"¹ Genutzte LNG-Kapazitäten EU27, 2021: {total_lng_import} TWh/a. Maximale Auslastung: 2025 TWh/a ➜ Freie Kapazität: {2025-total_lng_import} TWh/a (Quelle: [GIE](https://www.gie.eu/transparency/databases/lng-database/), 2022) - innereuropäische Pipeline-Engpässe sind hier nicht berücksichtigt"
-        )
+            streamlit_object.markdown(
+                f"² Im Vergleich zum Höchstwerten von Erdgaslieferungen (im Jahr 2017) können theoretisch weitere 26,1 Mrd. m³ Erdgas (~285 TWh/a) aus Norwegen, Algerien und UK importiert werden."
+            )
 
         if not compact:
             # Date for the start of increasing the imports
@@ -1015,10 +1013,10 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
         if not compact:
             st.markdown("### Füllstandvorgabe Erdgasspeicher")
             consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandvorgabe berücksichtigen²", value=False
+                "Füllstandvorgabe berücksichtigen³", value=False
             )
             streamlit_object.markdown(
-                "² Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
+                "³ Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
             )
 
         return (
@@ -1071,21 +1069,21 @@ def setting_statusQuo_supply(
     streamlit_object=st, expanded=False, compact=False,
 ):
     with streamlit_object.expander("Versorgung", expanded=expanded):
-        st.metric("Erdgasimport gesamt (inkl. LNG)³", f"{total_ng_import} TWh/a")
+        st.metric("Erdgasimport gesamt (inkl. LNG)⁴", f"{total_ng_import} TWh/a")
         st.metric(
-            "Erdgasimport aus Russland (inkl. LNG)⁴", f"{total_ng_import_russia} TWh/a"
+            "Erdgasimport aus Russland (inkl. LNG)⁵", f"{total_ng_import_russia} TWh/a"
         )
-        st.metric("LNG Import gesamt⁴", f"{total_lng_import} TWh/a")
-        st.metric("LNG Import aus Russland⁴", f"{total_lng_import_russia} TWh/a")
-        st.metric("Inländische Erdgasproduktion⁴", f"{total_ng_production} TWh/a")
+        st.metric("LNG Import gesamt⁵", f"{total_lng_import} TWh/a")
+        st.metric("LNG Import aus Russland⁵", f"{total_lng_import_russia} TWh/a")
+        st.metric("Inländische Erdgasproduktion⁵", f"{total_ng_production} TWh/a")
 
         st.text("")
 
         st.markdown(
-            "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
+            "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
         st.markdown(
-            "⁴ Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
+            "⁵ Erdgasimport/-produktion EU27, 2019 (Quelle: [Eurostat Energy Balance](https://ec.europa.eu/eurostat/databrowser/view/NRG_TI_GAS__custom_2316821/default/table?lang=en), 2022)"
         )
 
 
@@ -1093,18 +1091,18 @@ def setting_statusQuo_demand(
     streamlit_object=st, expanded=False, compact=False,
 ):
     with streamlit_object.expander("Bedarfe", expanded=expanded):
-        st.metric("Nachfrage Industrie³", f"{total_industry_demand} TWh/a")
+        st.metric("Nachfrage Industrie⁴", f"{total_industry_demand} TWh/a")
         st.metric(
-            "Nachfrage Kraft- und Heizwerke³", f"{total_electricity_demand} TWh/a"
+            "Nachfrage Kraft- und Heizwerke⁴", f"{total_electricity_demand} TWh/a"
         )
-        st.metric("Nachfrage Handel/Dienstleistung³", f"{total_ghd_demand} TWh/a")
-        st.metric("Nachfrage Haushalte³", f"{total_domestic_demand} TWh/a")
-        st.metric("Export und sonstige Nachfragen³", f"{total_exports_and_other} TWh/a")
+        st.metric("Nachfrage Handel/Dienstleistung⁴", f"{total_ghd_demand} TWh/a")
+        st.metric("Nachfrage Haushalte⁴", f"{total_domestic_demand} TWh/a")
+        st.metric("Export und sonstige Nachfragen⁴", f"{total_exports_and_other} TWh/a")
 
         st.text("")
 
         st.markdown(
-            "³ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
+            "⁴ Erdgas-Bedarf EU27, 2019 (Quelle: [Eurostat Databrowser](https://ec.europa.eu/eurostat/cache/sankey/energy/sankey.html?geos=EU27_2020&year=2019&unit=GWh&fuels=TOTAL&highlight=_2_&nodeDisagg=1111111111111&flowDisagg=true&translateX=15.480270462412136&translateY=135.54626885696325&scale=0.6597539553864471&language=EN), 2022)"
         )
 
 
