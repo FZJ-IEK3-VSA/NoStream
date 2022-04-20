@@ -1,0 +1,21 @@
+version: "3.4"
+services:
+  streamlit:
+    container_name: "streamlit"
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
+    restart: always
+    ports:
+      - 8501:8501
+    command: streamlit run ./streamlit/streamlit_app.py --server.port 8501
+
+  streamlit_compact:
+    container_name: "streamlit_compact"
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
+    restart: always
+    ports:
+      - 8502:8502
+    command: streamlit run ./streamlit/streamlit_app_compact.py --server.port 8502
