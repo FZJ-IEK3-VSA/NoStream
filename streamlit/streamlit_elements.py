@@ -972,12 +972,12 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
 
         # Füllstandvorgaben
         if not compact:
-            st.markdown("### Erdgasspeicher Füllstandvorgabe")
+            st.markdown("### Füllstandvorgabe Erdgasspeicher")
             consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandvorgabe beachten²", value=False
+                "Füllstandvorgabe berücksichtigen²", value=False
             )
             streamlit_object.markdown(
-                "² August: 65%, Oktober: 80%, Dezember: 90%, Februar: 40 % (Füllstand jeweils zum Monatsersten)"
+                "² Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
             )
 
         return (
