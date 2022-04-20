@@ -506,7 +506,7 @@ def add_dates(fig):
             x=[st.session_state.demand_reduction_date],
             y=[0],
             legendgroup="Dates",
-            legendgrouptitle_text="Daten",
+            legendgrouptitle_text="Startdaten",
             name="Nachfragereduktion",
             marker=dict(size=12, color=FZJcolor.get("grey"), symbol="arrow-down"),
         )

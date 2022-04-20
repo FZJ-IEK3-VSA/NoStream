@@ -156,18 +156,15 @@ scen_code = ut.get_scen_code(
     consider_gas_reserve,
 )
 
-default_scen_code = "419000608001752009260042100151500111000988001320881420220416000000202203160000002022050100000010091400908000"
+# default_scen_code = "419000608001752009260042100151500111000988001320881420220416000000202203160000002022050100000010091400908000"
 # st.write(scen_code)
 
 st.markdown("## Optimierungsergebnisse")
-start_opti = False
+start_opti = st.button("Optimierung ausführen")
 
-if scen_code != default_scen_code:
-    start_opti = st.button("Optimierung ausführen")
 
-show_results = True
 if start_opti:
-    # Start new calculation
+    # Optimization
     st.session_state.df, st.session_state.input_data = se.start_optimization(
         add_lng_import,
         add_pl_import,
@@ -179,14 +176,8 @@ if start_opti:
         reduction_import_russia,
         consider_gas_reserve,
     )
-elif scen_code == default_scen_code:
-    # Load default results
-    pass
-else:
-    show_results = False
 
-
-if show_results:
+    # Plotting
     se.plot_optimization_results(st.session_state.df, consider_gas_reserve)
     short_hash = int(abs(hash(scen_code)))
     st.download_button(
@@ -196,12 +187,14 @@ if show_results:
         mime="text/csv",
     )
 
+    # Download
     st.download_button(
         "💾 Input-Daten herunterladen",
         st.session_state.input_data.to_csv(),
         file_name=f"Input_Daten_{short_hash}.csv",
         mime="text/csv",
     )
+
 st.text("")
 st.text("")
 se.centered_fzj_logo()
