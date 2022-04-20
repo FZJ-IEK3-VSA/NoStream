@@ -22,7 +22,7 @@ total_pl_import_russia = 1752
 total_lng_import_russia = 160
 total_ng_production = 608
 
-include_soc_option = False
+include_soc_option = True
 
 # Default Dates
 if "demand_reduction_date" not in st.session_state:

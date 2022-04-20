@@ -516,7 +516,7 @@ def add_dates(fig):
 
 
 @st.experimental_memo(show_spinner=False)
-def getFig_optimization_results(df, consider_gas_reserve):
+def getFig_optimization_results(df, include_soc_option):
     # df_og = df.copy()
     # Prevent flickering at the beginning
     df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
@@ -710,17 +710,17 @@ def getFig_optimization_results(df, consider_gas_reserve):
         )
     )
 
-    # if consider_gas_reserve:
-    fig_soc.add_trace(
-        go.Scatter(
-            mode="markers",
-            x=reserve_dates,
-            y=reserve_soc_val,
-            name="Füllstandvorgabe",
-            legendgroup="Kenndaten",
-            marker=dict(size=8, color=FZJcolor.get("blue")),
+    if include_soc_option:
+        fig_soc.add_trace(
+            go.Scatter(
+                mode="markers",
+                x=reserve_dates,
+                y=reserve_soc_val,
+                name="Füllstandvorgabe",
+                legendgroup="Kenndaten",
+                marker=dict(size=8, color=FZJcolor.get("blue")),
+            )
         )
-    )
 
     # Dates
     add_dates(fig_soc)
@@ -847,13 +847,15 @@ def getFig_optimization_results(df, consider_gas_reserve):
     return fig_flow, fig_soc
 
 
-def plot_optimization_results(df, consider_gas_reserve, streamlit_object=st):
-    fig_flow, fig_soc = getFig_optimization_results(df, consider_gas_reserve)
+def plot_optimization_results(df, include_soc_option, streamlit_object=st):
+    fig_flow, fig_soc = getFig_optimization_results(df, include_soc_option)
     streamlit_object.plotly_chart(fig_flow, use_container_width=True)
     streamlit_object.plotly_chart(fig_soc, use_container_width=True)
 
 
-def setting_compensation(streamlit_object=st, expanded=False, compact=False):
+def setting_compensation(
+    include_soc_option, streamlit_object=st, expanded=False, compact=False
+):
     with streamlit_object.expander("Kompensation", expanded=expanded):
         streamlit_object.markdown("### Nachfragereduktion")
         cols = streamlit_object.columns(2)
@@ -956,7 +958,7 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="demand_reduction_date_key",
                 value=st.session_state.demand_reduction_date,
-                min_value=datetime.datetime.now(),
+                min_value=start_date,
                 max_value=end_date,
             )
             st.session_state.demand_reduction_date = datetime.datetime.fromordinal(
@@ -1001,16 +1003,17 @@ def setting_compensation(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="lng_increase_date_key",
                 value=st.session_state.lng_increase_date,
-                min_value=datetime.datetime.now(),
+                min_value=start_date,
                 max_value=end_date,
             )
             st.session_state.lng_increase_date = datetime.datetime.fromordinal(
                 st.session_state.lng_increase_date.toordinal()
             )
-            streamlit_object.markdown("---")
 
         # Füllstandvorgaben
-        if not compact:
+        consider_gas_reserve = False
+        if include_soc_option:
+            streamlit_object.markdown("---")
             st.markdown("### Füllstandvorgabe Erdgasspeicher")
             consider_gas_reserve = streamlit_object.checkbox(
                 "Füllstandvorgabe berücksichtigen³", value=False
@@ -1055,7 +1058,7 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
                 "Startdatum:",
                 key="import_stop_date_key",
                 value=st.session_state.import_stop_date,
-                min_value=datetime.datetime.now(),
+                min_value=datetime.datetime(2022, 3, 15, 0, 0),
                 max_value=end_date,
             )
             st.session_state.import_stop_date = datetime.datetime.fromordinal(
