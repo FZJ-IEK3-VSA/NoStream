@@ -1069,17 +1069,17 @@ def setting_storage(
                 "³ Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
             )
 
-            cols = streamlit_object.columns(2)
-            cols[0].date_input(
-                "Testdatum:",
-                key="test_date",
-                value=start_date,
-                min_value=start_date,
-                max_value=end_date,
-            )
-            cols[1].slider(
-                "Reduktion:", key="test_val", value=50, min_value=0, max_value=100,
-            )
+            # cols = streamlit_object.columns(2)
+            # cols[0].date_input(
+            #     "Datum:",
+            #     key=f"date_{num}",
+            #     value=start_date,
+            #     min_value=start_date,
+            #     max_value=end_date,
+            # )
+            # cols[1].slider(
+            #     "Reduktion:", key=f"reduction_{num}", value=50, min_value=0, max_value=100,
+            # )
 
         return consider_gas_reserve
 
