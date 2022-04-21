@@ -47,7 +47,7 @@ slot_figure = st.empty()
 slot_settings = st.empty()
 
 # Embarge und Kompensation
-reduction_import_russia = se.setting_embargo(compact=compact, expanded=True,)
+reduction_import_russia = se.setting_embargo(compact=compact, expanded=True)
 
 # Compensation
 (
@@ -58,13 +58,12 @@ reduction_import_russia = se.setting_embargo(compact=compact, expanded=True,)
     red_exp_dem,
     add_lng_import,
     add_pl_import,
-    consider_gas_reserve,
 ) = se.setting_compensation(
     streamlit_object=slot_settings, compact=compact, expanded=True
 )
 
 
-## Importlücke Plot
+# Importlücke Plot
 se.plot_import_gap(
     reduction_import_russia,
     red_exp_dem,
