@@ -22,7 +22,6 @@ total_pl_import_russia = 1752
 total_lng_import_russia = 160
 total_ng_production = 608
 
-include_soc_option = True
 
 # Default Dates
 if "demand_reduction_date" not in st.session_state:
@@ -44,6 +43,26 @@ if "df" not in st.session_state:
     st.session_state.df = pd.read_csv("static/results/default_results.csv", index_col=0)
 if "input_data" not in st.session_state:
     st.session_state.input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
+
+
+# Default SOC min
+reserve_dates = [
+    datetime.datetime(2022, 8, 1, 0, 0),
+    datetime.datetime(2022, 9, 1, 0, 0),
+    datetime.datetime(2022, 10, 1, 0, 0),
+    datetime.datetime(2022, 11, 1, 0, 0),
+    datetime.datetime(2023, 2, 1, 0, 0),
+    datetime.datetime(2023, 5, 1, 0, 0),
+    datetime.datetime(2023, 7, 1, 0, 0),
+]
+reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+storage_cap = 1100
+reserve_soc_val = [x * storage_cap for x in reserve_soc_val]
+
+if "reserve_dates" not in st.session_state:
+    st.session_state.reserve_dates = reserve_dates
+if "reserve_soc_val" not in st.session_state:
+    st.session_state.reserve_soc_val = reserve_soc_val
 
 
 ### Streamlit App
@@ -72,12 +91,13 @@ with st.sidebar:
     se.centered_fzj_logo()
     st.text("")
 
+    # Settings
     st.markdown("### Einstellungen")
 
-    # Embargo
-    reduction_import_russia = se.setting_embargo()  # import_stop_date
+    ## Embargo
+    reduction_import_russia = se.setting_embargo()
 
-    # Compensation - Demand reduction
+    ## Compensation
     (
         red_ind_dem,
         red_elec_dem,
@@ -86,15 +106,18 @@ with st.sidebar:
         red_exp_dem,
         add_lng_import,
         add_pl_import,
-        consider_gas_reserve,
-    ) = se.setting_compensation(include_soc_option)
+    ) = se.setting_compensation()
 
+    ## Storage
+    consider_gas_reserve = se.setting_storage(custom_option=True)
+
+    # Status Quo
     st.markdown("### Status Quo")
 
-    # Supply
+    ## Supply
     se.setting_statusQuo_supply(expanded=False)
 
-    # Demand
+    ## Demand
     se.setting_statusQuo_demand()
 
     # Further links and information
@@ -180,7 +203,7 @@ if start_opti:
     )
 
     # Plotting
-    se.plot_optimization_results(st.session_state.df, include_soc_option)
+    se.plot_optimization_results(st.session_state.df)
     short_hash = int(abs(hash(scen_code)))
     st.download_button(
         "💾 Optimierungsergebnisse herunterladen",
