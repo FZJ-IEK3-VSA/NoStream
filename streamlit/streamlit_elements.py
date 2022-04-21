@@ -1055,7 +1055,7 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
 
 
 def setting_storage(
-    streamlit_object=st, expanded=False, compact=False,
+    custom_option=False, streamlit_object=st, expanded=False, compact=False,
 ):
     with streamlit_object.expander(
         "Füllstandvorgabe Erdgasspeicher", expanded=expanded
@@ -1074,7 +1074,7 @@ def setting_storage(
             )
 
             custom_values = False
-            if consider_gas_reserve:
+            if consider_gas_reserve and custom_option:
                 custom_values = streamlit_object.checkbox(
                     "Benutzerdefinierte Werte", value=False
                 )
