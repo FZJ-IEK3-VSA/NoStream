@@ -45,6 +45,27 @@ if "input_data" not in st.session_state:
     st.session_state.input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
 
 
+# Default SOC min
+reserve_dates = [
+    datetime.datetime(2022, 8, 1, 0, 0),
+    datetime.datetime(2022, 9, 1, 0, 0),
+    datetime.datetime(2022, 10, 1, 0, 0),
+    datetime.datetime(2022, 11, 1, 0, 0),
+    datetime.datetime(2023, 2, 1, 0, 0),
+    datetime.datetime(2023, 5, 1, 0, 0),
+    datetime.datetime(2023, 7, 1, 0, 0),
+]
+reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+storage_cap = 1100
+reserve_soc_val = [x * storage_cap for x in reserve_soc_val]
+
+if "reserve_dates" not in st.session_state:
+    st.session_state.reserve_dates = reserve_dates
+if "reserve_soc_val" not in st.session_state:
+    st.session_state.reserve_soc_val = reserve_soc_val
+
+
+
 ### Streamlit App
 st.set_page_config(
     page_title="No Stream",

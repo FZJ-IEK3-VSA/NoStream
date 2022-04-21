@@ -29,7 +29,7 @@ total_pl_import_russia = total_ng_import_russia - total_lng_import_russia
 total_ng_production = 608
 
 # Storage Reserve
-reserve_dates = [
+reserve_dates_default = [
     datetime.datetime(2022, 8, 1, 0, 0),
     datetime.datetime(2022, 9, 1, 0, 0),
     datetime.datetime(2022, 10, 1, 0, 0),
@@ -39,8 +39,11 @@ reserve_dates = [
     datetime.datetime(2023, 7, 1, 0, 0),
 ]
 reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val]
 storage_cap = 1100
-reserve_soc_val = [x * storage_cap for x in reserve_soc_val]
+reserve_soc_val_default = [x * storage_cap for x in reserve_soc_val]
+
+reserve_dict = dict(zip(reserve_dates_default, reserve_soc_val_percent))
 
 # Dates
 start_date = datetime.date(2022, 1, 1)
@@ -134,8 +137,8 @@ def start_optimization(
                 add_lng_import=add_lng_import,
                 add_pl_import=add_pl_import,
                 consider_gas_reserve=consider_gas_reserve,
-                reserve_dates=reserve_dates,
-                reserve_soc_val=reserve_soc_val,
+                reserve_dates=st.session_state.reserve_dates,
+                reserve_soc_val=st.session_state.reserve_soc_val,
             )
             return df, input_data
         except Exception as e:
@@ -714,8 +717,8 @@ def getFig_optimization_results(df):
     fig_soc.add_trace(
         go.Scatter(
             mode="markers",
-            x=reserve_dates,
-            y=reserve_soc_val,
+            x=st.session_state.reserve_dates,
+            y=st.session_state.reserve_soc_val,
             name="Füllstandvorgabe",
             legendgroup="Kenndaten",
             marker=dict(size=8, color=FZJcolor.get("blue")),
@@ -1060,27 +1063,64 @@ def setting_storage(
         # Füllstandvorgaben
         consider_gas_reserve = False
         if not compact:
-            # streamlit_object.markdown("---")
-            # st.markdown("### Füllstandvorgabe Erdgasspeicher")
+            cols = streamlit_object.columns(2)
             consider_gas_reserve = streamlit_object.checkbox(
                 "Füllstandvorgabe berücksichtigen³", value=False
             )
+            # consider_gas_reserve = cols[0].checkbox("Füllstand vorgeben³", value=False)
+
             streamlit_object.markdown(
                 "³ Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
             )
 
-            # cols = streamlit_object.columns(2)
-            # cols[0].date_input(
-            #     "Datum:",
-            #     key=f"date_{num}",
-            #     value=start_date,
-            #     min_value=start_date,
-            #     max_value=end_date,
-            # )
-            # cols[1].slider(
-            #     "Reduktion:", key=f"reduction_{num}", value=50, min_value=0, max_value=100,
-            # )
+            custom_values = False
+            if consider_gas_reserve:
+                custom_values = streamlit_object.checkbox(
+                    "Benutzerdefinierte Werte", value=False
+                )
 
+            if custom_values and consider_gas_reserve:
+                streamlit_object.info(
+                    "Referenzwerte (COM(2022) 135):  \n 2022:  \n August 63%, September 68%, Oktober 74%, November 80%  \n 2023:  \n Febraur 43%, Mai 33%, Juli 52%"
+                )
+                # num_points = streamlit_object.slider(
+                #     "Anzahl Stützstellen", value=3, min_value=0, max_value=15
+                # )
+                num_points = 15
+                dates = []
+                red_rates = []
+                for num in range(num_points):
+                    cols = streamlit_object.columns(2)
+
+                    month = 5 + num
+                    year = 2022
+                    if month > 12:
+                        month = month - 12
+                        year = 2023
+                    date = cols[0].date_input(
+                        "Datum:",
+                        key=f"date_{num}",
+                        value=datetime.datetime(year, month, 1, 0, 0),
+                        min_value=start_date,
+                        max_value=end_date,
+                    )
+                    date = datetime.datetime.fromordinal(date.toordinal())
+                    dates.append(date)
+                    red_rate = cols[1].slider(
+                        "Mindestfüllstand:",
+                        key=f"reduction_{num}",
+                        value=reserve_dict.get(date, 0),
+                        min_value=0,
+                        max_value=100,
+                        format=format_percent,
+                    )
+                    red_rates.append(red_rate / 100)
+                red_rates = [x * storage_cap for x in red_rates]
+                st.session_state.reserve_dates = dates
+                st.session_state.reserve_soc_val = red_rates
+            else:
+                st.session_state.reserve_dates = reserve_dates_default
+                st.session_state.reserve_soc_val = reserve_soc_val_default
         return consider_gas_reserve
 
 
