@@ -516,7 +516,7 @@ def add_dates(fig):
 
 
 @st.experimental_memo(show_spinner=False)
-def getFig_optimization_results(df, include_soc_option):
+def getFig_optimization_results(df):
     # df_og = df.copy()
     # Prevent flickering at the beginning
     df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
@@ -710,17 +710,17 @@ def getFig_optimization_results(df, include_soc_option):
         )
     )
 
-    if include_soc_option:
-        fig_soc.add_trace(
-            go.Scatter(
-                mode="markers",
-                x=reserve_dates,
-                y=reserve_soc_val,
-                name="Füllstandvorgabe",
-                legendgroup="Kenndaten",
-                marker=dict(size=8, color=FZJcolor.get("blue")),
-            )
+    # Füllstandvorgabe
+    fig_soc.add_trace(
+        go.Scatter(
+            mode="markers",
+            x=reserve_dates,
+            y=reserve_soc_val,
+            name="Füllstandvorgabe",
+            legendgroup="Kenndaten",
+            marker=dict(size=8, color=FZJcolor.get("blue")),
         )
+    )
 
     # Dates
     add_dates(fig_soc)
@@ -847,19 +847,17 @@ def getFig_optimization_results(df, include_soc_option):
     return fig_flow, fig_soc
 
 
-def plot_optimization_results(df, include_soc_option, streamlit_object=st):
-    fig_flow, fig_soc = getFig_optimization_results(df, include_soc_option)
+def plot_optimization_results(df, streamlit_object=st):
+    fig_flow, fig_soc = getFig_optimization_results(df)
     streamlit_object.plotly_chart(fig_flow, use_container_width=True)
     streamlit_object.plotly_chart(fig_soc, use_container_width=True)
 
 
-def setting_compensation(
-    include_soc_option, streamlit_object=st, expanded=False, compact=False
-):
+def setting_compensation(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Kompensation", expanded=expanded):
         streamlit_object.markdown("### Nachfragereduktion")
         cols = streamlit_object.columns(2)
-        # so = cols[0] if compact else st
+
         so = cols[0]
         red_ind_dem = (
             so.slider(
@@ -874,7 +872,6 @@ def setting_compensation(
             / 100
         )
 
-        # so = cols[1] if compact else st
         so = cols[1]
         red_elec_dem = (
             so.slider(
@@ -905,7 +902,6 @@ def setting_compensation(
             / 100
         )
 
-        # so = cols[1] if compact else st
         so = cols[1]
         red_dom_dem = (
             so.slider(
@@ -1010,18 +1006,6 @@ def setting_compensation(
                 st.session_state.lng_increase_date.toordinal()
             )
 
-        # Füllstandvorgaben
-        consider_gas_reserve = False
-        if include_soc_option:
-            streamlit_object.markdown("---")
-            st.markdown("### Füllstandvorgabe Erdgasspeicher")
-            consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandvorgabe berücksichtigen³", value=False
-            )
-            streamlit_object.markdown(
-                "³ Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
-            )
-
         return (
             red_ind_dem,
             red_elec_dem,
@@ -1030,7 +1014,6 @@ def setting_compensation(
             red_exp_dem,
             add_lng_import,
             add_pl_import,
-            consider_gas_reserve,
         )
 
 
@@ -1066,6 +1049,39 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
             )
 
         return reduction_import_russia
+
+
+def setting_storage(
+    streamlit_object=st, expanded=False, compact=False,
+):
+    with streamlit_object.expander(
+        "Füllstandvorgabe Erdgasspeicher", expanded=expanded
+    ):
+        # Füllstandvorgaben
+        consider_gas_reserve = False
+        if not compact:
+            # streamlit_object.markdown("---")
+            # st.markdown("### Füllstandvorgabe Erdgasspeicher")
+            consider_gas_reserve = streamlit_object.checkbox(
+                "Füllstandvorgabe berücksichtigen³", value=False
+            )
+            streamlit_object.markdown(
+                "³ Entsprechend der EU-Verordnung (laufendes Verfahren) [COM(2022) 135](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=COM%3A2022%3A135%3AFIN&qid=1648043128482)"
+            )
+
+            # cols = streamlit_object.columns(2)
+            # cols[0].date_input(
+            #     "Datum:",
+            #     key=f"date_{num}",
+            #     value=start_date,
+            #     min_value=start_date,
+            #     max_value=end_date,
+            # )
+            # cols[1].slider(
+            #     "Reduktion:", key=f"reduction_{num}", value=50, min_value=0, max_value=100,
+            # )
+
+        return consider_gas_reserve
 
 
 def setting_statusQuo_supply(
