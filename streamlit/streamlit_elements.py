@@ -92,7 +92,7 @@ def sidebar_further_info():
         "💡 [Verbesserungsvorschläge](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
     )
 
-    st.markdown("`NoStream 0.2`")
+    st.markdown("`NoStream 0.3`")
 
 
 def start_optimization(
