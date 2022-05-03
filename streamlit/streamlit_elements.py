@@ -39,11 +39,16 @@ reserve_dates_default = [
     datetime.datetime(2023, 7, 1, 0, 0),
 ]
 reserve_soc_val = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+# reserve_soc_val = [0, 0, 0, 0.80, 0.43, 0.33, 0.52]
 reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val]
+reserve_soc_val_custom = reserve_soc_val_percent
+reserve_soc_val_custom[0:3] = [0, 0, 0]
+
 storage_cap = 1100
 reserve_soc_val_default = [x * storage_cap for x in reserve_soc_val]
 
-reserve_dict = dict(zip(reserve_dates_default, reserve_soc_val_percent))
+
+reserve_dict = dict(zip(reserve_dates_default, reserve_soc_val_custom))
 
 # Dates
 start_date = datetime.date(2022, 1, 1)
@@ -1065,7 +1070,7 @@ def setting_storage(
         if not compact:
             cols = streamlit_object.columns(2)
             consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandvorgabe berücksichtigen³", value=False
+                "Füllstandvorgabe berücksichtigen³", value=True
             )
             # consider_gas_reserve = cols[0].checkbox("Füllstand vorgeben³", value=False)
 
@@ -1076,23 +1081,20 @@ def setting_storage(
             custom_values = False
             if consider_gas_reserve and custom_option:
                 custom_values = streamlit_object.checkbox(
-                    "Benutzerdefinierte Werte", value=False
+                    "Benutzerdefinierte Werte", value=True
                 )
 
             if custom_values and consider_gas_reserve:
                 streamlit_object.info(
                     "Referenzwerte (COM(2022) 135):  \n 2022:  \n August 63%, September 68%, Oktober 74%, November 80%  \n 2023:  \n Febraur 43%, Mai 33%, Juli 52%"
                 )
-                # num_points = streamlit_object.slider(
-                #     "Anzahl Stützstellen", value=3, min_value=0, max_value=15
-                # )
-                num_points = 15
+                num_points = 14
                 dates = []
                 red_rates = []
                 for num in range(num_points):
                     cols = streamlit_object.columns(2)
 
-                    month = 5 + num
+                    month = 6 + num
                     year = 2022
                     if month > 12:
                         month = month - 12
