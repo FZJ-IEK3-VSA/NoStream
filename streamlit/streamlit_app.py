@@ -53,7 +53,7 @@ if "input_data" not in st.session_state:
         "static/default_inputs.csv", index_col=0)
 
 # Google Analytics
-ga_widget = get_ga_values()
+# ga_widget = get_ga_values()
 
 # Default SOC min
 reserve_dates = [
@@ -85,8 +85,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",  # wide centered
 )
 
-
-ga_widget
 
 
 hide_streamlit_style = """

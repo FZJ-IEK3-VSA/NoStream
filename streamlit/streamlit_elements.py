@@ -5,6 +5,7 @@ import datetime
 import utils as ut
 import optimization as opti
 import requests
+from ga import get_ga_values
 
 try:
     from streamlit_lottie import st_lottie_spinner
@@ -98,6 +99,10 @@ def sidebar_further_info():
     )
 
     st.markdown("`NoStream 0.3`")
+
+    ga_widget = get_ga_values()
+    
+    st.table(ga_widget)
 
 
 def start_optimization(
