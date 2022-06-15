@@ -12,6 +12,8 @@ RUN apt-get install -y coinor-cbc
 
 RUN pip install -r requirements.txt
 
+COPY index.html /usr/local/lib/python3.9/site-packages/streamlit/static/index.html
+
 COPY . .
 
 EXPOSE 8501
