@@ -1,4 +1,6 @@
-#%%
+# %%
+from oauth2client.service_account import ServiceAccountCredentials
+from googleapiclient.discovery import build
 import pandas as pd
 import streamlit as st
 import numpy as np
@@ -9,6 +11,10 @@ import optimization as opti
 import base64
 import os
 import streamlit_elements as se
+import requests
+import streamlit.components.v1 as components
+import httplib2
+from ga import get_ga_values
 
 
 total_lng_import = 914
@@ -40,10 +46,14 @@ if "lng_increase_date" not in st.session_state:
 
 # Default inputs
 if "df" not in st.session_state:
-    st.session_state.df = pd.read_csv("static/results/default_results.csv", index_col=0)
+    st.session_state.df = pd.read_csv(
+        "static/results/default_results.csv", index_col=0)
 if "input_data" not in st.session_state:
-    st.session_state.input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
+    st.session_state.input_data = pd.read_csv(
+        "static/default_inputs.csv", index_col=0)
 
+# Google Analytics
+ga_widget = get_ga_values()
 
 # Default SOC min
 reserve_dates = [
@@ -65,8 +75,9 @@ if "reserve_soc_val" not in st.session_state:
     st.session_state.reserve_soc_val = reserve_soc_val
 
 
+# Streamlit App
 
-### Streamlit App
+# Streamlit App
 st.set_page_config(
     page_title="No Stream",
     page_icon="🇪🇺",
@@ -74,9 +85,13 @@ st.set_page_config(
     initial_sidebar_state="expanded",  # wide centered
 )
 
+
+ga_widget
+
+
 hide_streamlit_style = """
             <style>
-            #MainMenu {visibility: hidden;}
+            # MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             </style>
             """
@@ -95,10 +110,10 @@ with st.sidebar:
     # Settings
     st.markdown("### Einstellungen")
 
-    ## Embargo
+    # Embargo
     reduction_import_russia = se.setting_embargo()
 
-    ## Compensation
+    # Compensation
     (
         red_ind_dem,
         red_elec_dem,
@@ -109,16 +124,16 @@ with st.sidebar:
         add_pl_import,
     ) = se.setting_compensation()
 
-    ## Storage
+    # Storage
     consider_gas_reserve = se.setting_storage()
 
     # Status Quo
     st.markdown("### Status Quo")
 
-    ## Supply
+    # Supply
     se.setting_statusQuo_supply(expanded=False)
 
-    ## Demand
+    # Demand
     se.setting_statusQuo_demand()
 
     # Further links and information
@@ -131,7 +146,7 @@ with st.sidebar:
 # Embargo und Kompensation
 cols = st.columns(2)
 
-## Importlücke
+# Importlücke
 se.plot_import_gap(
     reduction_import_russia,
     red_exp_dem,
