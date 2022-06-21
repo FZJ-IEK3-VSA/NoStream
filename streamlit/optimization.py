@@ -7,45 +7,43 @@ import streamlit as st
 import utils as ut
 import datetime
 import os
+import gie_api
 
 # Storage
-@st.experimental_memo(show_spinner=False)
-def get_storage_capacity():
+# #@st.experimental_memo(show_spinner=False)
+# def get_storage_capacity():
+#     soc_fix_hour_dir = "static/Optimization/soc_fixed_hour.csv"
+#     if not os.path.exists(soc_fix_hour_dir):
+#         # Read daily state of charge data for the beginning of the year (source: GIE)
+#         df_storage = pd.read_excel(
+#             "static/Optimization/storage_data_5a.xlsx", index_col=0
+#         )
+#         year = 2022
+#         bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
+#         df_storage = df_storage.loc[bool_year, :]
+#         df_storage.sort_values("gasDayStartedOn", ignore_index=True, inplace=True)
 
-    # Maximum storage capacity [TWh]
-    storCap = 1100
+#         # Fix the state of charge values from January-March; otherwise soc_max = capacity_max [TWh]
+#         soc_fix_day = df_storage.gasInStorage
 
-    soc_fix_hour_dir = "static/Optimization/soc_fixed_hour.csv"
-    if not os.path.exists(soc_fix_hour_dir):
-        # Read daily state of charge data for the beginning of the year (source: GIE)
-        df_storage = pd.read_excel(
-            "static/Optimization/storage_data_5a.xlsx", index_col=0
-        )
-        year = 2022
-        bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
-        df_storage = df_storage.loc[bool_year, :]
-        df_storage.sort_values("gasDayStartedOn", ignore_index=True, inplace=True)
+#         # Convert daily state of charge to hourly state of charge (hourly values=daily values/24) [TWh]
+#         soc_fix_hour = []
+#         for value in soc_fix_day:
+#             hour_val = [value]
+#             soc_fix_hour = soc_fix_hour + 24 * hour_val
 
-        # Fix the state of charge values from January-March; otherwise soc_max = capacity_max [TWh]
-        soc_fix_day = df_storage.gasInStorage
+#         soc_fix_hour_df = pd.DataFrame(soc_fix_hour)
+#         soc_fix_hour_df.to_csv(soc_fix_hour_dir)
 
-        # Convert daily state of charge to hourly state of charge (hourly values=daily values/24) [TWh]
-        soc_fix_hour = []
-        for value in soc_fix_day:
-            hour_val = [value]
-            soc_fix_hour = soc_fix_hour + 24 * hour_val
+#     # loading data from csv
+#     soc_fix_hour_df = pd.read_csv(soc_fix_hour_dir, index_col=0)
+#     soc_fix_hour = soc_fix_hour_df.iloc[:, 0].values.tolist()
+#     # soc_fix_hour = soc_fix_hour
 
-        soc_fix_hour_df = pd.DataFrame(soc_fix_hour)
-        soc_fix_hour_df.to_csv(soc_fix_hour_dir)
-
-    # loading data from csv
-    soc_fix_hour_df = pd.read_csv(soc_fix_hour_dir, index_col=0)
-    soc_fix_hour = soc_fix_hour_df.iloc[:, 0].values.tolist()
-
-    return storCap, soc_fix_hour
+#     return soc_fix_hour
 
 
-@st.experimental_memo(show_spinner=False)
+# #@st.experimental_memo(show_spinner=False)
 def run_scenario(
     total_ng_import=4190,
     total_pl_import_russia=1752,
@@ -62,15 +60,17 @@ def run_scenario(
     red_ghd_dem=0.08,
     red_ind_dem=0.08,
     red_exp_dem=0.0,
-    import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
-    demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
-    lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
+    import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),  # 4
+    demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),  # 3
+    lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),  # 5
     add_lng_import=965,
     add_pl_import=0,
     reduction_import_russia=1,
     consider_gas_reserve=False,
     reserve_dates=None,
     reserve_soc_val=None,
+    storage_capacity=1100,
+    spacial_scope="EU",
 ):
     """Solves a MILP storage model given imports,exports, demands, and production.
 
@@ -100,7 +100,14 @@ def run_scenario(
     ###############################################################################
 
     # Storage
-    storCap, soc_max_hour = get_storage_capacity()
+    print(80 * "=")
+    print("Obtaining storage levels...")
+    print(80 * "=")
+
+    today = datetime.datetime.today()
+    soc_max_hour = gie_api.get_storage_capacity(
+        spacial_scope, today
+    )  # get_storage_capacity()
 
     if red_dom_dem + red_elec_dem + red_ghd_dem + red_ind_dem + red_exp_dem > 0:
         demand_reduct = True
@@ -117,16 +124,18 @@ def run_scenario(
     time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
     # Time index import stop
-    # time_index_import_normal = pd.date_range(
-    #     start="2022-01-01 00:00:00", end=import_stop_date, freq="H"
-    # )
-
     time_index_pl_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
         end="2023-07-02 11:00:00",
         freq="H",
     )
     time_index_lng_red = time_index_pl_red.copy()
+
+    # Time index slack stop
+    # TODO dynamically adapt to storage data
+    time_index_slack = pd.date_range(
+        start_date, periods=len(soc_max_hour) - 1, freq="H"
+    )
 
     # Time index reduced demand
     time_index_demand_red = pd.date_range(
@@ -254,6 +263,12 @@ def run_scenario(
     # Domestiv production
     domProd = pd.Series(ts_const * total_ng_production, index=time_index)
 
+    # Slack supply
+    slackImp = pd.Series(ts_const * 0, index=time_index)
+    slackImp_high = pd.Series(ts_const * float("inf"), index=time_index)  # float("inf")
+
+    slackImp[time_index_slack] = slackImp_high[time_index_slack]
+
     ###############################################################################
     ############                      Optimization                     ############
     ###############################################################################
@@ -282,6 +297,7 @@ def run_scenario(
     pyM.lngServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.plServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.prodServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
+    pyM.slackServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
 
     print(80 * "=")
     print("Variables created.")
@@ -314,6 +330,15 @@ def run_scenario(
 
     pyM.Constr_prod_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_prod_ub_rule)
 
+    # actual hourly slack flow must be less than the maximum given
+    def Constr_slack_ub_rule(pyM, t):
+        if t < timeSteps[-1]:
+            return pyM.slackServed[t] <= slackImp.iloc[t]
+        else:
+            return pyomo.Constraint.Skip
+
+    pyM.Constr_slack_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_slack_ub_rule)
+
     print(80 * "=")
     print("pipe and lng constraint created.")
     print(80 * "=")
@@ -326,8 +351,9 @@ def run_scenario(
 
     def Objective_rule(pyM):
         return (
-            -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storCap
+            -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storage_capacity
             + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
+            + 1 * sum(fac ** t * pyM.slackServed[t] for t in timeSteps[:-1])
             + 3.0
             * sum(
                 fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
@@ -371,10 +397,11 @@ def run_scenario(
                 - pyM.elecDemServed[t]
                 - pyM.indDemServed[t]
                 - pyM.ghdDemServed[t]
+                - pyM.expAndOtherServed[t]
                 + pyM.plServed[t]
                 + pyM.lngServed[t]
                 + pyM.prodServed[t]
-                - pyM.expAndOtherServed[t]
+                + pyM.slackServed[t]
             )
         else:
             return pyomo.Constraint.Skip
@@ -388,7 +415,7 @@ def run_scenario(
     # maximum storage capacity
     def Constr_Cap_rule(pyM, t):
         if t < timeSteps[-1]:
-            return pyM.Soc[t] <= storCap
+            return pyM.Soc[t] <= storage_capacity
         else:
             return pyomo.Constraint.Skip
 
@@ -411,22 +438,6 @@ def run_scenario(
                 return pyM.Soc[t] >= reserve_soc_dict.get(t)
             else:
                 return pyomo.Constraint.Skip
-
-        # def Constr_Reserve_rule(pyM, t):
-        #     # 01. August: 60 %
-        #     if t == timeSteps[(213 - 1) * 24]:
-        #         return pyM.Soc[t] >= storCap * 0.65
-        #     # 01. October: 680 %
-        #     elif t == timeSteps[(274 - 1) * 24]:
-        #         return pyM.Soc[t] >= storCap * 0.80
-        #     # 01. December: 90 %
-        #     elif t == timeSteps[(335 - 1) * 24]:
-        #         return pyM.Soc[t] >= storCap * 0.90
-        #     # 01. February: 40 %
-        #     elif t == timeSteps[((365 + 32) - 1) * 24]:
-        #         return pyM.Soc[t] >= storCap * 0.40
-        # else:
-        #     return pyomo.Constraint.Skip
 
         pyM.Constr_Reserve = pyomo.Constraint(pyM.TimeSet, rule=Constr_Reserve_rule)
         pass
@@ -503,7 +514,19 @@ def run_scenario(
     )
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
-    buffer_value = 30
+    buffer_value = 10  # storage_capacity / 100  # 10  # 5
+
+    # def Constr_soc_start_rule(pyM, t):
+    #     if t < len(soc_max_hour):
+    #         return pyM.Soc[t] == soc_max_hour[t]  # + buffer_value
+    #     else:
+    #         return pyomo.Constraint.Skip
+
+    # pyM.Constr_Soc_start = pyomo.Constraint(pyM.TimeSet, rule=Constr_soc_start_rule)
+
+    # for t in timeSteps:
+    #     if t < len(soc_max_hour):
+    #         pyM.Soc[t].fix(soc_max_hour[t])
 
     def Constr_soc_start_ub_rule(pyM, t):
         if t < len(soc_max_hour):
@@ -558,6 +581,7 @@ def run_scenario(
     print(80 * "=")
 
     # retrieve solution values and collect in a pandas dataframe
+    slackImpServedList = pd.Series([pyM.slackServed[t].value for t in timeSteps[:-1]])
     plServedList = pd.Series([pyM.plServed[t].value for t in timeSteps[:-1]])
     lngServedList = pd.Series([pyM.lngServed[t].value for t in timeSteps[:-1]])
     prodServedList = pd.Series([pyM.prodServed[t].value for t in timeSteps[:-1]])
@@ -593,6 +617,8 @@ def run_scenario(
         exp_n_oth_served=expAndOtherServedList,
         soc=socList.values,
         soc_slack=socSlackList,
+        slackImp=slackImp.values,
+        slackImp_served=slackImpServedList,
     )
     df.fillna(0, inplace=True)
 
@@ -621,7 +647,7 @@ def run_scenario(
     input_data.loc["add_lng_import", value_col] = add_lng_import
     input_data.loc["add_pl_import", value_col] = add_pl_import
     input_data.loc["reduction_import_russia", value_col] = reduction_import_russia
-    input_data.loc["storCap", value_col] = storCap
+    input_data.loc["storage_capacity", value_col] = storage_capacity
     print("saving...")
     # input_data.to_csv(f"default_inputs.csv")
 
@@ -634,10 +660,10 @@ if __name__ == "__main__":
     # Sensitivity analysis
 
     # reduction of russion gas/LNG [-]
-    russian_gas_reduction = [0, 1]
+    russian_gas_reduction = [1]  # [0, 1]
 
     # Average European LNG import [TWh/d]
-    lng_add_capacities = [0.0, 965]  # 90% load
+    lng_add_capacities = [965]  # [0.0, 965]  # 90% load
 
     # loop over all scenario variations
     for russ_red in russian_gas_reduction:
@@ -645,3 +671,4 @@ if __name__ == "__main__":
             df, input_data = run_scenario(
                 reduction_import_russia=russ_red, add_lng_import=add_lng_import
             )
+    print("Done")
