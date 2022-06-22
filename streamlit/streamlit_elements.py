@@ -139,7 +139,7 @@ def sidebar_further_info():
 
     st.markdown("`NoStream 0.3`")
 
-    ga_widget = get_ga_values()
+    # ga_widget = get_ga_values()
 
     st.table(ga_widget)
 
