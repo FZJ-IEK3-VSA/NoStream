@@ -1095,40 +1095,40 @@ def setting_compensation(
 
 eu27 = [
     "EU",
-    "DE",
-    "AT",
-    "BE",
-    "BG",
-    "HR",
-    "CY",
-    "CZ",
-    "DK",
-    "EE",
-    "FI",
-    "FR",
-    "GR",
-    "HU",
-    "IE",
-    "IT",
-    "LV",
-    "LT",
-    "LU",
-    "MT",
-    "NL",
-    "PL",
-    "PT",
-    "RO",
-    "SK",
-    "SI",
-    "ES",
-    "SE",
+    # "DE",
+    # "AT",
+    # "BE",
+    # "BG",
+    # "HR",
+    # "CY",
+    # "CZ",
+    # "DK",
+    # "EE",
+    # "FI",
+    # "FR",
+    # "GR",
+    # "HU",
+    # "IE",
+    # "IT",
+    # "LV",
+    # "LT",
+    # "LU",
+    # "MT",
+    # "NL",
+    # "PL",
+    # "PT",
+    # "RO",
+    # "SK",
+    # "SI",
+    # "ES",
+    # "SE",
 ]
 
 
 def setting_spacial_scope(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Betrachtungsraum", expanded=expanded):
         st.session_state.spacial_scope = streamlit_object.selectbox(
-            "Region", eu27, index=0
+            "EU Mitgliedsstaat (coming soon)", eu27, index=0
         )
         status_quo_data = get_status_quo_data(st.session_state.spacial_scope)
         return status_quo_data
