@@ -139,9 +139,9 @@ def sidebar_further_info():
 
     st.markdown("`NoStream 0.3`")
 
+    # Google analytics
     # ga_widget = get_ga_values()
-
-    st.table(ga_widget)
+    # st.table(ga_widget)
 
 
 def start_optimization(
