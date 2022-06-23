@@ -66,7 +66,10 @@ class StatusQuoData:
         )
 
         # Storage
-        self.storage_capacity = gie_api.get_max_storage_capacity(spacial_scope)
+        try:
+            self.storage_capacity = gie_api.get_max_storage_capacity(spacial_scope)
+        except:
+            self.storage_capacity = 0.001
 
         if spacial_scope == "DE":
 

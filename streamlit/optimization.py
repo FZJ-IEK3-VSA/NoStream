@@ -9,39 +9,6 @@ import datetime
 import os
 import gie_api
 
-# Storage
-# #@st.experimental_memo(show_spinner=False)
-# def get_storage_capacity():
-#     soc_fix_hour_dir = "static/Optimization/soc_fixed_hour.csv"
-#     if not os.path.exists(soc_fix_hour_dir):
-#         # Read daily state of charge data for the beginning of the year (source: GIE)
-#         df_storage = pd.read_excel(
-#             "static/Optimization/storage_data_5a.xlsx", index_col=0
-#         )
-#         year = 2022
-#         bool_year = [str(year) in str(x) for x in df_storage.gasDayStartedOn]
-#         df_storage = df_storage.loc[bool_year, :]
-#         df_storage.sort_values("gasDayStartedOn", ignore_index=True, inplace=True)
-
-#         # Fix the state of charge values from January-March; otherwise soc_max = capacity_max [TWh]
-#         soc_fix_day = df_storage.gasInStorage
-
-#         # Convert daily state of charge to hourly state of charge (hourly values=daily values/24) [TWh]
-#         soc_fix_hour = []
-#         for value in soc_fix_day:
-#             hour_val = [value]
-#             soc_fix_hour = soc_fix_hour + 24 * hour_val
-
-#         soc_fix_hour_df = pd.DataFrame(soc_fix_hour)
-#         soc_fix_hour_df.to_csv(soc_fix_hour_dir)
-
-#     # loading data from csv
-#     soc_fix_hour_df = pd.read_csv(soc_fix_hour_dir, index_col=0)
-#     soc_fix_hour = soc_fix_hour_df.iloc[:, 0].values.tolist()
-#     # soc_fix_hour = soc_fix_hour
-
-#     return soc_fix_hour
-
 
 @st.experimental_memo(show_spinner=False)
 def run_scenario(
