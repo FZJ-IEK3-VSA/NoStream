@@ -4,9 +4,19 @@ import numpy as np
 import datetime
 import streamlit as st
 
+with open("static/gie_api_key.txt") as f:
+    lines = f.readlines()
+print(type(lines))
+print(lines)
+print(type(lines[0]))
+print(lines[0])
+
 
 @st.experimental_memo(show_spinner=False)
 def api_call(spacial_scope, start_day, end_day):
+    with open("static/gie_api_key.txt") as f:
+        lines = f.readlines()
+    api_key = lines[0]
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -20,7 +30,7 @@ def api_call(spacial_scope, start_day, end_day):
         "Sec-Fetch-User": "?1",
         "TE": "trailers",
         "Upgrade-Insecure-Requests": "1",
-        "x-key": "afdb3e8c7f1a6feff40cc8ac0e6582b0",
+        "x-key": api_key,
     }
 
     session = Session()

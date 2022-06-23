@@ -30,8 +30,9 @@ response = (
                 {
                     "viewId": VIEW_ID,
                     "dateRanges": [
+                        {"startDate": "7daysAgo", "endDate": "today"},
+                        # {"startDate": "30daysAgo", "endDate": "today"},
                         {"startDate": "30daysAgo", "endDate": "today"},
-                        {"startDate": "365daysAgo", "endDate": "today"},
                     ],
                     # "metrics": [{"expression": "ga:users"}],
                     # "dimensions": [{"name": "ga:pagePath"}],
@@ -44,7 +45,11 @@ response = (
 )
 
 # create two empty lists that will hold our dimentions and sessions data
-period = ["Letzte 7 Tage", "Letzte 30 Tage"]
+period = [
+    "Letzte 7 Tage",
+    "Letzter Monat",
+    # "Letztes Jahr",
+]
 users = []
 
 
@@ -56,9 +61,7 @@ for report in response.get("reports", []):
     rows = report.get("data", {}).get("rows", [])
 
     for row in rows:
-
         dateRangeValues = row.get("metrics", [])
-
         for i, values in enumerate(dateRangeValues):
             for metricHeader, value in zip(metricHeaders, values.get("values")):
                 users.append(int(value))

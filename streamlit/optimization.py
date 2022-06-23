@@ -43,7 +43,7 @@ import gie_api
 #     return soc_fix_hour
 
 
-# #@st.experimental_memo(show_spinner=False)
+@st.experimental_memo(show_spinner=False)
 def run_scenario(
     total_ng_import=4190,
     total_pl_import_russia=1752,
@@ -60,9 +60,9 @@ def run_scenario(
     red_ghd_dem=0.08,
     red_ind_dem=0.08,
     red_exp_dem=0.0,
-    import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),  # 4
-    demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),  # 3
-    lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),  # 5
+    import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
+    demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
+    lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
     add_lng_import=965,
     add_pl_import=0,
     reduction_import_russia=1,
@@ -514,7 +514,7 @@ def run_scenario(
     )
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
-    if storage_capacity >500:
+    if storage_capacity > 500:
         buffer_value = 10  # storage_capacity / 100  # 10  # 5
     else:
         buffer_value = 5

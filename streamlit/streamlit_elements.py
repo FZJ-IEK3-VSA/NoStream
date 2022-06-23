@@ -160,8 +160,13 @@ def sidebar_further_info():
     st.markdown("`NoStream 0.3`")
 
     # Google analytics
+    # st.markdown("")
+    # st.markdown("")
+    # st.markdown("")
     # ga_widget = get_ga_values()
-    # st.table(ga_widget)
+    # ga_widget.to_csv("ga_statistics.csv")
+    # with st.expander("Statistik", expanded=False):
+    #     st.table(ga_widget)
 
 
 def start_optimization(
@@ -1145,13 +1150,16 @@ eu27 = [
 ]
 
 
-def setting_spacial_scope(streamlit_object=st, expanded=False, compact=False):
-    with streamlit_object.expander("Betrachtungsraum", expanded=expanded):
-        st.session_state.spacial_scope = streamlit_object.selectbox(
-            "Region", eu27, index=0
-        )
-        status_quo_data = get_status_quo_data(st.session_state.spacial_scope)
-        return status_quo_data
+def setting_spacial_scope(
+    allow_region_selection=False, streamlit_object=st, expanded=False, compact=False
+):
+    if allow_region_selection:
+        with streamlit_object.expander("Betrachtungsraum", expanded=expanded):
+            st.session_state.spacial_scope = streamlit_object.selectbox(
+                "Region", eu27, index=0
+            )
+    status_quo_data = get_status_quo_data(st.session_state.spacial_scope)
+    return status_quo_data
 
 
 def setting_embargo(streamlit_object=st, expanded=False, compact=False):

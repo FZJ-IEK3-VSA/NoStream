@@ -79,7 +79,7 @@ with st.sidebar:
     st.markdown("### Einstellungen")
 
     # Spacial scope
-    status_quo_data = se.setting_spacial_scope()
+    status_quo_data = se.setting_spacial_scope(allow_region_selection=False)
 
     # Embargo
     reduction_import_russia = se.setting_embargo()
@@ -152,14 +152,16 @@ se.message_embargo_compensation(
 )
 
 scen_code = ut.get_scen_code(
-    # total_ng_import,
-    # total_ng_production,
-    # total_pl_import_russia,
-    # total_domestic_demand,
-    # total_ghd_demand,
-    # total_electricity_demand,
-    # total_industry_demand,
-    # total_exports_and_other,
+    st.session_state.spacial_scope,
+    status_quo_data.total_ng_import,
+    status_quo_data.total_lng_import,
+    status_quo_data.total_ng_production,
+    status_quo_data.total_pl_import_russia,
+    status_quo_data.total_domestic_demand,
+    status_quo_data.total_ghd_demand,
+    status_quo_data.total_electricity_demand,
+    status_quo_data.total_industry_demand,
+    status_quo_data.total_exports_and_other,
     red_dom_dem,
     red_elec_dem,
     red_ghd_dem,
@@ -169,7 +171,6 @@ scen_code = ut.get_scen_code(
     st.session_state.demand_reduction_date,
     st.session_state.lng_increase_date,
     reduction_import_russia,
-    # total_lng_import,
     add_lng_import,
     add_pl_import,
     consider_gas_reserve,
