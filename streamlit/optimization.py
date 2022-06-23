@@ -514,7 +514,10 @@ def run_scenario(
     )
 
     # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
-    buffer_value = 10  # storage_capacity / 100  # 10  # 5
+    if storage_capacity >500:
+        buffer_value = 10  # storage_capacity / 100  # 10  # 5
+    else:
+        buffer_value = 5
 
     # def Constr_soc_start_rule(pyM, t):
     #     if t < len(soc_max_hour):

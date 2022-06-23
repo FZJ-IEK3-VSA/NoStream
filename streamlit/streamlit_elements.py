@@ -51,6 +51,16 @@ class StatusQuoData:
         self.total_lng_import_russia = eurostat_api.natural_gas_import(
             spacial_scope, "lng", "RU"
         )
+
+        if spacial_scope == "DE":
+            export_de = (
+                787  # TWh/a  BDEW "Die Energieversorgung 2021 – Jahresbericht –"
+            )
+            share_russian_gas = self.total_ng_import_russia / self.total_ng_import
+            self.total_exports_and_other = self.total_exports_and_other + export_de
+            self.total_ng_import = self.total_ng_import + export_de
+            self.total_ng_import_russia = self.total_ng_import * share_russian_gas
+
         self.total_pl_import_russia = (
             self.total_ng_import_russia - self.total_lng_import_russia
         )
@@ -58,16 +68,26 @@ class StatusQuoData:
         # Storage
         self.storage_capacity = gie_api.get_max_storage_capacity(spacial_scope)
 
-        self.reserve_dates = [
-            datetime.datetime(2022, 8, 1, 0, 0),
-            datetime.datetime(2022, 9, 1, 0, 0),
-            datetime.datetime(2022, 10, 1, 0, 0),
-            datetime.datetime(2022, 11, 1, 0, 0),
-            datetime.datetime(2023, 2, 1, 0, 0),
-            datetime.datetime(2023, 5, 1, 0, 0),
-            datetime.datetime(2023, 7, 1, 0, 0),
-        ]
-        reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+        if spacial_scope == "DE":
+
+            self.reserve_dates = [
+                datetime.datetime(2022, 8, 1, 0, 0),
+                datetime.datetime(2022, 10, 1, 0, 0),
+                datetime.datetime(2022, 12, 1, 0, 0),
+                datetime.datetime(2023, 2, 1, 0, 0),
+            ]
+            reserve_soc_val_decimal = [0.65, 0.80, 0.90, 0.40]
+        else:
+            self.reserve_dates = [
+                datetime.datetime(2022, 8, 1, 0, 0),
+                datetime.datetime(2022, 9, 1, 0, 0),
+                datetime.datetime(2022, 10, 1, 0, 0),
+                datetime.datetime(2022, 11, 1, 0, 0),
+                datetime.datetime(2023, 2, 1, 0, 0),
+                datetime.datetime(2023, 5, 1, 0, 0),
+                datetime.datetime(2023, 7, 1, 0, 0),
+            ]
+            reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
         reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val_decimal]
 
         self.reserve_soc_val_abs = [
@@ -139,9 +159,9 @@ def sidebar_further_info():
 
     st.markdown("`NoStream 0.3`")
 
-    ga_widget = get_ga_values()
-
-    st.table(ga_widget)
+    # Google analytics
+    # ga_widget = get_ga_values()
+    # st.table(ga_widget)
 
 
 def start_optimization(
