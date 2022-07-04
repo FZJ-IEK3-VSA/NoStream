@@ -4,17 +4,10 @@ import numpy as np
 import datetime
 import streamlit as st
 
-with open("static/private_keys/gie_api_key.txt") as f:
-    lines = f.readlines()
-print(type(lines))
-print(lines)
-print(type(lines[0]))
-print(lines[0])
-
 
 @st.experimental_memo(show_spinner=False)
 def api_call(spacial_scope, start_day, end_day):
-    with open("static/gie_api_key.txt") as f:
+    with open("static/private_keys/gie_api_key.txt") as f:
         lines = f.readlines()
     api_key = lines[0]
     headers = {
