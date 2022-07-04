@@ -11,7 +11,7 @@ VIEW_ID = "269378613" if HOME == "/home/debian" else "269246028"
 # Create service credentials
 # Rename your JSON key to client_secrets.json and save it to your working folder
 credentials = ServiceAccountCredentials.from_json_keyfile_name(
-    "client_secrets.json", ["https://www.googleapis.com/auth/analytics.readonly"]
+    "static/private_keys/client_secrets.json", ["https://www.googleapis.com/auth/analytics.readonly"]
 )
 
 # Create a service object
