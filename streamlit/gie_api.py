@@ -4,7 +4,7 @@ import numpy as np
 import datetime
 import streamlit as st
 
-with open("static/gie_api_key.txt") as f:
+with open("static/private_keys/gie_api_key.txt") as f:
     lines = f.readlines()
 print(type(lines))
 print(lines)
