@@ -13,7 +13,8 @@ import os
 import requests
 import streamlit.components.v1 as components
 import httplib2
-from ga import get_ga_values
+
+# from ga import get_ga_values
 
 # spacial scope
 

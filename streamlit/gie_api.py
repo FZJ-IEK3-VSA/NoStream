@@ -33,7 +33,7 @@ def api_call(spacial_scope, start_day, end_day):
     payload = {}
     payload["from"] = start_day
     payload["till"] = end_day
-    payload["limit"] = "9999"
+    payload["limit"] = "730"
 
     r2 = session.get(url_meta, params=payload, headers=headers)
     data_json = r2.json()
