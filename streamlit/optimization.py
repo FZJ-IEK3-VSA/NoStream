@@ -101,7 +101,7 @@ def run_scenario(
     # Time index slack stop
     # TODO dynamically adapt to storage data
     time_index_slack = pd.date_range(
-        start_date, periods=len(soc_max_hour) - 1, freq="H"
+        start_date, periods=len(soc_max_hour) - 3, freq="H"
     )
 
     # Time index reduced demand
@@ -231,10 +231,18 @@ def run_scenario(
     domProd = pd.Series(ts_const * total_ng_production, index=time_index)
 
     # Slack supply
+    max_slack = float("inf")
     slackImp = pd.Series(ts_const * 0, index=time_index)
-    slackImp_high = pd.Series(ts_const * float("inf"), index=time_index)  # float("inf")
+    slackImp_high = pd.Series(ts_const * max_slack, index=time_index)  # float("inf")
 
     slackImp[time_index_slack] = slackImp_high[time_index_slack]
+
+    slackImp_neg = pd.Series(ts_const * 0, index=time_index)
+    slackImp_neg_high = pd.Series(
+        ts_const * -max_slack, index=time_index
+    )  # float("inf")
+
+    slackImp_neg[time_index_slack] = slackImp_neg_high[time_index_slack]
 
     ###############################################################################
     ############                      Optimization                     ############
@@ -265,6 +273,7 @@ def run_scenario(
     pyM.plServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.prodServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
     pyM.slackServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonNegativeReals)
+    pyM.slackNegServed = pyomo.Var(pyM.TimeSet, domain=pyomo.NonPositiveReals)
 
     print(80 * "=")
     print("Variables created.")
@@ -306,6 +315,17 @@ def run_scenario(
 
     pyM.Constr_slack_ub = pyomo.Constraint(pyM.TimeSet, rule=Constr_slack_ub_rule)
 
+    # slack neg
+    def Constr_slack_neg_lb_rule(pyM, t):
+        if t < timeSteps[-1]:
+            return pyM.slackNegServed[t] >= slackImp_neg.iloc[t]
+        else:
+            return pyomo.Constraint.Skip
+
+    pyM.Constr_slack_neg_lb = pyomo.Constraint(
+        pyM.TimeSet, rule=Constr_slack_neg_lb_rule
+    )
+
     print(80 * "=")
     print("pipe and lng constraint created.")
     print(80 * "=")
@@ -321,6 +341,7 @@ def run_scenario(
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storage_capacity
             + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
             + 1 * sum(fac ** t * pyM.slackServed[t] for t in timeSteps[:-1])
+            - 1 * sum(fac ** t * pyM.slackNegServed[t] for t in timeSteps[:-1])
             + 3.0
             * sum(
                 fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
@@ -369,6 +390,7 @@ def run_scenario(
                 + pyM.lngServed[t]
                 + pyM.prodServed[t]
                 + pyM.slackServed[t]
+                + pyM.slackNegServed[t]
             )
         else:
             return pyomo.Constraint.Skip
@@ -480,27 +502,10 @@ def run_scenario(
         pyM.TimeSet, rule=Constr_UncurtailedDemand_rule
     )
 
-    # fix the initial (past) state of charge to historic value (slightly relaxed with buffer +/-10 TWh)
-    if storage_capacity > 500:
-        buffer_value = 10  # storage_capacity / 100  # 10  # 5
-    else:
-        buffer_value = 5
-
-    # def Constr_soc_start_rule(pyM, t):
-    #     if t < len(soc_max_hour):
-    #         return pyM.Soc[t] == soc_max_hour[t]  # + buffer_value
-    #     else:
-    #         return pyomo.Constraint.Skip
-
-    # pyM.Constr_Soc_start = pyomo.Constraint(pyM.TimeSet, rule=Constr_soc_start_rule)
-
-    # for t in timeSteps:
-    #     if t < len(soc_max_hour):
-    #         pyM.Soc[t].fix(soc_max_hour[t])
-
+    # slack variable
     def Constr_soc_start_ub_rule(pyM, t):
         if t < len(soc_max_hour):
-            return pyM.Soc[t] <= soc_max_hour[t] + buffer_value
+            return pyM.Soc[t] <= soc_max_hour[t]
         else:
             return pyomo.Constraint.Skip
 
@@ -510,7 +515,7 @@ def run_scenario(
 
     def Constr_soc_start_lb_rule(pyM, t):
         if t < len(soc_max_hour):
-            return pyM.Soc[t] >= soc_max_hour[t] - buffer_value
+            return pyM.Soc[t] >= soc_max_hour[t]
         else:
             return pyomo.Constraint.Skip
 
@@ -531,15 +536,20 @@ def run_scenario(
     # set solver details
     # Check which solvers are available and choose default solver if no solver is specified explicitely
     # Order of possible solvers in solverList defines the priority of chosen default solver.
-    solverList = ["cbc", "gurobi", "glpk"]
-    solver = "cbc"
+    solverList = ["gurobi", "cbc", "glpk"]
+    # solver = "cbc"
 
-    if opt.SolverFactory("gurobi").available():
-        solver = "gurobi"
-    elif opt.SolverFactory("cbc").available():
-        solver = "cbc"
-    else:
-        solver = "glpk"
+    for solver_option in solverList:
+        if opt.SolverFactory(solver_option).available():
+            solver = solver_option
+            break
+
+    # if opt.SolverFactory("gurobi").available():
+    #     solver = "gurobi"
+    # elif opt.SolverFactory("cbc").available():
+    #     solver = "cbc"
+    # else:
+    #     solver = "glpk"
 
     optimizer = opt.SolverFactory(solver)
     solver_info = optimizer.solve(pyM, tee=True)

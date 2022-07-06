@@ -38,8 +38,6 @@ if "lng_increase_date" not in st.session_state:
 if "spacial_scope" not in st.session_state:
     st.session_state.spacial_scope = "EU"  # EU DE
 
-# status_quo_data = se.StatusQuoData(st.session_state.spacial_scope)
-# status_quo_data = se.get_status_quo_data(st.session_state.spacial_scope)
 
 # Default inputs
 if "df" not in st.session_state:
