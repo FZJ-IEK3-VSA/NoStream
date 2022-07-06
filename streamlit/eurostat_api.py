@@ -112,6 +112,9 @@ def get_sector_data(spacial_scope, sector, year=2019):
     else:
         value = get_eurostat_data(year, spacial_scope, balance_dict.get(sector, sector))
 
+    if value == float("nan"):
+        print(spacial_scope, sector, year)
+        value = 0
     return value
 
 

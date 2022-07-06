@@ -168,8 +168,9 @@ def sidebar_further_info():
     # st.markdown("")
     ga_widget = get_ga_values()
     # ga_widget.to_csv("ga_statistics.csv")
-    # with st.expander("Statistik", expanded=False):
-    #     st.table(ga_widget)
+    st.markdown("# ")
+    with st.expander("Statistik", expanded=False):
+        st.table(ga_widget)
 
 
 def start_optimization(
