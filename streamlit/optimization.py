@@ -90,6 +90,12 @@ def run_scenario(
     # Time index defualt
     time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
+    # Time index till today, no optimization (fix)
+    end_date = datetime.datetime.today()
+    timedelta = end_date - datetime_start
+    number_periods_fix = (timedelta.days + 1) * 24
+    time_index_fix = pd.date_range(start_date, periods=number_periods_fix, freq="H")
+
     # Time index import stop
     time_index_pl_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
@@ -574,6 +580,10 @@ def run_scenario(
     expAndOtherServedList = pd.Series(
         [pyM.expAndOtherServed[t].value for t in timeSteps[:-1]]
     )
+
+    plServedList[:number_periods_fix] = plImp[:number_periods_fix]
+    lngServedList[:number_periods_fix] = lngImp[:number_periods_fix]
+    prodServedList[:number_periods_fix] = domProd[:number_periods_fix]
 
     print("building DataFrame...")
     df = pd.DataFrame()

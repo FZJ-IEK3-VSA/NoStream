@@ -4,7 +4,7 @@ openpyxl
 streamlit
 pyutilib
 plotly
-pyomo
+pyomo 
 google-api-python-client
 oauth2client
 eurostat

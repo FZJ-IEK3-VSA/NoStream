@@ -49,7 +49,7 @@ if "input_data" not in st.session_state:
 # Streamlit App
 icon_dict = {"EU": "🇪🇺", "DE": "🇩🇪"}
 st.set_page_config(
-    page_title="No Stream",
+    page_title="NoStream",
     page_icon="🇪🇺",  # icon_dict.get(st.session_state.spacial_scope),
     layout="wide",
     initial_sidebar_state="expanded",  # wide centered
@@ -64,7 +64,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-st.markdown("# No Stream: Erdgas Energy Dashboard")
+st.markdown("# NoStream: Erdgas Energy Dashboard")
 
 st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte")
 
@@ -182,18 +182,35 @@ start_opti = st.button("Optimierung ausführen")
 
 if start_opti:
     # Optimization
-    st.session_state.df, st.session_state.input_data = se.start_optimization(
-        add_lng_import,
-        add_pl_import,
-        red_ind_dem,
-        red_elec_dem,
-        red_ghd_dem,
-        red_dom_dem,
-        red_exp_dem,
-        reduction_import_russia,
-        consider_gas_reserve,
-        status_quo_data,
+    print(
+        [
+            add_lng_import,
+            add_pl_import,
+            red_ind_dem,
+            red_elec_dem,
+            red_ghd_dem,
+            red_dom_dem,
+            red_exp_dem,
+            reduction_import_russia,
+            consider_gas_reserve,
+            status_quo_data,
+        ]
     )
+    try:
+        st.session_state.df, st.session_state.input_data = se.start_optimization(
+            add_lng_import,
+            add_pl_import,
+            red_ind_dem,
+            red_elec_dem,
+            red_ghd_dem,
+            red_dom_dem,
+            red_exp_dem,
+            reduction_import_russia,
+            consider_gas_reserve,
+            status_quo_data,
+        )
+    except Exception as e:
+        st.write(e)
 
     # Plotting
     se.plot_optimization_results(st.session_state.df, status_quo_data)

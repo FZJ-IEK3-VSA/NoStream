@@ -101,7 +101,7 @@ class StatusQuoData:
         )
 
 
-@st.experimental_memo(show_spinner=False)
+# @st.experimental_memo(show_spinner=False)
 def get_status_quo_data(spacial_scope):
     return StatusQuoData(spacial_scope)
 
@@ -160,12 +160,12 @@ def sidebar_further_info():
         "💡 [Verbesserungsvorschläge](https://github.com/FZJ-IEK3-VSA/NoStream/issues)"
     )
 
-    st.markdown("`NoStream 0.3`")
+    st.markdown("`NoStream 0.4`")
 
     # Google analytics
     # st.markdown("")
     # st.markdown("")
-    # st.markdown("")
+    # st.markdown("")start_optimization
     ga_widget = get_ga_values()
     # ga_widget.to_csv("ga_statistics.csv")
     st.markdown("# ")
@@ -608,9 +608,9 @@ def getFig_optimization_results(
 ):
     # df_og = df.copy()
     # Prevent flickering at the beginning
-    df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
-    df.loc[0:1080, "plImp_served"] = df.loc[0:1080, "plImp"]
-    df.loc[0:1080, "domProd_served"] = df.loc[0:1080, "domProd"]
+    # df.loc[0:1080, "lngImp_served"] = df.loc[0:1080, "lngImp"]
+    # df.loc[0:1080, "plImp_served"] = df.loc[0:1080, "plImp"]
+    # df.loc[0:1080, "domProd_served"] = df.loc[0:1080, "domProd"]
 
     # Prevent last values from being zero
     df.loc[len(df) - 3 : len(df), "lngImp_served"] = df.loc[
@@ -1076,7 +1076,7 @@ def setting_compensation(
             "LNG [TWh/a]¹",
             min_value=0,
             max_value=2025 - rounded_int(status_quo_data.total_lng_import),
-            value=0,  # rounded_int(0.9 * 2025 - status_quo_data.total_lng_import),
+            value=390,  # rounded_int(0.9 * 2025 - status_quo_data.total_lng_import),
         )
         lng_import = rounded_int(status_quo_data.total_lng_import)
         streamlit_object.markdown(
