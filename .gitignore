@@ -8,6 +8,7 @@ analysis/regions/*
 Results_Optimization/
 Archiv/
 Archive/*
+static/private_keys
 # /static/private_keys/*
 
 # File types to ignore
