@@ -14,7 +14,7 @@ compact = True  # Use compact version of the app
 
 ### Streamlit App
 st.set_page_config(
-    page_title="No Stream",
+    page_title="NoStream",
     page_icon="🇪🇺",
     layout="centered",  # wide centered
     initial_sidebar_state="collapsed",  # expanded
@@ -28,7 +28,7 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-st.markdown("# No Stream: Erdgas Energy Dashboard")
+st.markdown("# NoStream: Erdgas Energy Dashboard")
 
 
 with st.sidebar:

@@ -3,6 +3,15 @@ import pandas as pd
 import numpy as np
 import datetime
 import streamlit as st
+import json
+
+
+def fetch(session, url, payload, headers):
+    try:
+        result = session.get(url, params=payload, headers=headers)
+        return result.json()
+    except Exception:
+        return {}
 
 
 @st.experimental_memo(show_spinner=False)
@@ -10,34 +19,44 @@ def api_call(spacial_scope, start_day, end_day):
     with open("static/private_keys/gie_api_key.txt") as f:
         lines = f.readlines()
     api_key = lines[0]
+
+    # convert datetime to string
+    start_day_str = (start_day.strftime("%Y-%m-%d")).replace("-0", "-")
+    end_day_str = (end_day.strftime("%Y-%m-%d")).replace("-0", "-")
+
+    # days between start and end day
+    # timedelta = end_day - start_day
+    # timedelta = (timedelta.days + 1)*2
+    timedelta = 730
+
+    session = Session()
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "de,en-US;q=0.7,en;q=0.3",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Host": "agsi.gie.eu",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "TE": "trailers",
-        "Upgrade-Insecure-Requests": "1",
         "x-key": api_key,
     }
 
-    session = Session()
-    url_meta = f"https://agsi.gie.eu/api/data/{spacial_scope}"
-
-    # Create dataframe with data from first day
     payload = {}
     payload["from"] = start_day
     payload["till"] = end_day
-    payload["limit"] = "730"
+    payload["limit"] = str(timedelta)
 
-    r2 = session.get(url_meta, params=payload, headers=headers)
-    data_json = r2.json()
-    data_df = pd.json_normalize(data_json["data"])
+    if "eu" in spacial_scope.lower():
+        # url = f"https://agsi.gie.eu/api?type={spacial_scope}&from={start_day_str}&to={end_day_str}&size={timedelta}"  # &size={timedelta}"
+        url = f"https://agsi.gie.eu/api/data/{spacial_scope}"
+    else:
+        # TODO check if size argument is breaking api
+        url = f"https://agsi.gie.eu/api?country={spacial_scope}&from={start_day_str}&to={end_day_str}&size={timedelta}"
+
+    print(url)
+
+    try:
+        request = session.get(url, params=payload, headers=headers)
+        data_json = request.json()
+        data_df = pd.json_normalize(data_json["data"])
+        print(data_df.head())
+    except:
+        # TODO reload data if api call fails
+        data_df = pd.DataFrame()
     return data_df
 
 
@@ -67,11 +86,9 @@ def get_storage_capacity(spacial_scope, today):
     return soc_fix_hour
 
 
-# get_storage_capacity("DE", datetime.datetime.today())
-
-
 @st.experimental_memo(show_spinner=False)
 def get_max_storage_capacity(spacial_scope):
+    # period for which the average gas storage capacity should be derived from
     start_day = datetime.date(2021, 1, 1)
     end_day = datetime.date(2021, 12, 31)
 
@@ -82,6 +99,3 @@ def get_max_storage_capacity(spacial_scope):
     max_storage_capacity = wgv.mean()
 
     return max_storage_capacity
-
-
-# get_storage_capacity("DE", datetime.datetime.today())
