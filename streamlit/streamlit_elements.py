@@ -166,11 +166,15 @@ def sidebar_further_info():
     # st.markdown("")
     # st.markdown("")
     # st.markdown("")start_optimization
-    ga_widget = get_ga_values()
-    # ga_widget.to_csv("ga_statistics.csv")
-    st.markdown("# ")
-    with st.expander("Statistik", expanded=False):
-        st.table(ga_widget)
+    try:
+        ga_widget = get_ga_values()
+        # ga_widget.to_csv("ga_statistics.csv")
+        st.markdown("# ")
+        with st.expander("Statistik", expanded=False):
+            st.table(ga_widget)
+            st.markdown("")
+    except:
+        print("Failed to load google analytics")
 
 
 def start_optimization(
