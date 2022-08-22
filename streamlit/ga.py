@@ -4,6 +4,7 @@ import pandas as pd
 import httplib2
 import os
 
+
 def get_ga_values():
     # Get GA view-id for development or production environments
     HOME = os.environ.get("HOME")
@@ -12,7 +13,8 @@ def get_ga_values():
     # Create service credentials
     # Rename your JSON key to client_secrets.json and save it to your working folder
     credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        "static/private_keys/client_secrets.json", ["https://www.googleapis.com/auth/analytics.readonly"]
+        "static/private_keys/client_secrets.json",
+        ["https://www.googleapis.com/auth/analytics.readonly"],
     )
 
     # Create a service object
@@ -21,7 +23,9 @@ def get_ga_values():
         "analytics",
         "v4",
         http=http,
-        discoveryServiceUrl=("https://analyticsreporting.googleapis.com/$discovery/rest"),
+        discoveryServiceUrl=(
+            "https://analyticsreporting.googleapis.com/$discovery/rest"
+        ),
     )
     response = (
         service.reports()
@@ -53,12 +57,13 @@ def get_ga_values():
     ]
     users = []
 
-
     # # Extract Data
     for report in response.get("reports", []):
         columnHeader = report.get("columnHeader", {})
         dimensionHeaders = columnHeader.get("dimensions", [])
-        metricHeaders = columnHeader.get("metricHeader", {}).get("metricHeaderEntries", [])
+        metricHeaders = columnHeader.get("metricHeader", {}).get(
+            "metricHeaderEntries", []
+        )
         rows = report.get("data", {}).get("rows", [])
 
         for row in rows:
@@ -66,7 +71,6 @@ def get_ga_values():
             for i, values in enumerate(dateRangeValues):
                 for metricHeader, value in zip(metricHeaders, values.get("values")):
                     users.append(int(value))
-
 
     df = pd.DataFrame()
     df["Aufrufe"] = users

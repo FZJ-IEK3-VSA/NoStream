@@ -107,7 +107,7 @@ def run_scenario(
     # Time index slack stop
     # TODO dynamically adapt to storage data
     time_index_slack = pd.date_range(
-        start_date, periods=len(soc_max_hour) - 3, freq="H"
+        start_date, periods=len(soc_max_hour) - 1, freq="H"
     )
 
     # Time index reduced demand

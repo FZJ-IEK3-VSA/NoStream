@@ -5,6 +5,7 @@ import datetime
 import streamlit as st
 import json
 
+# GCV_to_LCV = 1.1107
 
 def fetch(session, url, payload, headers):
     try:
@@ -47,13 +48,10 @@ def api_call(spacial_scope, start_day, end_day):
         # TODO check if size argument is breaking api
         url = f"https://agsi.gie.eu/api?country={spacial_scope}&from={start_day_str}&to={end_day_str}&size={timedelta}"
 
-    print(url)
-
     try:
         request = session.get(url, params=payload, headers=headers)
         data_json = request.json()
         data_df = pd.json_normalize(data_json["data"])
-        print(data_df.head())
     except:
         # TODO reload data if api call fails
         data_df = pd.DataFrame()
@@ -83,7 +81,7 @@ def get_storage_capacity(spacial_scope, today):
     # convert to list
     soc_fix_hour = soc_fix_hour.tolist()
 
-    return soc_fix_hour
+    return soc_fix_hour # unit TWh GCV
 
 
 @st.experimental_memo(show_spinner=False)
@@ -98,4 +96,4 @@ def get_max_storage_capacity(spacial_scope):
 
     max_storage_capacity = wgv.mean()
 
-    return max_storage_capacity
+    return max_storage_capacity # unit TWh GCV

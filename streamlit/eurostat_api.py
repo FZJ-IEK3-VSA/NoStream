@@ -14,15 +14,13 @@ import streamlit as st
 # f = eurostat.subset_toc_df(toc_df, 'fleet')
 
 KTOE_to_TWH = 0.011630000  # TWh/KTOE
+GCV_to_LCV = 1.1107
 
 
 @st.experimental_memo(show_spinner=False)
 def get_eurostat_data(year, spacial_scope, nrg_bal, siec="G3000", unit="KTOE"):
     if spacial_scope == "EU":
         spacial_scope = "EU27_2020"
-
-    # G3000_C0350
-    KTOE_to_TWH = 0.011630000  # TWh/KTOE
 
     if isinstance(nrg_bal, list):
         nrg_bal_list = nrg_bal
@@ -84,9 +82,8 @@ def get_sector_data(spacial_scope, sector, year=2019):
         "remaining_sinks": [
             "EXP",
             "STATDIFF_OUTFLOW",
-            "STK_BLD",
             "FC_TRA_E",
-            "FC_OTH_NSP_E",  # final consumption transport
+            "FC_OTH_NSP_E",
             "FC_OTH_AF_E",
             "DL",
             "TI_GW_E",
@@ -103,9 +100,6 @@ def get_sector_data(spacial_scope, sector, year=2019):
     if isinstance(sector, list):
         value = get_eurostat_data(year, spacial_scope, sector)
     elif sector == "export_and_others":
-        # sources = get_eurostat_data(year, spacial_scope, balance_dict.get("sources"))
-        # sinks = get_eurostat_data(year, spacial_scope, balance_dict.get("sinks"))
-        # value = sources - sinks
         value = get_eurostat_data(
             year, spacial_scope, balance_dict.get("remaining_sinks")
         )
@@ -115,7 +109,11 @@ def get_sector_data(spacial_scope, sector, year=2019):
     if value == float("nan"):
         print(spacial_scope, sector, year)
         value = 0
-    return value
+
+    # LCV -> GHV
+    value = value * GCV_to_LCV
+
+    return value  # unit TWh GCV
 
 
 # 'IMP', 'EXP', 'PPRD', 'PRD',
@@ -187,8 +185,4 @@ def natural_gas_import(spacial_scope, commodity, partner, unit="TJ_GCV", year=20
     if "TJ" in unit:
         value = value * TJ_to_TWH
 
-        if "GCV" in unit:
-            # Brennwert -> Heizwert
-            value = value / 1.11111
-
-    return value
+    return value  # unit TWh GCV
