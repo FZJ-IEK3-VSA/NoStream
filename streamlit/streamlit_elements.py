@@ -9,11 +9,6 @@ from ga import get_ga_values
 import eurostat_api
 import gie_api
 
-try:
-    from streamlit_lottie import st_lottie_spinner
-except:
-    print("Failed to load streamlit_lottie")
-
 FZJcolor = ut.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 font_dict = dict(size=16)
@@ -82,7 +77,7 @@ class StatusQuoData:
             reserve_soc_val_decimal = [0.65, 0.80, 0.90, 0.40]
         else:
             self.reserve_dates = [
-                datetime.datetime(2022, 8, 1, 0, 0),
+                # datetime.datetime(2022, 8, 1, 0, 0),
                 datetime.datetime(2022, 9, 1, 0, 0),
                 datetime.datetime(2022, 10, 1, 0, 0),
                 datetime.datetime(2022, 11, 1, 0, 0),
@@ -90,7 +85,8 @@ class StatusQuoData:
                 datetime.datetime(2023, 5, 1, 0, 0),
                 datetime.datetime(2023, 7, 1, 0, 0),
             ]
-            reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+            # reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
+            reserve_soc_val_decimal = [0.619, 0.738, 0.80, 0.429, 0.342, 0.529]
         reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val_decimal]
 
         self.reserve_soc_val_abs = [
@@ -166,22 +162,26 @@ def sidebar_further_info():
     # st.markdown("")
     # st.markdown("")
     # st.markdown("")start_optimization
-    ga_widget = get_ga_values()
-    # ga_widget.to_csv("ga_statistics.csv")
-    st.markdown("# ")
-    with st.expander("Statistik", expanded=False):
-        st.table(ga_widget)
+    try:
+        ga_widget = get_ga_values()
+        # ga_widget.to_csv("ga_statistics.csv")
+        st.markdown("# ")
+        with st.expander("Statistik", expanded=False):
+            st.table(ga_widget)
+            st.markdown("")
+    except:
+        print("Failed to load google analytics")
 
 
 def start_optimization(
-    add_lng_import,
-    add_pl_import,
-    red_ind_dem,
-    red_elec_dem,
-    red_ghd_dem,
-    red_dom_dem,
-    red_exp_dem,
-    reduction_import_russia,
+    # add_lng_import,
+    # add_pl_import,
+    # red_ind_dem,
+    # red_elec_dem,
+    # red_ghd_dem,
+    # red_dom_dem,
+    # red_exp_dem,
+    # reduction_import_russia,
     consider_gas_reserve,
     status_quo_data,
 ):
@@ -204,17 +204,17 @@ def start_optimization(
                 total_electricity_demand=status_quo_data.total_electricity_demand,
                 total_industry_demand=status_quo_data.total_industry_demand,
                 total_exports_and_other=status_quo_data.total_exports_and_other,
-                red_dom_dem=red_dom_dem,
-                red_elec_dem=red_elec_dem,
-                red_ghd_dem=red_ghd_dem,
-                red_ind_dem=red_ind_dem,
-                red_exp_dem=red_exp_dem,
+                red_dom_dem=st.session_state.red_dom_dem,
+                red_elec_dem=st.session_state.red_elec_dem,
+                red_ghd_dem=st.session_state.red_ghd_dem,
+                red_ind_dem=st.session_state.red_ind_dem,
+                red_exp_dem=st.session_state.red_exp_dem,
                 import_stop_date=st.session_state.import_stop_date,
                 demand_reduction_date=st.session_state.demand_reduction_date,
                 lng_increase_date=st.session_state.lng_increase_date,
-                reduction_import_russia=reduction_import_russia,
-                add_lng_import=add_lng_import,
-                add_pl_import=add_pl_import,
+                reduction_import_russia=st.session_state.reduction_import_russia,
+                add_lng_import=st.session_state.add_lng_import,
+                add_pl_import=st.session_state.add_pl_import,
                 consider_gas_reserve=consider_gas_reserve,
                 reserve_dates=st.session_state.reserve_dates,
                 reserve_soc_val=st.session_state.reserve_soc_val_abs,
@@ -229,14 +229,14 @@ def start_optimization(
 
 # @st.experimental_memo(show_spinner=False)
 def getFig_import_gap(
-    reduction_import_russia,
-    red_exp_dem,
-    red_dom_dem,
-    red_elec_dem,
-    red_ghd_dem,
-    red_ind_dem,
-    add_lng_import,
-    add_pl_import,
+    # reduction_import_russia,
+    # red_exp_dem,
+    # red_dom_dem,
+    # red_elec_dem,
+    # red_ghd_dem,
+    # red_ind_dem,
+    # add_lng_import,
+    # add_pl_import,
     status_quo_data,
     compact=False,
 ):
@@ -247,7 +247,10 @@ def getFig_import_gap(
     ## Import gap
     ypos = 0
     yvals = yempty.copy()
-    yvals[ypos] = status_quo_data.total_lng_import_russia * reduction_import_russia
+    yvals[ypos] = (
+        status_quo_data.total_lng_import_russia
+        * st.session_state.reduction_import_russia
+    )
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -259,7 +262,10 @@ def getFig_import_gap(
         )
     )
 
-    yvals[ypos] = status_quo_data.total_pl_import_russia * reduction_import_russia
+    yvals[ypos] = (
+        status_quo_data.total_pl_import_russia
+        * st.session_state.reduction_import_russia
+    )
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -274,7 +280,7 @@ def getFig_import_gap(
     ypos = 1
     yvals = yempty.copy()
 
-    yvals[ypos] = add_lng_import
+    yvals[ypos] = st.session_state.add_lng_import
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -286,8 +292,8 @@ def getFig_import_gap(
         )
     )
 
-    if add_pl_import > 0:
-        yvals[ypos] = add_pl_import
+    if st.session_state.add_pl_import > 0:
+        yvals[ypos] = st.session_state.add_pl_import
         fig.add_trace(
             go.Bar(
                 x=xval,
@@ -298,8 +304,10 @@ def getFig_import_gap(
             )
         )
 
-    if red_exp_dem > 0:
-        yvals[ypos] = status_quo_data.total_exports_and_other * red_exp_dem
+    if st.session_state.red_exp_dem > 0:
+        yvals[ypos] = (
+            status_quo_data.total_exports_and_other * st.session_state.red_exp_dem
+        )
         fig.add_trace(
             go.Bar(
                 x=xval,
@@ -310,7 +318,7 @@ def getFig_import_gap(
             )
         )
 
-    yvals[ypos] = status_quo_data.total_domestic_demand * red_dom_dem
+    yvals[ypos] = status_quo_data.total_domestic_demand * st.session_state.red_dom_dem
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -322,7 +330,7 @@ def getFig_import_gap(
         )
     )
 
-    yvals[ypos] = status_quo_data.total_ghd_demand * red_ghd_dem
+    yvals[ypos] = status_quo_data.total_ghd_demand * st.session_state.red_ghd_dem
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -333,7 +341,9 @@ def getFig_import_gap(
         )
     )
 
-    yvals[ypos] = status_quo_data.total_electricity_demand * red_elec_dem
+    yvals[ypos] = (
+        status_quo_data.total_electricity_demand * st.session_state.red_elec_dem
+    )
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -344,7 +354,7 @@ def getFig_import_gap(
         )
     )
 
-    yvals[ypos] = status_quo_data.total_industry_demand * red_ind_dem
+    yvals[ypos] = status_quo_data.total_industry_demand * st.session_state.red_ind_dem
     fig.add_trace(
         go.Bar(
             x=xval,
@@ -368,27 +378,27 @@ def getFig_import_gap(
 
 
 def plot_import_gap(
-    reduction_import_russia,
-    red_exp_dem,
-    red_dom_dem,
-    red_elec_dem,
-    red_ghd_dem,
-    red_ind_dem,
-    add_lng_import,
-    add_pl_import,
+    # reduction_import_russia,
+    # red_exp_dem,
+    # red_dom_dem,
+    # red_elec_dem,
+    # red_ghd_dem,
+    # red_ind_dem,
+    # add_lng_import,
+    # add_pl_import,
     status_quo_data,
     streamlit_object=st,
     compact=False,
 ):
     fig = getFig_import_gap(
-        reduction_import_russia,
-        red_exp_dem,
-        red_dom_dem,
-        red_elec_dem,
-        red_ghd_dem,
-        red_ind_dem,
-        add_lng_import,
-        add_pl_import,
+        # reduction_import_russia,
+        # red_exp_dem,
+        # red_dom_dem,
+        # red_elec_dem,
+        # red_ghd_dem,
+        # red_ind_dem,
+        # add_lng_import,
+        # add_pl_import,
         status_quo_data,
         compact=compact,
     )
@@ -963,13 +973,13 @@ def setting_compensation(
         cols = streamlit_object.columns(2)
 
         so = cols[0]
-        red_ind_dem = (
+        st.session_state.red_ind_dem = (
             so.slider(
                 "Industrie",
-                key="red_ind_dem",
+                key="red_ind_dem_key",
                 min_value=0,
                 max_value=100,
-                value=8,
+                value=int(st.session_state.red_ind_dem * 100),
                 step=1,
                 format=format_percent,
             )
@@ -977,13 +987,14 @@ def setting_compensation(
         )
 
         so = cols[1]
-        red_elec_dem = (
+
+        st.session_state.red_elec_dem = (
             so.slider(
                 "Kraft- und Heizwerke",
-                key="red_elec_dem",
+                key="red_elec_dem_key",
                 min_value=0,
                 max_value=100,
-                value=20,
+                value=int(st.session_state.red_elec_dem * 100),
                 step=1,
                 format=format_percent,
             )
@@ -993,13 +1004,13 @@ def setting_compensation(
         cols = st.columns(2)
         # so = cols[0] if compact else st
         so = cols[0]
-        red_ghd_dem = (
+        st.session_state.red_ghd_dem = (
             so.slider(
                 "Handel/Dienstleistung",
-                key="red_ghd_dem",
+                key="red_ghd_dem_key",
                 min_value=0,
                 max_value=100,
-                value=8,
+                value=int(st.session_state.red_ghd_dem * 100),
                 step=1,
                 format=format_percent,
             )
@@ -1007,47 +1018,52 @@ def setting_compensation(
         )
 
         so = cols[1]
-        red_dom_dem = (
+        st.session_state.red_dom_dem = (
             so.slider(
                 "Haushalte",
-                key="red_dom_dem",
+                key="red_dom_dem_key",
                 min_value=0,
                 max_value=100,
-                value=13,
+                value=int(st.session_state.red_dom_dem * 100),
                 step=1,
                 format=format_percent,
             )
             / 100
         )
 
-        red_exp_dem = 0
         if not compact:
             # Reduction in exports equals the average reduction in the other sectors
-            red_exp_dem = (
-                red_dom_dem * status_quo_data.total_domestic_demand
-                + red_ghd_dem * status_quo_data.total_ghd_demand
-                + red_elec_dem * status_quo_data.total_electricity_demand
-                + red_ind_dem * status_quo_data.total_industry_demand
+            st.session_state.red_exp_dem = (
+                st.session_state.red_dom_dem * status_quo_data.total_domestic_demand
+                + st.session_state.red_ghd_dem * status_quo_data.total_ghd_demand
+                + st.session_state.red_elec_dem
+                * status_quo_data.total_electricity_demand
+                + st.session_state.red_ind_dem * status_quo_data.total_industry_demand
             ) / (
                 status_quo_data.total_domestic_demand
                 + status_quo_data.total_ghd_demand
                 + status_quo_data.total_electricity_demand
                 + status_quo_data.total_industry_demand
             )
-            red_exp_dem = int(round(100 * red_exp_dem, 0))
+            # st.session_state.red_exp_dem = int(
+            #     round(100 * st.session_state.red_exp_dem, 0)
+            # )
 
             cols = st.columns(2)
             so = cols[0]
-            red_exp_dem = so.slider(
-                "Exporte etc.",
-                key="red_exp_dem",
-                min_value=0,
-                max_value=100,
-                value=red_exp_dem,
-                step=1,
-                format=format_percent,
+            st.session_state.red_exp_dem = (
+                so.slider(
+                    "Exporte etc.",
+                    key="red_exp_dem_key",
+                    min_value=0,
+                    max_value=100,
+                    value=int(round(st.session_state.red_exp_dem * 100, 0)),
+                    step=1,
+                    format=format_percent,
+                )
+                / 100
             )
-            red_exp_dem /= 100
+            # st.session_state.red_exp_dem /= 100
 
             # Date for start of the reduction
             date_input_red = streamlit_object.empty()
@@ -1072,11 +1088,13 @@ def setting_compensation(
         # Additional lng imports
         cols = streamlit_object.columns(2)
         so = cols[0] if not compact else st
-        add_lng_import = so.slider(
+        st.session_state.add_lng_import = so.slider(
             "LNG [TWh/a]¹",
             min_value=0,
-            max_value=2025 - rounded_int(status_quo_data.total_lng_import),
-            value=390,  # rounded_int(0.9 * 2025 - status_quo_data.total_lng_import),
+            max_value=rounded_int(2025) - rounded_int(status_quo_data.total_lng_import),
+            value=rounded_int(
+                st.session_state.add_lng_import
+            ),  # rounded_int(0.9 * 2025 - status_quo_data.total_lng_import),
         )
         lng_import = rounded_int(status_quo_data.total_lng_import)
         streamlit_object.markdown(
@@ -1085,10 +1103,12 @@ def setting_compensation(
 
         # Additional pipeline imports
         so = cols[1]
-        add_pl_import = 0
         if not compact:
-            add_pl_import = so.slider(
-                "Pipeline [TWh/a]²", min_value=0, max_value=300, value=add_pl_import,
+            st.session_state.add_pl_import = so.slider(
+                "Pipeline [TWh/a]²",
+                min_value=0,
+                max_value=300,
+                value=rounded_int(st.session_state.add_pl_import),
             )
             streamlit_object.markdown(
                 f"² Im Vergleich zum Höchstwert von Erdgaslieferungen (im Jahr 2017) können theoretisch weitere 26,1 Mrd. m³ Erdgas (~285 TWh/a) aus Norwegen, Algerien und UK importiert werden."
@@ -1111,15 +1131,15 @@ def setting_compensation(
                 st.session_state.lng_increase_date.toordinal()
             )
 
-        return (
-            red_ind_dem,
-            red_elec_dem,
-            red_ghd_dem,
-            red_dom_dem,
-            red_exp_dem,
-            add_lng_import,
-            add_pl_import,
-        )
+        # return (
+        #     st.session_state.red_ind_dem,
+        #     st.session_state.red_elec_dem,
+        #     st.session_state.red_ghd_dem,
+        #     st.session_state.red_dom_dem,
+        #     st.session_state.red_exp_dem,
+        #     st.session_state.add_lng_import,
+        #     st.session_state.add_pl_import,
+        # )
 
 
 eu27 = [
@@ -1169,17 +1189,17 @@ def setting_spacial_scope(
 def setting_embargo(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Embargo", expanded=expanded):
 
-        reduction_import_russia = 100
+        # reduction_import_russia = 100
         if not compact:
-            reduction_import_russia = st.slider(
+            st.session_state.reduction_import_russia = st.slider(
                 "Reduktion russischer Erdgasimporte um",
                 min_value=100,
                 max_value=0,
-                value=reduction_import_russia,
+                value=int(st.session_state.reduction_import_russia * 100),
                 format=format_percent,
                 step=1,
             )
-        reduction_import_russia /= 100
+        st.session_state.reduction_import_russia /= 100
 
         if not compact:
             date_input_embargo = st.empty()
@@ -1197,7 +1217,7 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
                 st.session_state.import_stop_date.toordinal()
             )
 
-        return reduction_import_russia
+        # return reduction_import_russia
 
 
 def setting_storage(
@@ -1342,24 +1362,24 @@ def setting_statusQuo_demand(
 
 
 def message_embargo_compensation(
-    add_lng_import,
-    add_pl_import,
-    reduction_import_russia,
-    red_exp_dem,
-    red_elec_dem,
-    red_ind_dem,
-    red_ghd_dem,
-    red_dom_dem,
+    # add_lng_import,
+    # add_pl_import,
+    # reduction_import_russia,
+    # red_exp_dem,
+    # red_elec_dem,
+    # red_ind_dem,
+    # red_ghd_dem,
+    # red_dom_dem,
     status_quo_data,
 ):
     compensation = (
-        add_lng_import
-        + add_pl_import
-        + status_quo_data.total_exports_and_other * red_exp_dem
-        + status_quo_data.total_electricity_demand * red_elec_dem
-        + status_quo_data.total_industry_demand * red_ind_dem
-        + status_quo_data.total_ghd_demand * red_ghd_dem
-        + status_quo_data.total_domestic_demand * red_dom_dem
+        st.session_state.add_lng_import
+        + st.session_state.add_pl_import
+        + status_quo_data.total_exports_and_other * st.session_state.red_exp_dem
+        + status_quo_data.total_electricity_demand * st.session_state.red_elec_dem
+        + status_quo_data.total_industry_demand * st.session_state.red_ind_dem
+        + status_quo_data.total_ghd_demand * st.session_state.red_ghd_dem
+        + status_quo_data.total_domestic_demand * st.session_state.red_dom_dem
     )
     compensation = int(round(compensation, 0))
 
@@ -1369,23 +1389,23 @@ def message_embargo_compensation(
                 status_quo_data.total_pl_import_russia
                 + status_quo_data.total_lng_import_russia
             )
-            * reduction_import_russia,
+            * st.session_state.reduction_import_russia,
             0,
         )
     )
     delta = omitted - compensation
 
     if delta > 0:
-        rel_str = "**größer** als die"
+        rel_str = f"**{delta} TWh/a größer** als die"
         likely = ""
     elif delta < 0:
-        rel_str = "**kleiner** als die"
+        rel_str = f"**{-delta} TWh/a kleiner** als die"
         likely = "un"
     else:
         rel_str = "**gleich** der"
         likely = "un"
 
-    message = f"Der Wegfall russischer Erdgasimporte (**{omitted}** TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen (**{compensation}** TWh/a). Erzwungene **Abregelungen** von Erdgasbedarfen sind **{likely}wahrscheinlich**."
+    message = f"Der Wegfall russischer Erdgasimporte ({omitted} TWh/a) ist {rel_str} Kompensation durch zusätzliche LNG-Kapazitäten und Nachfragereduktionen ({compensation} TWh/a). Erzwungene Abregelungen von Erdgasbedarfen sind {likely} wahrscheinlich."
 
     if delta > 0:
         st.info(message)

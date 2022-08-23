@@ -1,50 +1,67 @@
-# %%
-from oauth2client.service_account import ServiceAccountCredentials
-from googleapiclient.discovery import build
 import pandas as pd
 import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
 import datetime
 import utils as ut
-import optimization as opti
-import base64
-import os
-import requests
-import streamlit.components.v1 as components
-import httplib2
-
-# from ga import get_ga_values
-
-# spacial scope
-
 import streamlit_elements as se
 
-
-# Default Dates
+# Default values
 if "demand_reduction_date" not in st.session_state:
     st.session_state.demand_reduction_date = datetime.datetime.now()
-
 if "import_stop_date" not in st.session_state:
-    st.session_state.import_stop_date = datetime.datetime.now() + datetime.timedelta(
-        weeks=4
-    )
-
+    st.session_state.import_stop_date = datetime.datetime.now()
 if "lng_increase_date" not in st.session_state:
-    st.session_state.lng_increase_date = datetime.datetime.now() + datetime.timedelta(
-        weeks=6
-    )
-
+    st.session_state.lng_increase_date = datetime.datetime.now()
 if "spacial_scope" not in st.session_state:
-    st.session_state.spacial_scope = "EU"  # EU DE
+    st.session_state.spacial_scope = "EU"
 
+# 10 %
+# if "red_ind_dem" not in st.session_state:
+#     st.session_state.red_ind_dem = 0.06
+# if "red_elec_dem" not in st.session_state:
+#     st.session_state.red_elec_dem = 0.13
+# if "red_ghd_dem" not in st.session_state:
+#     st.session_state.red_ghd_dem = 0.06
+# if "red_dom_dem" not in st.session_state:
+#     st.session_state.red_dom_dem = 0.10
+
+# 15 %
+if "red_ind_dem" not in st.session_state:
+    st.session_state.red_ind_dem = 0.09
+if "red_elec_dem" not in st.session_state:
+    st.session_state.red_elec_dem = 0.21
+if "red_ghd_dem" not in st.session_state:
+    st.session_state.red_ghd_dem = 0.09
+if "red_dom_dem" not in st.session_state:
+    st.session_state.red_dom_dem = 0.14
+
+# 20 %
+# if "red_ind_dem" not in st.session_state:
+#     st.session_state.red_ind_dem = 0.12
+# if "red_elec_dem" not in st.session_state:
+#     st.session_state.red_elec_dem = 0.28
+# if "red_ghd_dem" not in st.session_state:
+#     st.session_state.red_ghd_dem = 0.12
+# if "red_dom_dem" not in st.session_state:
+#     st.session_state.red_dom_dem = 0.19
+
+if "red_exp_dem" not in st.session_state:
+    st.session_state.red_exp_dem = 0.0
+if "add_lng_import" not in st.session_state:
+    st.session_state.add_lng_import = 390
+if "add_pl_import" not in st.session_state:
+    st.session_state.add_pl_import = 0
+if "reduction_import_russia" not in st.session_state:
+    st.session_state.reduction_import_russia = 1
+if "status_quo_data" not in st.session_state:
+    st.session_state.status_quo_data = se.setting_spacial_scope(
+        allow_region_selection=False
+    )
 
 # Default inputs
 if "df" not in st.session_state:
     st.session_state.df = pd.read_csv("static/results/default_results.csv", index_col=0)
 if "input_data" not in st.session_state:
     st.session_state.input_data = pd.read_csv("static/default_inputs.csv", index_col=0)
-
 
 # Streamlit App
 icon_dict = {"EU": "🇪🇺", "DE": "🇩🇪"}
@@ -54,7 +71,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",  # wide centered
 )
-
 
 hide_streamlit_style = """
             <style>
@@ -68,7 +84,6 @@ st.markdown("# NoStream: Erdgas Energy Dashboard")
 
 st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte")
 
-
 with st.sidebar:
     # Logo
     se.centered_fzj_logo()
@@ -81,18 +96,10 @@ with st.sidebar:
     status_quo_data = se.setting_spacial_scope(allow_region_selection=False)
 
     # Embargo
-    reduction_import_russia = se.setting_embargo()
+    eduction_import_russia = se.setting_embargo()
 
     # Compensation
-    (
-        red_ind_dem,
-        red_elec_dem,
-        red_ghd_dem,
-        red_dom_dem,
-        red_exp_dem,
-        add_lng_import,
-        add_pl_import,
-    ) = se.setting_compensation(status_quo_data)
+    se.setting_compensation(status_quo_data)
 
     # Storage
     # if "reserve_dates" not in st.session_state:
@@ -115,40 +122,18 @@ with st.sidebar:
     st.text("")
     se.sidebar_further_info()
 
-
 # Energiebilanz
 
 # Embargo und Kompensation
 cols = st.columns(2)
 
 # Importlücke
-se.plot_import_gap(
-    reduction_import_russia,
-    red_exp_dem,
-    red_dom_dem,
-    red_elec_dem,
-    red_ghd_dem,
-    red_ind_dem,
-    add_lng_import,
-    add_pl_import,
-    status_quo_data,
-    streamlit_object=cols[0],
-)
+se.plot_import_gap(status_quo_data, streamlit_object=cols[0])
 
 # Stauts Quo
 se.plot_status_quo(status_quo_data, streamlit_object=cols[1])
 
-se.message_embargo_compensation(
-    add_lng_import,
-    add_pl_import,
-    reduction_import_russia,
-    red_exp_dem,
-    red_elec_dem,
-    red_ind_dem,
-    red_ghd_dem,
-    red_dom_dem,
-    status_quo_data,
-)
+se.message_embargo_compensation(status_quo_data)
 
 scen_code = ut.get_scen_code(
     st.session_state.spacial_scope,
@@ -161,53 +146,42 @@ scen_code = ut.get_scen_code(
     status_quo_data.total_electricity_demand,
     status_quo_data.total_industry_demand,
     status_quo_data.total_exports_and_other,
-    red_dom_dem,
-    red_elec_dem,
-    red_ghd_dem,
-    red_ind_dem,
-    red_exp_dem,
+    st.session_state.red_dom_dem,
+    st.session_state.red_elec_dem,
+    st.session_state.red_ghd_dem,
+    st.session_state.red_ind_dem,
+    st.session_state.red_exp_dem,
     st.session_state.import_stop_date,
     st.session_state.demand_reduction_date,
     st.session_state.lng_increase_date,
-    reduction_import_russia,
-    add_lng_import,
-    add_pl_import,
+    st.session_state.reduction_import_russia,
+    st.session_state.add_lng_import,
+    st.session_state.add_pl_import,
     consider_gas_reserve,
 )
 
-
 st.markdown("## Optimierungsergebnisse")
 start_opti = st.button("Optimierung ausführen")
-
 
 if start_opti:
     # Optimization
     print(
         [
-            add_lng_import,
-            add_pl_import,
-            red_ind_dem,
-            red_elec_dem,
-            red_ghd_dem,
-            red_dom_dem,
-            red_exp_dem,
-            reduction_import_russia,
+            st.session_state.add_lng_import,
+            st.session_state.add_pl_import,
+            st.session_state.red_ind_dem,
+            st.session_state.red_elec_dem,
+            st.session_state.red_ghd_dem,
+            st.session_state.red_dom_dem,
+            st.session_state.red_exp_dem,
+            st.session_state.reduction_import_russia,
             consider_gas_reserve,
             status_quo_data,
         ]
     )
     try:
         st.session_state.df, st.session_state.input_data = se.start_optimization(
-            add_lng_import,
-            add_pl_import,
-            red_ind_dem,
-            red_elec_dem,
-            red_ghd_dem,
-            red_dom_dem,
-            red_exp_dem,
-            reduction_import_russia,
-            consider_gas_reserve,
-            status_quo_data,
+            consider_gas_reserve, status_quo_data,
         )
     except Exception as e:
         st.write(e)
