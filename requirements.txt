@@ -1,11 +1,10 @@
 numpy
 pandas
 openpyxl
-streamlit
+streamlit==1.10.0
 pyutilib
 plotly
 pyomo 
 google-api-python-client
 oauth2client
 eurostat
-tornado
