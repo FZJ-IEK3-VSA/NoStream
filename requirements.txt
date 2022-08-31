@@ -1,7 +1,7 @@
 numpy
 pandas
 openpyxl
-streamlit
+streamlit==1.10
 pyutilib
 plotly
 pyomo 
