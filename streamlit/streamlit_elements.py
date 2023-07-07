@@ -1193,8 +1193,8 @@ def setting_embargo(streamlit_object=st, expanded=False, compact=False):
         if not compact:
             st.session_state.reduction_import_russia = st.slider(
                 "Reduktion russischer Erdgasimporte um",
-                min_value=100,
-                max_value=0,
+                min_value=0,
+                max_value=100,
                 value=int(st.session_state.reduction_import_russia * 100),
                 format=format_percent,
                 step=1,
