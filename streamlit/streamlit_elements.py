@@ -69,18 +69,18 @@ class StatusQuoData:
         if spacial_scope == "DE":
 
             self.reserve_dates = [
-                datetime.datetime(2022, 8, 1, 0, 0),
-                datetime.datetime(2022, 10, 1, 0, 0),
-                datetime.datetime(2022, 12, 1, 0, 0),
+                # datetime.datetime(2022, 8, 1, 0, 0),
+                # datetime.datetime(2022, 10, 1, 0, 0),
+                # datetime.datetime(2022, 12, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
             ]
             reserve_soc_val_decimal = [0.65, 0.80, 0.90, 0.40]
         else:
             self.reserve_dates = [
                 # datetime.datetime(2022, 8, 1, 0, 0),
-                datetime.datetime(2022, 9, 1, 0, 0),
-                datetime.datetime(2022, 10, 1, 0, 0),
-                datetime.datetime(2022, 11, 1, 0, 0),
+                # datetime.datetime(2022, 9, 1, 0, 0),
+                # datetime.datetime(2022, 10, 1, 0, 0),
+                # datetime.datetime(2022, 11, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
                 datetime.datetime(2023, 5, 1, 0, 0),
                 datetime.datetime(2023, 7, 1, 0, 0),
@@ -103,8 +103,8 @@ def get_status_quo_data(spacial_scope):
 
 
 # Dates
-start_date = datetime.date(2022, 1, 1)
-end_date = datetime.date(2023, 7, 1)
+start_date = datetime.date(2023, 1, 1)
+end_date = datetime.date(2024, 7, 1)
 
 # Formats
 format_date = "DD.MM.YYYY"
@@ -1260,10 +1260,10 @@ def setting_storage(
                     cols = streamlit_object.columns(2)
 
                     month = 6 + num
-                    year = 2022
+                    year = 2023
                     if month > 12:
                         month = month - 12
-                        year = 2023
+                        year += 1
                     date = cols[0].date_input(
                         "Datum:",
                         key=f"date_{num}",

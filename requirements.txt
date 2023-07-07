@@ -1,7 +1,8 @@
 numpy
 pandas
 openpyxl
-streamlit
+altair==4.0
+streamlit==1.10.0
 pyutilib
 plotly
 pyomo 

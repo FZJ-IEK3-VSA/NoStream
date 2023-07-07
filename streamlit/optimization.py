@@ -27,9 +27,9 @@ def run_scenario(
     red_ghd_dem=0.08,
     red_ind_dem=0.08,
     red_exp_dem=0.0,
-    import_stop_date=datetime.datetime(2022, 4, 16, 0, 0),
-    demand_reduction_date=datetime.datetime(2022, 3, 16, 0, 0),
-    lng_increase_date=datetime.datetime(2022, 5, 1, 0, 0),
+    import_stop_date=datetime.datetime(2023, 4, 16, 0, 0),
+    demand_reduction_date=datetime.datetime(2023, 3, 16, 0, 0),
+    lng_increase_date=datetime.datetime(2023, 5, 1, 0, 0),
     add_lng_import=965,
     add_pl_import=0,
     reduction_import_russia=1,
@@ -82,8 +82,8 @@ def run_scenario(
         demand_reduct = False
 
     # Start date of the observation period
-    start_date = "2022-01-01"
-    datetime_start = datetime.datetime(2022, 1, 1, 0, 0)
+    start_date = "2023-01-01"
+    datetime_start = datetime.datetime(2023, 1, 1, 0, 0)
     periods_per_year = 8760  # [h/a]
     number_periods = periods_per_year * 1.5
 
@@ -119,13 +119,13 @@ def run_scenario(
 
     # Time index uncurtailed demand
     time_index_uncurtailed_demand = pd.date_range(
-        start="2022-01-01 00:00:00", end=datetime.datetime.now(), freq="H",
+        start="2023-01-01 00:00:00", end=datetime.datetime.now(), freq="H",
     )
 
     # Time index increased lng
     time_index_lng_increased = pd.date_range(
         start=lng_increase_date + datetime.timedelta(hours=1),
-        end="2023-07-02 11:00:00",
+        end="2024-06-30 23:00:00",
         freq="H",
     )
     time_index_pl_increased = time_index_lng_increased.copy()

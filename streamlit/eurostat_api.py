@@ -29,19 +29,17 @@ def get_eurostat_data(year, spacial_scope, nrg_bal, siec="G3000", unit="KTOE"):
     assert isinstance(nrg_bal_list, list), "nrg_bal must be a list or a string"
 
     filter_pars = {
-        "GEO": [spacial_scope],
-        "SIEC": [siec],
-        "UNIT": [unit],
-        "NRG_BAL": nrg_bal_list,
+        "nrg_bal": nrg_bal_list,
+        "siec": [siec],
+        "unit": [unit],
+        "geo": [spacial_scope],
     }
 
     table = "nrg_bal_sd"  # Sankey diagram natural gas
-    data = eurostat.get_sdmx_data_df(
-        table, year, year, filter_pars, flags=False, verbose=False
-    )
+    data = eurostat.get_data_df(table, filter_pars=filter_pars)
 
     # convert str to float
-    data.loc[:, year] = data.loc[:, year].astype(float)
+    data.loc[:, year] = data.loc[:, str(year)].astype(float)
 
     value = data.loc[:, year].sum()
 
@@ -167,17 +165,17 @@ def natural_gas_import(spacial_scope, commodity, partner, unit="TJ_GCV", year=20
     TJ_to_TWH = 1 / 3600  # TWh/TJ
 
     filter_pars = {
-        "GEO": [spacial_scope],
-        "SIEC": [siec_dict.get(commodity)],
-        "UNIT": [unit],
-        "PARTNER": partner_list,
+        "siec": [siec_dict.get(commodity)],
+        "partner": partner_list,
+        "unit": [unit],
+        "geo": [spacial_scope],
     }
 
     table = "nrg_ti_gas"
-    data = eurostat.get_sdmx_data_df(
-        table, year, year, filter_pars, flags=False, verbose=False
-    )
+    data = eurostat.get_data_df(table, filter_pars=filter_pars)
 
+    # convert str to float
+    data.loc[:, year] = data.loc[:, str(year)].astype(float)
     data.loc[:, year] = data.loc[:, year].astype(float)
 
     value = data[year].sum()
