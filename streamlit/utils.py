@@ -70,7 +70,6 @@ def get_fzjColor():
 def download_df(
     object_to_download, download_filename, download_link_text, streamlit_obj=None
 ):
-
     if isinstance(object_to_download, pd.DataFrame):
         object_to_download = object_to_download.to_csv()
     b64 = base64.b64encode(object_to_download.encode()).decode()

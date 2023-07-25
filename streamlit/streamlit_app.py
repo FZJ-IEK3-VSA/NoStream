@@ -181,7 +181,8 @@ if start_opti:
     )
     try:
         st.session_state.df, st.session_state.input_data = se.start_optimization(
-            consider_gas_reserve, status_quo_data,
+            consider_gas_reserve,
+            status_quo_data,
         )
     except Exception as e:
         st.write(e)

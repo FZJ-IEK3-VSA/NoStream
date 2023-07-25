@@ -13,6 +13,7 @@ FZJcolor = ut.get_fzjColor()
 legend_dict = dict(orientation="h", yanchor="top", y=-0.12, xanchor="center", x=0.5)
 font_dict = dict(size=16)
 
+
 # Energy demands
 class StatusQuoData:
     def __init__(self, spacial_scope):
@@ -67,12 +68,15 @@ class StatusQuoData:
             self.storage_capacity = 0.001
 
         if spacial_scope == "DE":
-
             self.reserve_dates = [
-                # datetime.datetime(2022, 8, 1, 0, 0),
-                # datetime.datetime(2022, 10, 1, 0, 0),
-                # datetime.datetime(2022, 12, 1, 0, 0),
+                datetime.datetime(2022, 8, 1, 0, 0),
+                datetime.datetime(2022, 10, 1, 0, 0),
+                datetime.datetime(2022, 12, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
+                # datetime.datetime(2023, 8, 1, 0, 0),
+                # datetime.datetime(2023, 10, 1, 0, 0),
+                # datetime.datetime(2023, 12, 1, 0, 0),
+                # datetime.datetime(2024, 2, 1, 0, 0),
             ]
             reserve_soc_val_decimal = [0.65, 0.80, 0.90, 0.40]
         else:
@@ -81,12 +85,48 @@ class StatusQuoData:
                 # datetime.datetime(2022, 9, 1, 0, 0),
                 # datetime.datetime(2022, 10, 1, 0, 0),
                 # datetime.datetime(2022, 11, 1, 0, 0),
+                # datetime.datetime(2023, 2, 1, 0, 0),
+                # datetime.datetime(2023, 5, 1, 0, 0),
+                # datetime.datetime(2023, 7, 1, 0, 0),
+                datetime.datetime(2022, 9, 1, 0, 0),
+                datetime.datetime(2022, 10, 1, 0, 0),
+                datetime.datetime(2022, 11, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
                 datetime.datetime(2023, 5, 1, 0, 0),
                 datetime.datetime(2023, 7, 1, 0, 0),
+                datetime.datetime(2023, 9, 1, 0, 0), #neu
+                datetime.datetime(2023, 10, 1, 0, 0), #neu
+                datetime.datetime(2023, 11, 1, 0, 0), #neu
+                datetime.datetime(2024, 2, 1, 0, 0), #neu
+                datetime.datetime(2024, 5, 1, 0, 0), #neu
+                datetime.datetime(2024, 7, 1, 0, 0), #neu
+
+                
             ]
             # reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
-            reserve_soc_val_decimal = [0.619, 0.738, 0.80, 0.429, 0.342, 0.529]
+            # reserve_soc_val_decimal = [0.619, 0.738, 0.80, 0.429, 0.342, 0.529]
+            reserve_soc_val_decimal = [
+                0.619, 
+                0.738, 
+                0.80, 
+                # 0.429, #alt
+                # 0.342, # alt
+                # 0.529, # alt
+                # 0.619, # alt
+                0.4, # neu
+                0.1, # neu
+                0.3, # neu
+                0.65,# neu
+                0.738,
+                0.80,
+                # 0.429, #alt
+                # 0.342, # alt
+                # 0.529, # alt
+                0.4, # neu
+                0.1, # neu
+                0.3, # neu
+                ]
+
         reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val_decimal]
 
         self.reserve_soc_val_abs = [
@@ -103,7 +143,7 @@ def get_status_quo_data(spacial_scope):
 
 
 # Dates
-start_date = datetime.date(2023, 1, 1)
+start_date = datetime.date(2022, 1, 1)
 end_date = datetime.date(2024, 7, 1)
 
 # Formats
@@ -614,7 +654,8 @@ def add_dates(fig):
 
 # @st.experimental_memo(show_spinner=False)
 def getFig_optimization_results(
-    df, status_quo_data,
+    df,
+    status_quo_data,
 ):
     # df_og = df.copy()
     # Prevent flickering at the beginning
@@ -1188,7 +1229,6 @@ def setting_spacial_scope(
 
 def setting_embargo(streamlit_object=st, expanded=False, compact=False):
     with streamlit_object.expander("Embargo", expanded=expanded):
-
         # reduction_import_russia = 100
         if not compact:
             st.session_state.reduction_import_russia = st.slider(
@@ -1235,7 +1275,7 @@ def setting_storage(
         if not compact:
             cols = streamlit_object.columns(2)
             consider_gas_reserve = streamlit_object.checkbox(
-                "Füllstandvorgabe berücksichtigen³", value=True
+                "Füllstandvorgabe berücksichtigen³", value=False
             )
             # consider_gas_reserve = cols[0].checkbox("Füllstand vorgeben³", value=False)
 
@@ -1295,7 +1335,10 @@ def setting_storage(
 
 
 def setting_statusQuo_supply(
-    status_quo_data, streamlit_object=st, expanded=False, compact=False,
+    status_quo_data,
+    streamlit_object=st,
+    expanded=False,
+    compact=False,
 ):
     with streamlit_object.expander("Versorgung", expanded=expanded):
         st.metric(
@@ -1330,7 +1373,10 @@ def setting_statusQuo_supply(
 
 
 def setting_statusQuo_demand(
-    status_quo_data, streamlit_object=st, expanded=False, compact=False,
+    status_quo_data,
+    streamlit_object=st,
+    expanded=False,
+    compact=False,
 ):
     with streamlit_object.expander("Bedarfe", expanded=expanded):
         st.metric(

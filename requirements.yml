@@ -1,0 +1,13 @@
+dependencies:
+- numpy
+- pandas
+- openpyxl
+- altair=4.0
+- streamlit=1.10.0
+- pyutilib
+- plotly
+- pyomo 
+- google-api-python-client
+- oauth2client
+- tornado
+- noemicazzaniga::eurostat=1.0.3

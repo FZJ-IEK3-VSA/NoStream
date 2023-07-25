@@ -8,5 +8,5 @@ plotly
 pyomo 
 google-api-python-client
 oauth2client
-eurostat
+eurostat==1.0.3
 tornado

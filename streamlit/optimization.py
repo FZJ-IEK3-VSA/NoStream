@@ -82,24 +82,26 @@ def run_scenario(
         demand_reduct = False
 
     # Start date of the observation period
-    start_date = "2023-01-01"
-    datetime_start = datetime.datetime(2023, 1, 1, 0, 0)
+    start_date = datetime.datetime(2022, 1, 1, 0, 0)
     periods_per_year = 8760  # [h/a]
-    number_periods = periods_per_year * 1.5
+    number_periods = periods_per_year * 2.5
+    end_date = start_date + datetime.timedelta(hours=number_periods - 1)
+    print(start_date)
+    print(end_date)
 
     # Time index defualt
     time_index = pd.date_range(start_date, periods=number_periods, freq="H")
 
     # Time index till today, no optimization (fix)
-    end_date = datetime.datetime.today()
-    timedelta = end_date - datetime_start
-    number_periods_fix = (timedelta.days + 1) * 24
-    time_index_fix = pd.date_range(start_date, periods=number_periods_fix, freq="H")
+    end_date_fix = datetime.datetime.today()
+    timedelta_fix = end_date_fix - start_date
+    number_periods_fix = (timedelta_fix.days + 1) * 24
+    # time_index_fix = pd.date_range(start_date, periods=number_periods_fix, freq="H")
 
     # Time index import stop
     time_index_pl_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
-        end="2023-07-02 11:00:00",
+        end=end_date,
         freq="H",
     )
     time_index_lng_red = time_index_pl_red.copy()
@@ -113,19 +115,21 @@ def run_scenario(
     # Time index reduced demand
     time_index_demand_red = pd.date_range(
         start=demand_reduction_date + datetime.timedelta(hours=1),
-        end="2023-07-02 11:00:00",
+        end=end_date,
         freq="H",
     )
 
     # Time index uncurtailed demand
     time_index_uncurtailed_demand = pd.date_range(
-        start="2023-01-01 00:00:00", end=datetime.datetime.now(), freq="H",
+        start=start_date,
+        end=datetime.datetime.now(),
+        freq="H",
     )
 
     # Time index increased lng
     time_index_lng_increased = pd.date_range(
         start=lng_increase_date + datetime.timedelta(hours=1),
-        end="2024-06-30 23:00:00",
+        end=end_date,
         freq="H",
     )
     time_index_pl_increased = time_index_lng_increased.copy()
@@ -137,7 +141,8 @@ def run_scenario(
 
     # split and recombine to extend to 1.5 years timeframe
     h1, h2 = np.split(ts_vol, [int(0.5 * periods_per_year)])
-    ts_vol = np.concatenate((ts_vol, h1))
+    # ts_vol = np.concatenate((ts_vol, h1))
+    ts_vol = np.concatenate((ts_vol, ts_vol, h1))
     ts_const = np.ones_like(ts_vol) * 1 / periods_per_year
 
     # Setup initial demand timeseries
@@ -191,7 +196,10 @@ def run_scenario(
     # Pipeline Supply
     total_pl_import = total_ng_import - total_lng_import
 
-    plImp = pd.Series(ts_const * (total_pl_import), index=time_index,)
+    plImp = pd.Series(
+        ts_const * (total_pl_import),
+        index=time_index,
+    )
 
     plImp_red = pd.Series(
         ts_const * (total_pl_import - reduction_import_russia * total_pl_import_russia),
@@ -345,32 +353,32 @@ def run_scenario(
     def Objective_rule(pyM):
         return (
             -0.5 / len(domDem) * sum(pyM.Soc[t] for t in pyM.TimeSet) / storage_capacity
-            + 1 * sum(fac ** t * pyM.Soc_slack[t] for t in timeSteps[:-1])
-            + 1 * sum(fac ** t * pyM.slackServed[t] for t in timeSteps[:-1])
-            - 1 * sum(fac ** t * pyM.slackNegServed[t] for t in timeSteps[:-1])
+            + 1 * sum(fac**t * pyM.Soc_slack[t] for t in timeSteps[:-1])
+            + 1 * sum(fac**t * pyM.slackServed[t] for t in timeSteps[:-1])
+            - 1 * sum(fac**t * pyM.slackNegServed[t] for t in timeSteps[:-1])
             + 3.0
             * sum(
-                fac ** t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
+                fac**t * (exp_n_oth.iloc[t] - pyM.expAndOtherServed[t])
                 for t in timeSteps[:-1]
             )
             + 2.5
             * sum(
-                fac ** t * (domDem.iloc[t] - pyM.domDemServed[t])
+                fac**t * (domDem.iloc[t] - pyM.domDemServed[t])
                 for t in timeSteps[:-1]
             )
             + 2.5
             * sum(
-                fac ** t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
+                fac**t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
                 for t in timeSteps[:-1]
             )
             + 2
             * sum(
-                fac ** t * (elecDem.iloc[t] - pyM.elecDemServed[t])
+                fac**t * (elecDem.iloc[t] - pyM.elecDemServed[t])
                 for t in timeSteps[:-1]
             )
             + 1.5
             * sum(
-                fac ** t * (indDem.iloc[t] - pyM.indDemServed[t])
+                fac**t * (indDem.iloc[t] - pyM.indDemServed[t])
                 for t in timeSteps[:-1]
             )
         )
@@ -423,7 +431,7 @@ def run_scenario(
     # Gas reserve
     if consider_gas_reserve:
         # reserve_soc_val = reserve_dates
-        reserve_dates = [x - datetime_start for x in reserve_dates]
+        reserve_dates = [x - start_date for x in reserve_dates]
         reserve_dates = [x.days for x in reserve_dates]
         reserve_dates = [timeSteps[(x) * 24] for x in reserve_dates]
         reserve_soc_dict = dict(zip(reserve_dates, reserve_soc_val))

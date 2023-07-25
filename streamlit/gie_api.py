@@ -7,6 +7,7 @@ import json
 
 # GCV_to_LCV = 1.1107
 
+
 def fetch(session, url, payload, headers):
     try:
         result = session.get(url, params=payload, headers=headers)
@@ -60,7 +61,6 @@ def api_call(spacial_scope, start_day, end_day):
 
 @st.experimental_memo(show_spinner=False)
 def get_storage_capacity(spacial_scope, today):
-
     start_day = datetime.date(today.year, 1, 1)
     end_day = today.date() - datetime.timedelta(days=2)
 
@@ -81,7 +81,7 @@ def get_storage_capacity(spacial_scope, today):
     # convert to list
     soc_fix_hour = soc_fix_hour.tolist()
 
-    return soc_fix_hour # unit TWh GCV
+    return soc_fix_hour  # unit TWh GCV
 
 
 @st.experimental_memo(show_spinner=False)
@@ -96,4 +96,4 @@ def get_max_storage_capacity(spacial_scope):
 
     max_storage_capacity = wgv.mean()
 
-    return max_storage_capacity # unit TWh GCV
+    return max_storage_capacity  # unit TWh GCV
