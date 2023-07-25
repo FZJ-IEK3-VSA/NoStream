@@ -66,15 +66,6 @@ def run_scenario(
     ############            Preprocessing/Input generation             ############
     ###############################################################################
 
-    # Storage
-    print(80 * "=")
-    print("Obtaining storage levels...")
-    print(80 * "=")
-
-    today = datetime.datetime.today()
-    soc_max_hour = gie_api.get_storage_capacity(
-        spacial_scope, today
-    )  # get_storage_capacity()
 
     if red_dom_dem + red_elec_dem + red_ghd_dem + red_ind_dem + red_exp_dem > 0:
         demand_reduct = True
@@ -88,6 +79,16 @@ def run_scenario(
     end_date = start_date + datetime.timedelta(hours=number_periods - 1)
     print(start_date)
     print(end_date)
+
+    # Storage
+    print(80 * "=")
+    print("Obtaining storage levels...")
+    print(80 * "=")
+
+    # today = datetime.datetime.today()
+    soc_max_hour = gie_api.get_storage_capacity(
+        spacial_scope, start_date
+    )  # get_storage_capacity()
 
     # Time index defualt
     time_index = pd.date_range(start_date, periods=number_periods, freq="H")

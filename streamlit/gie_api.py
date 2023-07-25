@@ -60,11 +60,12 @@ def api_call(spacial_scope, start_day, end_day):
 
 
 @st.experimental_memo(show_spinner=False)
-def get_storage_capacity(spacial_scope, today):
-    start_day = datetime.date(today.year, 1, 1)
-    end_day = today.date() - datetime.timedelta(days=2)
+def get_storage_capacity(spacial_scope, start_date):
+    # start_day = datetime.date(2022, 1, 1)
+    today = datetime.datetime.today()
+    end_date = today.date() - datetime.timedelta(days=2)
 
-    data_df = api_call(spacial_scope, start_day, end_day)
+    data_df = api_call(spacial_scope, start_date, end_date)
 
     soc_fix_day = data_df.gasInStorage.astype(float)
 
