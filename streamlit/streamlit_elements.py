@@ -100,8 +100,6 @@ class StatusQuoData:
                 datetime.datetime(2024, 2, 1, 0, 0), #neu
                 datetime.datetime(2024, 5, 1, 0, 0), #neu
                 datetime.datetime(2024, 7, 1, 0, 0), #neu
-
-                
             ]
             # reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
             # reserve_soc_val_decimal = [0.619, 0.738, 0.80, 0.429, 0.342, 0.529]
@@ -144,7 +142,7 @@ def get_status_quo_data(spacial_scope):
 
 # Dates
 start_date = datetime.date(2022, 1, 1)
-end_date = datetime.date(2024, 7, 1)
+end_date = datetime.date(2025, 7, 1)
 
 # Formats
 format_date = "DD.MM.YYYY"
