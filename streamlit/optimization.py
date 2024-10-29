@@ -12,6 +12,8 @@ import gie_api
 
 @st.experimental_memo(show_spinner=False)
 def run_scenario(
+    start_date,
+    end_date,
     total_ng_import=4190,
     total_pl_import_russia=1752,
     total_ng_production=608,
@@ -66,17 +68,20 @@ def run_scenario(
     ############            Preprocessing/Input generation             ############
     ###############################################################################
 
-
     if red_dom_dem + red_elec_dem + red_ghd_dem + red_ind_dem + red_exp_dem > 0:
         demand_reduct = True
     else:
         demand_reduct = False
 
     # Start date of the observation period
-    start_date = datetime.datetime(2022, 1, 1, 0, 0)
+    # start_date = datetime.datetime(2022, 1, 1, 0, 0)
     periods_per_year = 8760  # [h/a]
-    number_periods = periods_per_year * 2.5
-    end_date = start_date + datetime.timedelta(hours=number_periods - 1)
+    # number_periods = periods_per_year * 3.5
+    duration = end_date - start_date
+    number_periods = duration.days * 24
+    num_full_years = int(number_periods / 8760)
+    hours_in_uncomplete_year = number_periods % 8760 + 1
+    # end_date = start_date + datetime.timedelta(hours=number_periods - 1)
     print(start_date)
     print(end_date)
 
@@ -91,59 +96,61 @@ def run_scenario(
     )  # get_storage_capacity()
 
     # Time index defualt
-    time_index = pd.date_range(start_date, periods=number_periods, freq="H")
+    # time_index = pd.date_range(start_date, periods=number_periods, freq="h")
+    time_index = pd.date_range(start_date, end=end_date, freq="h")
 
     # Time index till today, no optimization (fix)
     end_date_fix = datetime.datetime.today()
     timedelta_fix = end_date_fix - start_date
     number_periods_fix = (timedelta_fix.days + 1) * 24
-    # time_index_fix = pd.date_range(start_date, periods=number_periods_fix, freq="H")
+    # time_index_fix = pd.date_range(start_date, periods=number_periods_fix, freq="h")
 
     # Time index import stop
     time_index_pl_red = pd.date_range(
         start=import_stop_date + datetime.timedelta(hours=1),
         end=end_date,
-        freq="H",
+        freq="h",
     )
     time_index_lng_red = time_index_pl_red.copy()
 
     # Time index slack stop
     # TODO dynamically adapt to storage data
     time_index_slack = pd.date_range(
-        start_date, periods=len(soc_max_hour) - 1, freq="H"
+        start_date, periods=len(soc_max_hour) - 1, freq="h"
     )
 
     # Time index reduced demand
     time_index_demand_red = pd.date_range(
         start=demand_reduction_date + datetime.timedelta(hours=1),
         end=end_date,
-        freq="H",
+        freq="h",
     )
 
     # Time index uncurtailed demand
     time_index_uncurtailed_demand = pd.date_range(
         start=start_date,
         end=datetime.datetime.now(),
-        freq="H",
+        freq="h",
     )
 
     # Time index increased lng
     time_index_lng_increased = pd.date_range(
         start=lng_increase_date + datetime.timedelta(hours=1),
         end=end_date,
-        freq="H",
+        freq="h",
     )
     time_index_pl_increased = time_index_lng_increased.copy()
 
     # Normalized volatile timeseries
-    ts_vol = (
+    ts_vol_year = (
         pd.read_csv("static/Optimization/ts_normalized.csv")["Private Haushalte"]
     ).values
 
     # split and recombine to extend to 1.5 years timeframe
-    h1, h2 = np.split(ts_vol, [int(0.5 * periods_per_year)])
+    h1, h2 = np.split(ts_vol_year, [hours_in_uncomplete_year])
     # ts_vol = np.concatenate((ts_vol, h1))
-    ts_vol = np.concatenate((ts_vol, ts_vol, h1))
+    # ts_vol = np.concatenate((ts_vol_year, ts_vol, ts_vol, h1))
+    ts_vol = np.concatenate([ts_vol_year] * num_full_years + [h1])
     ts_const = np.ones_like(ts_vol) * 1 / periods_per_year
 
     # Setup initial demand timeseries
@@ -364,13 +371,11 @@ def run_scenario(
             )
             + 2.5
             * sum(
-                fac**t * (domDem.iloc[t] - pyM.domDemServed[t])
-                for t in timeSteps[:-1]
+                fac**t * (domDem.iloc[t] - pyM.domDemServed[t]) for t in timeSteps[:-1]
             )
             + 2.5
             * sum(
-                fac**t * (ghdDem.iloc[t] - pyM.ghdDemServed[t])
-                for t in timeSteps[:-1]
+                fac**t * (ghdDem.iloc[t] - pyM.ghdDemServed[t]) for t in timeSteps[:-1]
             )
             + 2
             * sum(
@@ -379,8 +384,7 @@ def run_scenario(
             )
             + 1.5
             * sum(
-                fac**t * (indDem.iloc[t] - pyM.indDemServed[t])
-                for t in timeSteps[:-1]
+                fac**t * (indDem.iloc[t] - pyM.indDemServed[t]) for t in timeSteps[:-1]
             )
         )
 

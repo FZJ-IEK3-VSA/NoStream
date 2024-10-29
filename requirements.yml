@@ -1,5 +1,5 @@
 dependencies:
-- numpy
+- numpy=1.26
 - pandas
 - openpyxl
 - altair=4.0

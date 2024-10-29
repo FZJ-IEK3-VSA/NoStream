@@ -73,57 +73,55 @@ class StatusQuoData:
                 datetime.datetime(2022, 10, 1, 0, 0),
                 datetime.datetime(2022, 12, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
-                # datetime.datetime(2023, 8, 1, 0, 0),
-                # datetime.datetime(2023, 10, 1, 0, 0),
-                # datetime.datetime(2023, 12, 1, 0, 0),
-                # datetime.datetime(2024, 2, 1, 0, 0),
             ]
             reserve_soc_val_decimal = [0.65, 0.80, 0.90, 0.40]
         else:
             self.reserve_dates = [
-                # datetime.datetime(2022, 8, 1, 0, 0),
-                # datetime.datetime(2022, 9, 1, 0, 0),
-                # datetime.datetime(2022, 10, 1, 0, 0),
-                # datetime.datetime(2022, 11, 1, 0, 0),
-                # datetime.datetime(2023, 2, 1, 0, 0),
-                # datetime.datetime(2023, 5, 1, 0, 0),
-                # datetime.datetime(2023, 7, 1, 0, 0),
+                datetime.datetime(2022, 2, 1, 0, 0),
+                datetime.datetime(2022, 5, 1, 0, 0),
+                datetime.datetime(2022, 7, 1, 0, 0),
                 datetime.datetime(2022, 9, 1, 0, 0),
                 datetime.datetime(2022, 10, 1, 0, 0),
                 datetime.datetime(2022, 11, 1, 0, 0),
                 datetime.datetime(2023, 2, 1, 0, 0),
                 datetime.datetime(2023, 5, 1, 0, 0),
                 datetime.datetime(2023, 7, 1, 0, 0),
-                datetime.datetime(2023, 9, 1, 0, 0), #neu
-                datetime.datetime(2023, 10, 1, 0, 0), #neu
-                datetime.datetime(2023, 11, 1, 0, 0), #neu
-                datetime.datetime(2024, 2, 1, 0, 0), #neu
-                datetime.datetime(2024, 5, 1, 0, 0), #neu
-                datetime.datetime(2024, 7, 1, 0, 0), #neu
+                datetime.datetime(2023, 9, 1, 0, 0),
+                datetime.datetime(2023, 10, 1, 0, 0),
+                datetime.datetime(2023, 11, 1, 0, 0),
+                datetime.datetime(2024, 2, 1, 0, 0),
+                datetime.datetime(2024, 5, 1, 0, 0),
+                datetime.datetime(2024, 7, 1, 0, 0),
+                datetime.datetime(2024, 9, 1, 0, 0),
+                datetime.datetime(2024, 10, 1, 0, 0),
+                datetime.datetime(2024, 11, 1, 0, 0),
+                datetime.datetime(2025, 2, 1, 0, 0),
+                datetime.datetime(2025, 5, 1, 0, 0),
+                datetime.datetime(2025, 7, 1, 0, 0),
             ]
-            # reserve_soc_val_decimal = [0.63, 0.68, 0.74, 0.80, 0.43, 0.33, 0.52]
-            # reserve_soc_val_decimal = [0.619, 0.738, 0.80, 0.429, 0.342, 0.529]
             reserve_soc_val_decimal = [
-                0.619, 
-                0.738, 
-                0.80, 
-                # 0.429, #alt
-                # 0.342, # alt
-                # 0.529, # alt
-                # 0.619, # alt
-                0.4, # neu
-                0.1, # neu
-                0.3, # neu
-                0.65,# neu
+                0.4,
+                0.1,
+                0.3,
+                0.619,
                 0.738,
                 0.80,
-                # 0.429, #alt
-                # 0.342, # alt
-                # 0.529, # alt
-                0.4, # neu
-                0.1, # neu
-                0.3, # neu
-                ]
+                0.4,
+                0.1,
+                0.3,
+                0.65,
+                0.738,
+                0.80,
+                0.4,
+                0.1,
+                0.3,
+                0.65,
+                0.738,
+                0.80,
+                0.4,
+                0.1,
+                0.3,
+            ]
 
         reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val_decimal]
 
@@ -141,8 +139,8 @@ def get_status_quo_data(spacial_scope):
 
 
 # Dates
-start_date = datetime.date(2022, 1, 1)
-end_date = datetime.date(2025, 7, 1)
+start_date = datetime.datetime(2021, 1, 1)
+end_date = datetime.datetime(2025, 7, 1)
 
 # Formats
 format_date = "DD.MM.YYYY"
@@ -232,6 +230,8 @@ def start_optimization(
     ):
         try:
             df, input_data = opti.run_scenario(
+                start_date,
+                end_date,
                 total_ng_import=status_quo_data.total_ng_import,
                 total_pl_import_russia=status_quo_data.total_pl_import_russia,
                 total_ng_production=status_quo_data.total_ng_production,
@@ -706,7 +706,7 @@ def getFig_optimization_results(
             legendgroup="bedarf",
             name="Haushalte",
             mode="none",
-            fillcolor=FZJcolor.get("green")
+            fillcolor=FZJcolor.get("green"),
             # marker=marker_dict,
         )
     )
@@ -1298,7 +1298,7 @@ def setting_storage(
                     cols = streamlit_object.columns(2)
 
                     month = 6 + num
-                    year = 2023
+                    year = 2025
                     if month > 12:
                         month = month - 12
                         year += 1
