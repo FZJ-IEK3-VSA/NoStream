@@ -86,7 +86,7 @@ st.markdown("### Sichere Energie für Europa (EU27) ohne russische Erdgasimporte
 
 with st.sidebar:
     # Logo
-    se.centered_fzj_logo()
+    se.centered_fzj_logo_top()
     st.text("")
 
     # Settings
@@ -207,5 +207,5 @@ if start_opti:
 
 st.text("")
 st.text("")
-se.centered_fzj_logo()
+se.centered_fzj_logo_bottom()
 st.text("")

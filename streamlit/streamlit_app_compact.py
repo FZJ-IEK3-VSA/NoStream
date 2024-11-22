@@ -33,7 +33,7 @@ st.markdown("# NoStream: Erdgas Energy Dashboard")
 
 with st.sidebar:
     # Logo
-    se.centered_fzj_logo()
+    se.centered_fzj_logo_top()
 
     st.text("")
 

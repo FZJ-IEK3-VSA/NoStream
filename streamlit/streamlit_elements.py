@@ -162,14 +162,21 @@ def load_lottieurl(url: str):
     return r.json()
 
 
-def centered_fzj_logo():
+def centered_fzj_logo_top():
     svg_image = (
-        r'<center><a href="https://www.fz-juelich.de/de/ice/ice-2">'
-        + ut.render_svg("./static/logo_ice_2.svg")
-        + r"</a> </center>"
+        r'<a href="https://www.fz-juelich.de/de/ice/ice-2">'
+        + ut.render_svg("./static/logo_ice_2_top.svg")
+        + r"</a>"
     )
     st.write(svg_image, unsafe_allow_html=True)
 
+def centered_fzj_logo_bottom():
+    svg_image = (
+        r'<center><a href="https://www.fz-juelich.de/de/ice/ice-2">'
+        + ut.render_svg("./static/logo_ice_2_bottom.svg")
+        + r"</a> </center>"
+    )
+    st.write(svg_image, unsafe_allow_html=True)
 
 def sidebar_further_info():
     st.markdown(
