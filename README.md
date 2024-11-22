@@ -1,7 +1,7 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://no-stream.fz-juelich.de/)
 
 
-[![Forschungszentrum Juelich Logo](./static/FJZ_IEK-3.svg)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)
+[![Forschungszentrum Juelich Logo](./static/logo_ice_2.svg)](https://www.fz-juelich.de/iek/iek-3/DE/Home/home_node.html)
 
 # Wie sicher ist die Energieversorgung ohne russisches Erdgas?
 
