@@ -436,6 +436,8 @@ def run_scenario(
     # Gas reserve
     if consider_gas_reserve:
         # reserve_soc_val = reserve_dates
+        # # remove dates that are after end_date
+        reserve_dates = [x for x in reserve_dates if x <= end_date]
         reserve_dates = [x - start_date for x in reserve_dates]
         reserve_dates = [x.days for x in reserve_dates]
         reserve_dates = [timeSteps[(x) * 24] for x in reserve_dates]

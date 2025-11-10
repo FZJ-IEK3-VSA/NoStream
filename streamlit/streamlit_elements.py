@@ -98,6 +98,10 @@ class StatusQuoData:
                 datetime.datetime(2025, 2, 1, 0, 0),
                 datetime.datetime(2025, 5, 1, 0, 0),
                 datetime.datetime(2025, 7, 1, 0, 0),
+                datetime.datetime(2025, 11, 1, 0, 0),
+                datetime.datetime(2026, 11, 1, 0, 0),
+                datetime.datetime(2027, 11, 1, 0, 0),
+                datetime.datetime(2028, 11, 1, 0, 0),
             ]
             reserve_soc_val_decimal = [
                 0.4,
@@ -121,6 +125,10 @@ class StatusQuoData:
                 0.4,
                 0.1,
                 0.3,
+                0.9, # for 2025: https://eur-lex.europa.eu/eli/reg_impl/2024/2995/oj
+                0.9,
+                0.9,
+                0.9,
             ]
 
         reserve_soc_val_percent = [int(x * 100) for x in reserve_soc_val_decimal]
@@ -140,7 +148,7 @@ def get_status_quo_data(spacial_scope):
 
 # Dates
 start_date = datetime.datetime(2021, 1, 1)
-end_date = datetime.datetime(2025, 7, 1)
+end_date = datetime.datetime.combine(datetime.date.today(), datetime.time()) + datetime.timedelta(days=365) # today + 1 year. to prevent current date from being out of range
 
 # Formats
 format_date = "DD.MM.YYYY"
@@ -1305,7 +1313,7 @@ def setting_storage(
                     cols = streamlit_object.columns(2)
 
                     month = 6 + num
-                    year = 2025
+                    year = datetime.datetime.now().year
                     if month > 12:
                         month = month - 12
                         year += 1
