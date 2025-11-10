@@ -1,13 +1,14 @@
 dependencies:
 - numpy=1.26
-- pandas
+- pandas<2
 - openpyxl
 - altair=4.0
 - streamlit=1.10.0
 - pyutilib
-- plotly
+- plotly<5.18
 - pyomo 
 - google-api-python-client
 - oauth2client
 - tornado
 - noemicazzaniga::eurostat=1.0.3
+- python=3.10
